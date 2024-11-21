@@ -1,4 +1,6 @@
 import Sidenav from '@/app/ui/sidenav/sidenav';
+import { ERole } from '@/entity/enums/ERole';
+import { withAuth } from '@/feature/auth';
 import { NextPage } from 'next';
 import React from 'react';
 
@@ -6,7 +8,9 @@ interface Props {
   children: React.ReactNode;
 }
 
-const EmployeeLayout: NextPage<Props> = ({ children }) => {
+const EmployeeLayout: NextPage<Props> = async ({ children }) => {
+  const employee = await withAuth([ERole.EMPLOYEE, ERole.ADMIN]);
+
   return (
     <div className="">
       <Sidenav />

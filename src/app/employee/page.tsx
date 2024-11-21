@@ -5,12 +5,10 @@ import TableMargin from '@/app/employee/ui/TableMargin';
 import 'moment/locale/ko';
 import { NextPage } from 'next';
 import Link from 'next/link';
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import { z } from 'zod';
 import './style.css';
-import { ERole } from '@/entity/enums/ERole';
-import { withAuth } from '@/feature/auth';
 
 interface Props {
   searchParams: {
@@ -21,8 +19,6 @@ interface Props {
 }
 
 const EmployeePage: NextPage<Props> = async ({ searchParams }) => {
-  const employee = await withAuth([ERole.EMPLOYEE, ERole.ADMIN]);
-
   const SearchParamSchema = z.object({
     page: z.coerce.number().optional(),
     pageSize: z.coerce.number().min(0).max(10).optional(),
