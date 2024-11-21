@@ -33,3 +33,13 @@ export const EDAY_OF_WEEKS = [
   EDayOfWeek.화,
   EDayOfWeek.수,
 ] as const;
+
+export const CORRECT_DAY_OF_WEEKS = [
+  EDayOfWeek.월,
+  EDayOfWeek.화,
+  EDayOfWeek.수,
+  EDayOfWeek.목,
+  EDayOfWeek.금,
+  EDayOfWeek.토,
+  EDayOfWeek.일,
+] as const;

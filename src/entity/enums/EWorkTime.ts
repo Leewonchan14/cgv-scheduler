@@ -1,11 +1,20 @@
-import { IAbleWorkTime } from '../employee.entity';
-import { EDAY_OF_WEEKS } from './EDayOfWeek';
+import { EDAY_OF_WEEKS, EDayOfWeek } from './EDayOfWeek';
 
 export enum EWorkTime {
   오픈 = '오픈',
   마감 = '마감',
   선택 = '선택',
 }
+
+export const EWORK_TIMES = [
+  EWorkTime.오픈,
+  EWorkTime.마감,
+  EWorkTime.선택,
+] as const;
+
+export type IAbleWorkTime = {
+  [K in EDayOfWeek]?: EWorkTime[];
+};
 
 export const WORK_PERIODS: {
   [K in '오픈' | '마감']: { startTime: Date; endTime: Date };
@@ -20,10 +29,9 @@ export const WORK_PERIODS: {
   },
 } as const;
 
-export const ABLE_EVERY_DAY_WORK_TIME: IAbleWorkTime =
-  Object.fromEntries(
-    EDAY_OF_WEEKS.map((dayOfWeek) => [
-      dayOfWeek,
-      [EWorkTime.오픈, EWorkTime.마감],
-    ]),
-  ) as IAbleWorkTime;
+export const ABLE_EVERY_DAY_WORK_TIME: IAbleWorkTime = Object.fromEntries(
+  EDAY_OF_WEEKS.map((dayOfWeek) => [
+    dayOfWeek,
+    [EWorkTime.오픈, EWorkTime.마감],
+  ]),
+) as IAbleWorkTime;

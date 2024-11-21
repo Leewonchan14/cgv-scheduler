@@ -1,6 +1,6 @@
-import { Employee } from '@/typeorm/entity/employee.entity';
-import { WorkType } from '@/typeorm/entity/worktype.entity';
-import 'reflect-metadata';
+import { Employee } from '@/entity/employee.entity';
+import { ScheduleEntry } from '@/entity/schedule-entry.entity';
+import { Schedule } from '@/entity/schedule.entity';
 import { DataSource } from 'typeorm';
 
 const AppDataSource = new DataSource({
@@ -10,7 +10,7 @@ const AppDataSource = new DataSource({
   username: process.env.POSTGRES_USER,
   password: process.env.POSTGRES_PASSWORD,
   database: process.env.POSTGRES_DATABASE,
-  entities: [Employee, WorkType],
+  entities: [Employee, Schedule, ScheduleEntry],
   synchronize: true,
   logging: false,
   migrations: [],

@@ -1,21 +1,17 @@
-import { EDayOfWeek } from '@/entity/enums/EDayOfWeek';
 import { EWorkPosition } from '@/entity/enums/EWorkPosition';
-import { EWorkTime } from '@/entity/enums/EWorkTime';
-import { Column, PrimaryGeneratedColumn } from 'typeorm';
+import type { IAbleWorkTime } from '@/entity/enums/EWorkTime';
+import { TimeStampEntity } from '@/entity/timstamp.entity';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-export type IAbleWorkTime = {
-  [K in EDayOfWeek]?: EWorkTime[];
-};
-
-// @Entity()
-export class Employee {
+@Entity()
+export class Employee extends TimeStampEntity {
   @PrimaryGeneratedColumn('increment')
   id: number;
 
-  @Column({ unique: true, nullable: false, length: 30 })
+  @Column({ nullable: false, length: 30 })
   name: string;
 
-  @Column({ enum: EWorkPosition, array: true, default: [] })
+  @Column({ type: 'enum', enum: EWorkPosition, array: true, default: [] })
   ableWorkPosition: EWorkPosition[];
 
   @Column({ type: 'simple-json' })
