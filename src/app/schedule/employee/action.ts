@@ -1,24 +1,22 @@
 'use server';
 
-import { Employee } from '@/entity/employee.entity';
 import { CORRECT_DAY_OF_WEEKS } from '@/entity/enums/EDayOfWeek';
 import { EWORK_POSITION } from '@/entity/enums/EWorkPosition';
 import { EWORK_TIMES } from '@/entity/enums/EWorkTime';
-import { dataSource } from '@/share/libs/typerom/data-source';
+import { employeeService } from '@/feature/employee/api';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
-const nameValidator = async (name: string) => {
-  const employeeRep = (await dataSource()).getRepository(Employee);
-  const findEmployee = await employeeRep.findOne({
-    where: { name, isDeleted: false },
-  });
-  return !findEmployee;
+export const employeeRemoveAction = async ({ id }: { id: number }) => {
+  const findEmp = await employeeService.remove(id);
+
+  revalidatePath('/schedule/employee');
+  redirect('/schedule/employee');
 };
 
 const FormSchema = z.object({
-  name: z.string().refine(nameValidator, { message: '중복된 이름입니다.' }),
+  name: z.string().min(1, { message: '이름을 입력해주세요.' }),
   ableWorkPosition: z.array(z.enum(EWORK_POSITION)),
   ableWorkTime: z.object(
     Object.fromEntries(
@@ -30,7 +28,7 @@ const FormSchema = z.object({
   ),
 });
 
-type FormState = {
+export type FormState = {
   errors?: {
     name?: string[];
     ableWorkPosition?: string[];
@@ -38,7 +36,10 @@ type FormState = {
   };
 };
 
-export const createEmployee = async (prev: FormState, formData: FormData) => {
+export const employeeCreateAction = async (
+  prev: FormState,
+  formData: FormData,
+) => {
   const parse = await FormSchema.safeParseAsync({
     name: formData.get('name'),
     ableWorkPosition: JSON.parse(formData.get('ableWorkPosition') as string),
@@ -52,18 +53,48 @@ export const createEmployee = async (prev: FormState, formData: FormData) => {
     };
   }
 
-  const employeeRep = (await dataSource()).getRepository(Employee);
-  const newEmployee = employeeRep.create({
+  await employeeService.save({
     name: parse.data.name,
     ableWorkPosition: parse.data.ableWorkPosition,
     ableWorkTime: Object.fromEntries(
       Object.entries(parse.data.ableWorkTime).filter(([, times]) => !!times),
     ),
   });
-  await employeeRep.save(newEmployee);
 
   revalidatePath('/schedule/employee');
   redirect('/schedule/employee');
 
   return prev;
+};
+
+export const employeeUpdateAction = async (
+  prev: FormState,
+  formData: FormData,
+) => {
+  const parse = await FormSchema.extend({
+    id: z.coerce.number(),
+  }).safeParseAsync({
+    id: formData.get('id'),
+    name: formData.get('name'),
+    ableWorkPosition: JSON.parse(formData.get('ableWorkPosition') as string),
+    ableWorkTime: JSON.parse(formData.get('ableWorkTime') as string),
+  });
+
+  if (!parse.success) {
+    return {
+      ...prev,
+      errors: parse.error.flatten().fieldErrors,
+    };
+  }
+
+  await employeeService.update(parse.data.id, {
+    name: parse.data.name,
+    ableWorkPosition: parse.data.ableWorkPosition,
+    ableWorkTime: Object.fromEntries(
+      Object.entries(parse.data.ableWorkTime).filter(([, times]) => !!times),
+    ),
+  });
+
+  revalidatePath('/schedule/employee');
+  redirect('/schedule/employee');
 };

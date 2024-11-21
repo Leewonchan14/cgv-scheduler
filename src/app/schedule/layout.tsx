@@ -1,5 +1,6 @@
 import { SideNav } from '@/share/ui/sidenav/sidenav';
 import { NextPage } from 'next';
+import React from 'react';
 
 interface Props {
   children: React.ReactNode;
@@ -7,10 +8,10 @@ interface Props {
 
 const ScheduleLayout: NextPage<Props> = ({ children }) => {
   return (
-    <div className="flex">
+    <React.Fragment>
       <SideNav />
-      <div className="ml-sidenav-width p-10">{children}</div>
-    </div>
+      <div className="p-10 ml-sidenav-width">{children}</div>
+    </React.Fragment>
   );
 };
 

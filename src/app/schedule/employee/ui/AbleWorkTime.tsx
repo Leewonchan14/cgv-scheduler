@@ -3,6 +3,7 @@ import {
   EWORK_TIME_WITHOUT_SELECT,
   IAbleWorkTime,
 } from '@/entity/enums/EWorkTime';
+import { toggleListItem } from '@/share/libs/util/toggle-list-item';
 import React, { FC } from 'react';
 
 interface Props {
@@ -14,13 +15,12 @@ const AbleWorkTime: FC<Props> = ({ ableWorkTime, setAbleWorkTime }) => {
   return (
     <div className="flex flex-col gap-6 font-bold">
       <전체삭제_전체선택 setAbleWorkTime={setAbleWorkTime} />
-      <div className="translate-y-20 border-b-2 border-black"></div>
       <div className="flex gap-2">
-        {EDAY_OF_WEEKS.map((day) => {
+        {EDAY_OF_WEEKS.map((day, i) => {
           const isClick = !!ableWorkTime[day]?.length;
           return (
             <React.Fragment key={day}>
-              <div className="flex flex-col gap-8">
+              <div className="flex flex-col">
                 <button
                   type="button"
                   onClick={() =>
@@ -35,29 +35,32 @@ const AbleWorkTime: FC<Props> = ({ ableWorkTime, setAbleWorkTime }) => {
                 >
                   {day}
                 </button>
-                {isClick && (
-                  <div className="flex flex-col gap-4">
-                    {ableWorkTime[day]?.map((time) => (
-                      <button
-                        key={time}
-                        type="button"
-                        onClick={() =>
-                          setAbleWorkTime((prev) => ({
-                            ...prev,
-                            [day]: prev[day]?.filter((t) => t !== time) || [
-                              time,
-                            ],
-                          }))
-                        }
-                        className={`px-4 py-2 bg-gray-200 rounded-md ${isClick && '!bg-blue-500 text-white'}`}
-                      >
-                        {time}
-                      </button>
-                    ))}
-                  </div>
-                )}
+                <div className="border-b-2 border-black my-4" />
+                <div className="flex flex-col gap-4">
+                  {EWORK_TIME_WITHOUT_SELECT.map((time) => (
+                    <button
+                      key={time}
+                      type="button"
+                      onClick={() =>
+                        setAbleWorkTime((prev) => ({
+                          ...prev,
+                          [day]: toggleListItem(
+                            prev[day] ?? [],
+                            time,
+                            (a) => a,
+                          ),
+                        }))
+                      }
+                      className={`px-4 py-2 bg-gray-200 rounded-md ${ableWorkTime[day]?.includes(time) && '!bg-blue-500 text-white'}`}
+                    >
+                      {time}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="border-r-2 border-black"></div>
+              {EDAY_OF_WEEKS.length - 1 !== i && (
+                <div className="border-r-2 border-black" />
+              )}
             </React.Fragment>
           );
         })}

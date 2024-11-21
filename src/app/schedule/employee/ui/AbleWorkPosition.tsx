@@ -2,8 +2,7 @@
 
 import { EWORK_POSITION, EWorkPosition } from '@/entity/enums/EWorkPosition';
 import { toggleListItem } from '@/share/libs/util/toggle-list-item';
-import React from 'react';
-import { FC } from 'react';
+import React, { FC } from 'react';
 
 interface Props {
   ableWorkPosition: EWorkPosition[];
