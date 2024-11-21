@@ -1,3 +1,6 @@
+import { redirect } from 'next/navigation';
+
 export default function HomePage() {
-  return <div>this is app </div>;
+  redirect('/employee');
+  return null;
 }
