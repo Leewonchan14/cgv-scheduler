@@ -1,7 +1,8 @@
-"use server";
+'use server';
 
 import { employeeService } from '@/feature/employee/api';
 import { jwtUtil } from '@/feature/employee/util';
+import { 비교 } from '@/feature/employee/util/jwt';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
@@ -37,9 +38,9 @@ export const loginAction = async (
 
   const { name, password } = parse.data;
 
-  const findEmp = await employeeService.findWithPw(name, password);
+  const findEmp = await employeeService.findByName(name);
 
-  if (!findEmp) {
+  if (!findEmp || !비교(password, findEmp?.password)) {
     return {
       ...prev,
       message: '이름 또는 비밀번호가 일치하지 않습니다.',

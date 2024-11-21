@@ -1,14 +1,16 @@
+import bcrypt from 'bcrypt';
 import { jwtVerify, SignJWT } from 'jose';
 import { cookies } from 'next/headers';
-import bcrypt from 'bcrypt';
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 const TOKEN_KEY = 'token' as const;
 
-const SALT = bcrypt.genSaltSync(10);
-
 export const 암호화 = (password: string) => {
-  return bcrypt.hashSync(password, SALT);
+  return bcrypt.hashSync(password, 10);
+};
+
+export const 비교 = (password: string, encodePassword: string) => {
+  return bcrypt.compareSync(password, encodePassword);
 };
 
 const create = async (payload: { id: number }) => {
