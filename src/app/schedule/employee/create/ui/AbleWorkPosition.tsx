@@ -17,7 +17,7 @@ const AbleWorkPosition: FC<Props> = ({
   return (
     <React.Fragment>
       <전체삭제_전체선택 setAbleWorkPosition={setAbleWorkPosition} />
-      <div className="flex gap-4">
+      <div className="flex gap-4 font-bold">
         {EWORK_POSITION.map((position) => (
           <button
             className={`px-4 py-2 bg-gray-200 rounded-md ${ableWorkPosition.includes(position) && '!bg-blue-500 text-white'}`}

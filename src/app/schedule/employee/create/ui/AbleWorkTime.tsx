@@ -1,5 +1,8 @@
 import { EDAY_OF_WEEKS } from '@/entity/enums/EDayOfWeek';
-import { IAbleWorkTime, EWORK_TIMES } from '@/entity/enums/EWorkTime';
+import {
+  EWORK_TIME_WITHOUT_SELECT,
+  IAbleWorkTime,
+} from '@/entity/enums/EWorkTime';
 import React, { FC } from 'react';
 
 interface Props {
@@ -23,7 +26,9 @@ const AbleWorkTime: FC<Props> = ({ ableWorkTime, setAbleWorkTime }) => {
                   onClick={() =>
                     setAbleWorkTime((prev) => ({
                       ...prev,
-                      [day]: isClick ? undefined : [...EWORK_TIMES],
+                      [day]: isClick
+                        ? undefined
+                        : [...EWORK_TIME_WITHOUT_SELECT],
                     }))
                   }
                   className={`px-6 py-2 bg-gray-200 rounded-md ${isClick && '!bg-blue-500 text-white'}`}
@@ -71,7 +76,9 @@ const 전체삭제_전체선택: FC<Pick<Props, 'setAbleWorkTime'>> = ({
         type="button"
         onClick={() =>
           setAbleWorkTime(
-            Object.fromEntries(EDAY_OF_WEEKS.map((_) => [_, [...EWORK_TIMES]])),
+            Object.fromEntries(
+              EDAY_OF_WEEKS.map((_) => [_, [...EWORK_TIME_WITHOUT_SELECT]]),
+            ),
           )
         }
         className={CLASS_NAME}

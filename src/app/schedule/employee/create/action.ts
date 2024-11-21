@@ -5,6 +5,8 @@ import { CORRECT_DAY_OF_WEEKS } from '@/entity/enums/EDayOfWeek';
 import { EWORK_POSITION } from '@/entity/enums/EWorkPosition';
 import { EWORK_TIMES } from '@/entity/enums/EWorkTime';
 import { dataSource } from '@/share/libs/typerom/data-source';
+import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 const nameValidator = async (name: string) => {
@@ -20,7 +22,10 @@ const FormSchema = z.object({
   ableWorkPosition: z.array(z.enum(EWORK_POSITION)),
   ableWorkTime: z.object(
     Object.fromEntries(
-      CORRECT_DAY_OF_WEEKS.map((day) => [day, z.array(z.enum(EWORK_TIMES))]),
+      CORRECT_DAY_OF_WEEKS.map((day) => [
+        day,
+        z.array(z.enum(EWORK_TIMES)).optional(),
+      ]),
     ),
   ),
 });
@@ -46,6 +51,19 @@ export const createEmployee = async (prev: FormState, formData: FormData) => {
       errors: parse.error.flatten().fieldErrors,
     };
   }
+
+  const employeeRep = (await dataSource()).getRepository(Employee);
+  const newEmployee = employeeRep.create({
+    name: parse.data.name,
+    ableWorkPosition: parse.data.ableWorkPosition,
+    ableWorkTime: Object.fromEntries(
+      Object.entries(parse.data.ableWorkTime).filter(([, times]) => !!times),
+    ),
+  });
+  await employeeRep.save(newEmployee);
+
+  revalidatePath('/schedule/employee');
+  redirect('/schedule/employee');
 
   return prev;
 };
