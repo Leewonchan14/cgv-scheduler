@@ -13,7 +13,7 @@ export default {
         foreground: 'var(--foreground)',
       },
       spacing: {
-        'sidenav-width': '18rem',
+        'sidenav-width': '20rem',
       },
     },
   },

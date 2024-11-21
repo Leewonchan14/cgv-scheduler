@@ -1,9 +1,9 @@
 import { FC } from 'react';
 
-const ErrorMessage: FC<{ errors?: string[] }> = ({ errors }) => {
+const ErrorMessage: FC<{ errors?: string[] | string }> = ({ errors }) => {
   return (
     errors &&
-    errors.map((error) => (
+    [errors].flat().map((error) => (
       <p key={error} className="text-red-500">
         {error}
       </p>

@@ -1,14 +1,16 @@
 'use client';
 
-import { employeeRemoveAction } from '@/app/schedule/employee/action';
+import { employeeRemoveAction } from '@/app/employee/action';
 import { NextPage } from 'next';
 import React, { useState } from 'react';
 
 interface Props {
   id: number;
+  name: string;
+  isAdmin: boolean;
 }
 
-const DeleteButton: NextPage<Props> = ({ id }) => {
+const DeleteButton: NextPage<Props> = ({ id, name, isAdmin }) => {
   const [isClick, setIsClick] = useState(false);
   return (
     <React.Fragment>
@@ -24,7 +26,7 @@ const DeleteButton: NextPage<Props> = ({ id }) => {
           setIsClick(true);
           await employeeRemoveAction({ id });
         }}
-        className={`px-4 h-12 text-white bg-red-500 border-2 rounded-lg ${isClick && 'mr-4'}`}
+        className={`px-4 h-12 text-white bg-red-500 border-2 rounded-lg ${isClick && 'mr-4'} ${!isAdmin && 'invisible'}`}
       >
         {isClick ? '삭제중...' : '삭제'}
       </button>

@@ -1,8 +1,7 @@
-import { EDayOfWeek } from '@/entity/enums/EDayOfWeek';
 import { Employee } from '@/entity/employee.entity';
+import { EDayOfWeek } from '@/entity/enums/EDayOfWeek';
 import { EWorkPosition } from '@/entity/enums/EWorkPosition';
 import { EWorkTime } from '@/entity/enums/EWorkTime';
-import { Schedule } from '@/entity/schedule.entity';
 import {
   Column,
   Entity,
@@ -17,9 +16,8 @@ export class ScheduleEntry {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Schedule, (schedule) => schedule.entries)
-  @JoinColumn()
-  schedule: Schedule;
+  @Column()
+  date: Date;
 
   @ManyToOne(() => Employee, { eager: true })
   @JoinColumn()

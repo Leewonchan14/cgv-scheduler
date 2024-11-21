@@ -2,8 +2,8 @@ import { NextPage } from 'next';
 
 interface Props {}
 
-const Loading: NextPage<Props> = ({}) => {
+const SchedulePage: NextPage<Props> = ({}) => {
   return <div></div>;
 };
 
-export default Loading;
+export default SchedulePage;

@@ -1,4 +1,4 @@
-import TableMargin from '@/app/schedule/employee/ui/TableMargin';
+import TableMargin from '@/app/employee/ui/TableMargin';
 import { EDAY_OF_WEEKS } from '@/entity/enums/EDayOfWeek';
 import { NextPage } from 'next';
 import React from 'react';

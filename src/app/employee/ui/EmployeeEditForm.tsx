@@ -1,9 +1,9 @@
 'use client';
 
-import { FormState } from '@/app/schedule/employee/action';
-import AbleWorkPosition from '@/app/schedule/employee/ui/AbleWorkPosition';
-import AbleWorkTime from '@/app/schedule/employee/ui/AbleWorkTime';
-import ErrorMessage from '@/app/schedule/employee/ui/ErrorMessage';
+import { FormState } from '@/app/employee/action';
+import AbleWorkPosition from '@/app/employee/ui/AbleWorkPosition';
+import AbleWorkTime from '@/app/employee/ui/AbleWorkTime';
+import ErrorMessage from '@/app/employee/ui/ErrorMessage';
 import { EWorkPosition } from '@/entity/enums/EWorkPosition';
 import { IAbleWorkTime } from '@/entity/enums/EWorkTime';
 import { NextPage } from 'next';
@@ -41,7 +41,8 @@ const EmployeeEditForm: NextPage<Props> = ({
           근무자 이름
         </label>
         <span className="my-2 font-bold text-red-400">
-          근무자 이름은 중복이 허용됩니다. (근무표 가독성을 위해 중복을 피해주세요)
+          근무자 이름은 중복이 허용되지 않습니다. (근무표 가독성을 위해 중복을
+          피해주세요)
         </span>
         <input
           required

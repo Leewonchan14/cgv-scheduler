@@ -1,14 +1,16 @@
-import EmployeeFallback from '@/app/schedule/employee/ui/EmployeeFallback';
-import EmployeeList from '@/app/schedule/employee/ui/EmployeeTable';
-import Search from '@/app/schedule/employee/ui/Search';
-import TableMargin from '@/app/schedule/employee/ui/TableMargin';
+import EmployeeFallback from '@/app/employee/ui/EmployeeFallback';
+import EmployeeList from '@/app/employee/ui/EmployeeTable';
+import Search from '@/app/employee/ui/Search';
+import TableMargin from '@/app/employee/ui/TableMargin';
 import 'moment/locale/ko';
 import { NextPage } from 'next';
-import { notFound } from 'next/navigation';
+import Link from 'next/link';
+import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import { z } from 'zod';
 import './style.css';
-import Link from 'next/link';
+import { ERole } from '@/entity/enums/ERole';
+import { withAuth } from '@/feature/auth';
 
 interface Props {
   searchParams: {
@@ -18,7 +20,9 @@ interface Props {
   };
 }
 
-const Page: NextPage<Props> = async ({ searchParams }) => {
+const EmployeePage: NextPage<Props> = async ({ searchParams }) => {
+  const employee = await withAuth([ERole.EMPLOYEE, ERole.ADMIN]);
+
   const SearchParamSchema = z.object({
     page: z.coerce.number().optional(),
     pageSize: z.coerce.number().min(0).max(10).optional(),
@@ -33,7 +37,7 @@ const Page: NextPage<Props> = async ({ searchParams }) => {
 
   return (
     <div className="flex flex-col gap-2 font-bold">
-      <h1 className="block mb-10 text-3xl font-bold">근무자</h1>
+      <h1 className="block mb-10 text-3xl font-bold">근무자 관리</h1>
       <div className="flex h-16 gap-4">
         <Search placeholder="근무자의 이름을 입력해 주세요" />
         <Link
@@ -51,7 +55,7 @@ const Page: NextPage<Props> = async ({ searchParams }) => {
             <th>가능한 근무</th>
             <th>근무 가능한 요일</th>
             <th>입사일</th>
-            <th></th>
+            <th>수정</th>
           </tr>
         </thead>
         <tbody>
@@ -65,4 +69,4 @@ const Page: NextPage<Props> = async ({ searchParams }) => {
   );
 };
 
-export default Page;
+export default EmployeePage;

@@ -1,7 +1,5 @@
-import {
-  employeeCreateAction
-} from '@/app/schedule/employee/action';
-import EmployeeEditForm from '@/app/schedule/employee/ui/EmployeeEditForm';
+import { employeeCreateAction } from '@/app/employee/action';
+import EmployeeEditForm from '@/app/employee/ui/EmployeeEditForm';
 import { NextPage } from 'next';
 
 interface Props {}

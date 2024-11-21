@@ -1,6 +1,4 @@
 import Sidenav from '@/app/ui/sidenav/sidenav';
-import { ERole } from '@/entity/enums/ERole';
-import { withAuth } from '@/feature/auth';
 import { NextPage } from 'next';
 import React from 'react';
 
@@ -8,8 +6,7 @@ interface Props {
   children: React.ReactNode;
 }
 
-const ScheduleLayout: NextPage<Props> = async ({ children }) => {
-  const employee = await withAuth([ERole.EMPLOYEE, ERole.ADMIN]);
+const EmployeeLayout: NextPage<Props> = ({ children }) => {
   return (
     <div className="">
       <Sidenav />
@@ -18,4 +15,4 @@ const ScheduleLayout: NextPage<Props> = async ({ children }) => {
   );
 };
 
-export default ScheduleLayout;
+export default EmployeeLayout;
