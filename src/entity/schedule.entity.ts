@@ -10,7 +10,7 @@ export class Schedule {
   @Column()
   date: Date;
 
-  @OneToMany(() => ScheduleEntry, (entry) => entry.schedule, {
+  @OneToMany(() => ScheduleEntry, (e) => e, {
     cascade: true,
     eager: true,
   })

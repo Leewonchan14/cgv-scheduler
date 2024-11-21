@@ -7,7 +7,7 @@ export const nameValidator = async (name: string) => {
     where: { name },
   });
   if (findEmployee) {
-    false;
+    return false;
   }
   return true;
 };

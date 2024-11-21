@@ -9,7 +9,7 @@ interface Props {
 }
 
 const EmployeeLayout: NextPage<Props> = async ({ children }) => {
-  const employee = await withAuth([ERole.EMPLOYEE, ERole.ADMIN]);
+  await withAuth([ERole.EMPLOYEE, ERole.ADMIN]);
 
   return (
     <div className="">

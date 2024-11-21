@@ -26,7 +26,7 @@ const decode = async (token: string) => {
       new TextEncoder().encode(JWT_SECRET),
     );
     return decoded.payload as { id: number };
-  } catch (error) {
+  } catch (_error) {
     return null;
   }
 };
@@ -45,7 +45,7 @@ const get = () => {
   return tokenObj?.value;
 };
 
-export default {
+export const jwt = {
   create,
   decode,
   set,

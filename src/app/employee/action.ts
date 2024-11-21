@@ -10,7 +10,7 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 export const employeeRemoveAction = async ({ id }: { id: number }) => {
-  const findEmp = await employeeService.remove(id);
+  await employeeService.remove(id);
 
   revalidatePath('/schedule/employee');
   redirect('/schedule/employee');
@@ -49,7 +49,7 @@ export const employeeCreateAction = async (
     ableWorkPosition: JSON.parse(formData.get('ableWorkPosition') as string),
     ableWorkTime: JSON.parse(formData.get('ableWorkTime') as string),
   });
-  9;
+
   // TODO 관리자인지 확인하는 로직 추가 (관리자만 근무자 추가 가능)
 
   if (!parse.success) {

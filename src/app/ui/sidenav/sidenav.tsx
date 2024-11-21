@@ -26,11 +26,6 @@ const NAV_LINKS: {
 interface Props {}
 
 const Sidenav: NextPage<Props> = ({}) => {
-  const pathname = usePathname();
-  const page = Object.entries(NAV_LINKS).find(
-    ([_, { path }]) => path === pathname,
-  );
-
   return (
     <div className="fixed h-screen bg-gray-100 min-w-sidenav-width px-6">
       <Link className="flex flex-col gap-4 my-12 font-bold" href={'/employee'}>
