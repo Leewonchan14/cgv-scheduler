@@ -14,7 +14,7 @@ const AbleWorkTime: FC<Props> = ({ ableWorkTime, setAbleWorkTime }) => {
   return (
     <div className="flex flex-col gap-6 font-bold">
       <전체삭제_전체선택 setAbleWorkTime={setAbleWorkTime} />
-      <div className="border-b-2 border-black translate-y-20"></div>
+      <div className="translate-y-20 border-b-2 border-black"></div>
       <div className="flex gap-2">
         {EDAY_OF_WEEKS.map((day) => {
           const isClick = !!ableWorkTime[day]?.length;

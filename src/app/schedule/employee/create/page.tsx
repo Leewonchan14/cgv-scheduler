@@ -18,7 +18,7 @@ const CreateEmployeePage: NextPage<Props> = ({}) => {
   const [state, formAction] = useFormState(createEmployee, {});
 
   return (
-    <div className="flex flex-col gap-8 p-10">
+    <div className="flex flex-col gap-8">
       <h1 className="block text-3xl font-bold">근무자 추가</h1>
       <form action={formAction} className="flex flex-col gap-10">
         {/* 근무자 이름 작성 */}
@@ -30,7 +30,7 @@ const CreateEmployeePage: NextPage<Props> = ({}) => {
             근무표 가독성을 위해 근무자 이름은 중복 허용 되지 않습니다.
           </span>
           <input
-            className="p-2 border-2 min-w-64 rounded-lg"
+            className="p-2 border-2 rounded-lg min-w-64"
             id="name"
             name="name"
             placeholder="근무자 이름을 입력해 주세요"

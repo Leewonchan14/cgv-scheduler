@@ -9,7 +9,7 @@ const ScheduleLayout: NextPage<Props> = ({ children }) => {
   return (
     <div className="flex">
       <SideNav />
-      <div className="pl-sidenav-width">{children}</div>
+      <div className="ml-sidenav-width p-10">{children}</div>
     </div>
   );
 };
