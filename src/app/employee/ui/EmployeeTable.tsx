@@ -43,7 +43,7 @@ const EmployeeList: NextPage<Props> = async ({ page, pageSize, search }) => {
             <td>{moment(employee.createdAt).format('L')}</td>
             <td className="overflow-clip">
               <Link
-                className={`inline-flex items-center h-12 px-4 mr-4 bg-blue-200 border-2 rounded-lg
+                className={`inline-flex items-center h-12 px-4 m-0 md:m-4 bg-blue-200 border-2 rounded-lg
                   ${!(isAdmin || me?.id === employee.id) && 'invisible'}`}
                 href={`/employee/${employee.id}/update`}
               >

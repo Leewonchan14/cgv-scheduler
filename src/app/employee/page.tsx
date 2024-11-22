@@ -2,11 +2,13 @@ import EmployeeFallback from '@/app/employee/ui/EmployeeFallback';
 import EmployeeList from '@/app/employee/ui/EmployeeTable';
 import Search from '@/app/employee/ui/Search';
 import TableMargin from '@/app/employee/ui/TableMargin';
+import { ERole } from '@/entity/enums/ERole';
+import { withAuth } from '@/feature/auth';
 import 'moment/locale/ko';
 import { NextPage } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Suspense } from 'react';
+import React, { Suspense } from 'react';
 import { z } from 'zod';
 import './style.css';
 
@@ -19,6 +21,8 @@ interface Props {
 }
 
 const EmployeePage: NextPage<Props> = async ({ searchParams }) => {
+  await withAuth([ERole.EMPLOYEE, ERole.ADMIN]);
+
   const SearchParamSchema = z.object({
     page: z.coerce.number().optional(),
     pageSize: z.coerce.number().min(0).max(10).optional(),
@@ -32,9 +36,8 @@ const EmployeePage: NextPage<Props> = async ({ searchParams }) => {
   }
 
   return (
-    <div className="flex flex-col gap-2 font-bold">
-      <h1 className="block mb-10 text-3xl font-bold">근무자 관리</h1>
-      <div className="flex h-16 gap-4">
+    <React.Fragment>
+      <div className="flex w-full h-16 gap-4">
         <Search placeholder="근무자의 이름을 입력해 주세요" />
         <Link
           href={'./employee/create'}
@@ -43,8 +46,14 @@ const EmployeePage: NextPage<Props> = async ({ searchParams }) => {
           근무자 추가
         </Link>
       </div>
-      {/* display table */}
       <table className="w-full font-bold text-center employee">
+        <colgroup>
+          <col style={{ width: '10%' }} />
+          <col style={{ width: '30%' }} />
+          <col style={{ width: '30%' }} />
+          <col style={{ width: '10%' }} />
+          <col style={{ width: '20%' }} />
+        </colgroup>
         <thead className="font-bold text-white bg-blue-500">
           <tr>
             <th>이름</th>
@@ -61,7 +70,7 @@ const EmployeePage: NextPage<Props> = async ({ searchParams }) => {
           </Suspense>
         </tbody>
       </table>
-    </div>
+    </React.Fragment>
   );
 };
 
