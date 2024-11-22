@@ -2,7 +2,7 @@ import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { ScheduleEntry } from './schedule-entry.entity';
 
 // 1주일치 스케쥴
-@Entity()
+@Entity({ name: 'schedule' })
 export class Schedule {
   @PrimaryGeneratedColumn()
   id: number;

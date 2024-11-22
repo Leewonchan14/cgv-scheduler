@@ -5,7 +5,7 @@ import { TimeStampEntity } from '@/entity/timstamp.entity';
 import { 암호화 } from '@/feature/employee/util/jwt';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity()
+@Entity({ name: 'employee' })
 export class Employee extends TimeStampEntity {
   @PrimaryGeneratedColumn('increment')
   id: number;

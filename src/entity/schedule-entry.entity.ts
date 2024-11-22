@@ -11,7 +11,7 @@ import {
 } from 'typeorm';
 
 // 하루에 대한 스케쥴 엔트리
-@Entity()
+@Entity({ name: 'schedule_entry' })
 export class ScheduleEntry {
   @PrimaryGeneratedColumn()
   id: number;
