@@ -1,6 +1,7 @@
 import { employeeUpdateAction } from '@/app/employee/action';
 import EmployeeEditForm from '@/app/employee/ui/EmployeeEditForm';
-import { employeeService } from '@/feature/employee/api';
+import { employeeService } from '@/feature/employee/employee.service';
+import { appDataSource } from '@/share/libs/typerom/data-source';
 import { NextPage } from 'next';
 import { notFound } from 'next/navigation';
 import { z } from 'zod';
@@ -21,7 +22,7 @@ const EmployeeUpdatePage: NextPage<Props> = async ({ params }) => {
     return notFound();
   }
   const id = parse.data.id;
-  const employee = await employeeService.findOne(id);
+  const employee = await employeeService(await appDataSource()).findOne(id);
 
   if (!employee) {
     return notFound();

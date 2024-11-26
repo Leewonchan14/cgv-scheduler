@@ -3,24 +3,27 @@
 import { CORRECT_DAY_OF_WEEKS } from '@/entity/enums/EDayOfWeek';
 import { EWORK_POSITION } from '@/entity/enums/EWorkPosition';
 import { EWORK_TIMES } from '@/entity/enums/EWorkTime';
-import { employeeService } from '@/feature/employee/api';
-import { nameValidator } from '@/feature/employee/util/validator';
+import { employeeValidator } from '@/feature/employee/employee-validator';
+import { employeeService } from '@/feature/employee/employee.service';
+import { appDataSource } from '@/share/libs/typerom/data-source';
+import _ from 'lodash';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 export const employeeRemoveAction = async ({ id }: { id: number }) => {
-  await employeeService.remove(id);
-
-  revalidatePath('/schedule/employee');
-  redirect('/schedule/employee');
+  _.delay(() => {
+    revalidatePath('/employee');
+    redirect('/employee');
+  }, 30000);
+  // await employeeService(await appDataSource()).remove(id);
 };
 
 const FormSchema = z.object({
   name: z
     .string()
     .min(1, { message: '이름을 입력해주세요.' })
-    .refine(nameValidator, { message: '이름은 중복될 수 없습니다.' }),
+    .refine(employeeValidator.name, { message: '이름은 중복될 수 없습니다.' }),
   ableWorkPosition: z.array(z.enum(EWORK_POSITION)),
   ableWorkTime: z.object(
     Object.fromEntries(
@@ -59,18 +62,16 @@ export const employeeCreateAction = async (
     };
   }
 
-  await employeeService.save({
-    name: parse.data.name,
-    ableWorkPosition: parse.data.ableWorkPosition,
-    ableWorkTime: Object.fromEntries(
-      Object.entries(parse.data.ableWorkTime).filter(([, times]) => !!times),
-    ),
+  const { name, ableWorkTime, ableWorkPosition } = parse.data;
+
+  await employeeService(await appDataSource()).save({
+    name,
+    ableWorkPosition,
+    ableWorkTime: _.omitBy(ableWorkTime, _.isUndefined),
   });
 
   revalidatePath('/employee');
   redirect('/employee');
-
-  return prev;
 };
 
 export const employeeUpdateAction = async (
@@ -97,14 +98,14 @@ export const employeeUpdateAction = async (
     };
   }
 
-  await employeeService.update(parse.data.id, {
-    name: parse.data.name,
-    ableWorkPosition: parse.data.ableWorkPosition,
-    ableWorkTime: Object.fromEntries(
-      Object.entries(parse.data.ableWorkTime).filter(([, times]) => !!times),
-    ),
+  const { id, name, ableWorkTime, ableWorkPosition } = parse.data;
+
+  await employeeService(await appDataSource()).update(id, {
+    name,
+    ableWorkPosition,
+    ableWorkTime: _.omitBy(ableWorkTime, _.isUndefined),
   });
 
-  revalidatePath('/schedule/employee');
-  redirect('/schedule/employee');
+  revalidatePath('/employee');
+  redirect('/employee');
 };

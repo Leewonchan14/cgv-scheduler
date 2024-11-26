@@ -2,11 +2,13 @@ import { Employee } from '@/entity/employee.entity';
 import { EDayOfWeek } from '@/entity/enums/EDayOfWeek';
 import { EWorkPosition } from '@/entity/enums/EWorkPosition';
 import { EWorkTime } from '@/entity/enums/EWorkTime';
+import { DateDay } from '@/entity/simple/DateDay';
 import {
   Column,
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -16,8 +18,9 @@ export class ScheduleEntry {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  date: Date;
+  @OneToOne(() => DateDay, { eager: true })
+  @JoinColumn()
+  dateDay: DateDay;
 
   @ManyToOne(() => Employee, { eager: true })
   @JoinColumn()

@@ -6,5 +6,6 @@
     "timstamp",
     "typerom",
     "worktype"
-  ]
+  ],
+  "discord.enabled": true
 }

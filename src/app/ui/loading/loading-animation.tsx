@@ -6,7 +6,7 @@ interface Props {
 
 const LoadingAnimation: FC<Props> = ({ text }) => {
   return (
-    <div className="inline-flex flex-col items-center justify-center gap-4 text-3xl text-red-400">
+    <div className="flex flex-col items-center justify-center w-full h-32 gap-4 text-3xl text-red-400">
       <div className="flex items-center gap-4">
         {text}
         <div className="flex gap-4">
