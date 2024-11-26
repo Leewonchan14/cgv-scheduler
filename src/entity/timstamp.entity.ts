@@ -7,6 +7,6 @@ export class TimeStampEntity {
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
-  @DeleteDateColumn({ default: false })
+  @DeleteDateColumn()
   deletedAt: Date;
 }
