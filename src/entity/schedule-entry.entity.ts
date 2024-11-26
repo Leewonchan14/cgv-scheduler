@@ -4,7 +4,7 @@ import { EWorkPosition } from '@/entity/enums/EWorkPosition';
 import type { HourMinute } from '@/entity/enums/EWorkTime';
 import { EWorkTime } from '@/entity/enums/EWorkTime';
 import { Schedule } from '@/entity/schedule.entity';
-import { DateDay } from '@/entity/simple/DateDay';
+import { DateDay } from '@/entity/interface/DateDay';
 import {
   Column,
   Entity,
