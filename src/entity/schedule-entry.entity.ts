@@ -1,7 +1,9 @@
+import { DateDayEntity } from '@/entity/date-day.entity';
 import { Employee } from '@/entity/employee.entity';
-import { EDayOfWeek } from '@/entity/enums/EDayOfWeek';
 import { EWorkPosition } from '@/entity/enums/EWorkPosition';
+import type { HourMinute } from '@/entity/enums/EWorkTime';
 import { EWorkTime } from '@/entity/enums/EWorkTime';
+import { Schedule } from '@/entity/schedule.entity';
 import { DateDay } from '@/entity/simple/DateDay';
 import {
   Column,
@@ -18,7 +20,11 @@ export class ScheduleEntry {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToOne(() => DateDay, { eager: true })
+  @ManyToOne(() => Schedule, (schedule) => schedule.entries)
+  @JoinColumn()
+  schedule: Schedule;
+
+  @OneToOne(() => DateDayEntity, { eager: true })
   @JoinColumn()
   dateDay: DateDay;
 
@@ -33,17 +39,8 @@ export class ScheduleEntry {
   workTime: EWorkTime;
 
   @Column({ type: 'simple-json', nullable: true })
-  startTime?: { hour: number; minute: number }; // workTime이 '선택'인 경우
+  startTime?: HourMinute; // workTime이 '선택'인 경우
 
   @Column({ type: 'simple-json', nullable: true })
-  endTime?: { hour: number; minute: number }; // workTime이 '선택'인 경우
+  endTime?: HourMinute; // workTime이 '선택'인 경우
 }
-
-export type ScheduleEntryPick = Pick<
-  ScheduleEntry,
-  'employee' | 'workPosition' | 'workTime' | 'startTime' | 'endTime'
->;
-
-export type ISchedule = {
-  [k in EDayOfWeek]: ScheduleEntryPick[];
-};
