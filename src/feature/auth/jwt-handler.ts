@@ -23,6 +23,7 @@ class JWTHandler {
       const decoded = await jwtVerify(token!, key);
       return decoded.payload as IPayLoad;
     } catch (_error) {
+      console.error(_error);
       return null;
     }
   }
