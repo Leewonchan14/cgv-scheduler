@@ -20,7 +20,7 @@ export const employeeRemoveAction = async ({}: { id: number }) => {
   // await employeeService(await appDataSource()).remove(id);
 };
 
-const FormSchema = z.object({
+const CreateFormSchema = z.object({
   name: z
     .string()
     .min(1, { message: '이름을 입력해주세요.' })
@@ -48,7 +48,7 @@ export const employeeCreateAction = async (
   prev: FormState,
   formData: FormData,
 ) => {
-  const parse = await FormSchema.safeParseAsync({
+  const parse = await CreateFormSchema.safeParseAsync({
     name: formData.get('name'),
     ableWorkPosition: JSON.parse(formData.get('ableWorkPosition') as string),
     ableWorkTime: JSON.parse(formData.get('ableWorkTime') as string),
@@ -79,7 +79,7 @@ export const employeeUpdateAction = async (
   prev: FormState,
   formData: FormData,
 ) => {
-  const parse = await FormSchema.omit({ name: true })
+  const parse = await CreateFormSchema.omit({ name: true })
     .extend({
       name: z.string().min(1, { message: '이름을 입력해주세요.' }),
       // TODO 관리자 또는 본인인지 확인하는 로직 추가 (관리자 또는 본인만 수정 가능)

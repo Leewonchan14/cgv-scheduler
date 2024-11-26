@@ -1,5 +1,5 @@
 import { IDateDayEntity } from '@/entity/date-day.entity';
-import { EDAY_OF_WEEKS_CORRECT, EDayOfWeek } from '@/entity/enums/EDayOfWeek';
+import { CORRECT_DAY_OF_WEEKS, EDayOfWeek } from '@/entity/enums/EDayOfWeek';
 
 export class DateDay implements IDateDayEntity {
   date: Date;
@@ -31,18 +31,18 @@ export class DateDay implements IDateDayEntity {
 
   getDayOfWeek(): EDayOfWeek {
     if (!this.dayOfWeek) {
-      this.dayOfWeek = EDAY_OF_WEEKS_CORRECT[this.date.getDay()];
+      this.dayOfWeek = CORRECT_DAY_OF_WEEKS[this.date.getDay()];
     }
     return this.dayOfWeek;
   }
 
   get요일_시작부터_끝까지() {
     if (!this.sliceFullFromStartDate) {
-      const index = EDAY_OF_WEEKS_CORRECT.indexOf(
+      const index = CORRECT_DAY_OF_WEEKS.indexOf(
         this.getStartDateDay().getDayOfWeek(),
       );
-      const front = EDAY_OF_WEEKS_CORRECT.slice(index);
-      const back = EDAY_OF_WEEKS_CORRECT.slice(0, index);
+      const front = CORRECT_DAY_OF_WEEKS.slice(index);
+      const back = CORRECT_DAY_OF_WEEKS.slice(0, index);
       this.sliceFullFromStartDate = [...front, ...back];
     }
     return this.sliceFullFromStartDate;
