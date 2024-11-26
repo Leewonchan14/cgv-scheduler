@@ -63,6 +63,11 @@ export class EmployeeService {
     );
   };
 
+  upsertWithName = async (entity: DeepPartial<Employee>) => {
+    await this.employeeRepository.upsert(entity, ['name']);
+    return;
+  };
+
   update = async (
     id: number,
     partialEntity: QueryDeepPartialEntity<Employee>,

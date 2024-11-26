@@ -38,16 +38,3 @@ export class AppDataSource {
 }
 
 export const appDataSource = AppDataSource.getInstance;
-
-/* let admin = await employeeService.findWithPw('조우철', '1234');
-    if (admin) {
-      return AppDataSource;
-    }
-
-    await employeeService.save({
-      name: '조우철',
-      role: ERole.ADMIN,
-      ableWorkPosition: [],
-      ableWorkTime: {},
-      password: 암호화('1234'),
-    }); */

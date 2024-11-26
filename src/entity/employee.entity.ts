@@ -17,7 +17,7 @@ export class Employee extends TimeStampEntity {
   @Column({ type: 'enum', enum: EWorkPosition, array: true, default: [] })
   ableWorkPosition: EWorkPosition[];
 
-  @Column({ type: 'simple-json' })
+  @Column({ type: 'simple-json', default: {} })
   ableWorkTime: IAbleWorkTime;
 
   @Column({ nullable: true, default: pwHandler.encrypt('1234') })
