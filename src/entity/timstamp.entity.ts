@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { CreateDateColumn, DeleteDateColumn, UpdateDateColumn } from 'typeorm';
 
 export class TimeStampEntity {
   @UpdateDateColumn({ type: 'timestamp' })
@@ -7,6 +7,6 @@ export class TimeStampEntity {
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
-  @Column({ default: false })
-  isDeleted: boolean;
+  @DeleteDateColumn({ default: false })
+  deletedAt: Date;
 }

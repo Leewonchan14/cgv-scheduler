@@ -21,7 +21,8 @@ interface Props {
 const EmployeeTable: NextPage<Props> = async ({ page, pageSize, search }) => {
   const me = await authHandler.getSession(nextCookieStore(cookies()))!;
 
-  const [employees, total] = await employeeService(
+  // TODO total 사용해야함
+  const [employees, _total] = await employeeService(
     await appDataSource(),
   ).findAll(page, pageSize, search);
 

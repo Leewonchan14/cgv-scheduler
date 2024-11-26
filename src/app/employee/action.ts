@@ -11,7 +11,8 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
-export const employeeRemoveAction = async ({ id }: { id: number }) => {
+// TODO 근무자 제거 기능 구현해야함
+export const employeeRemoveAction = async ({}: { id: number }) => {
   _.delay(() => {
     revalidatePath('/employee');
     redirect('/employee');

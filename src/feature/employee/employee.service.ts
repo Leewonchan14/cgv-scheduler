@@ -38,7 +38,6 @@ export class EmployeeService {
     return this.employeeRepository.findAndCount({
       where: {
         name: Like(`%${search ?? ''}%`),
-        isDeleted: false,
       },
       skip: page * pageSize,
       // TODO 나중에 페이지네이션 추가
@@ -48,15 +47,11 @@ export class EmployeeService {
       },
     });
   };
-  remove = async (id: number) => {
-    const findEmp = await this.employeeRepository.findOne({ where: { id } });
-    if (!findEmp) {
-      throw new Error('존재하지 않는 근무자입니다.');
-    }
-    findEmp.isDeleted = true;
-    await this.employeeRepository.save(findEmp);
-    return findEmp;
+
+  softDelete = async (id: number) => {
+    await this.employeeRepository.softDelete(id);
   };
+
   save = (employee: DeepPartial<Employee>) => {
     return this.employeeRepository.save(
       this.employeeRepository.create(employee),
@@ -72,10 +67,11 @@ export class EmployeeService {
     id: number,
     partialEntity: QueryDeepPartialEntity<Employee>,
   ) => {
-    await this.employeeRepository.update(
-      { id },
-      { ...partialEntity, isDeleted: false },
-    );
+    const findEmp = await this.findOne(id);
+    if (!findEmp) {
+      throw new Error('Employee not found');
+    }
+    await this.employeeRepository.update({ id }, { ...partialEntity });
   };
 }
 
