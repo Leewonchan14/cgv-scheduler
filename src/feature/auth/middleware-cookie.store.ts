@@ -1,4 +1,5 @@
 import { ICookieStore } from '@/feature/auth/cookie-handler';
+import { ResponseCookie } from 'next/dist/compiled/@edge-runtime/cookies';
 import { NextRequest, NextResponse } from 'next/server';
 
 export class MiddleWareCookieStore implements ICookieStore {
@@ -11,11 +12,7 @@ export class MiddleWareCookieStore implements ICookieStore {
     return this.request.cookies.get(key)?.value;
   }
 
-  set(
-    key: string,
-    value: string,
-    option: { httpOnly: boolean; expires: Date },
-  ) {
+  set(key: string, value: string, option?: Partial<ResponseCookie>) {
     this.response.cookies.set(key, value, option);
   }
 }

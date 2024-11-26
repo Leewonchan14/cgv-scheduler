@@ -1,39 +1,34 @@
+import { IPayLoad, jwtHandler, JWTHandler } from '@/feature/auth/jwt-handler';
+import { ResponseCookie } from 'next/dist/compiled/@edge-runtime/cookies';
+
 export type ICookieStore = {
   get: (key: string) => string | undefined | null;
-  set: (
-    key: string,
-    value: string,
-    option: { httpOnly: boolean; expires: Date; secure: boolean },
-  ) => void;
+  set: (key: string, value: string, options?: Partial<ResponseCookie>) => void;
 };
 
 export class CookieTokenHandler {
-  static TOKEN_KEY = 'token' as const;
-
-  // 2시간
-  private readonly TOKEN_EXPIRE = 1000 * 60 * 60 * 2;
-  private TOKEN_COOKIE_OPTION = {
-    httpOnly: true,
-    expires: new Date(Date.now() + this.TOKEN_EXPIRE),
-    secure: true,
-  };
+  static COOKIE_TOKEN_KEY = 'token' as const;
 
   constructor(private cookie: ICookieStore) {}
 
   set(token: string) {
-    this.cookie.set(
-      CookieTokenHandler.TOKEN_KEY,
-      token,
-      this.TOKEN_COOKIE_OPTION,
-    );
+    this.cookie.set(CookieTokenHandler.COOKIE_TOKEN_KEY, token, {
+      httpOnly: true,
+      secure: true,
+      expires: new Date(Date.now() + JWTHandler.TOKEN_EXPIRE_PERIOD),
+    });
   }
 
   get() {
-    return this.cookie.get(CookieTokenHandler.TOKEN_KEY);
+    return this.cookie.get(CookieTokenHandler.COOKIE_TOKEN_KEY);
+  }
+
+  async update(payload: IPayLoad) {
+    this.set(await jwtHandler.createToken(payload));
   }
 
   clear() {
-    this.cookie.set(CookieTokenHandler.TOKEN_KEY, 'null', {
+    this.cookie.set(CookieTokenHandler.COOKIE_TOKEN_KEY, 'null', {
       httpOnly: true,
       expires: new Date(0),
       secure: true,

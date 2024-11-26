@@ -1,5 +1,4 @@
 import { ERole } from '@/entity/enums/ERole';
-import { CookieTokenHandler } from '@/feature/auth/cookie-handler';
 import { JWTPayload, SignJWT, jwtVerify } from 'jose';
 
 const JWT_SECRET = process.env.JWT_SECRET!;
@@ -10,10 +9,13 @@ export interface IPayLoad extends JWTPayload {
   role: ERole;
 }
 
-class JWTHandler {
+export class JWTHandler {
+  static TOKEN_EXPIRE_PERIOD = 1000 * 60 * 60 * 2;
+
   createToken(payload: IPayLoad) {
+    const newDate = Date.now() + JWTHandler.TOKEN_EXPIRE_PERIOD;
     return new SignJWT(payload)
-      .setExpirationTime('2h')
+      .setExpirationTime(newDate)
       .setProtectedHeader({ alg: 'HS256' })
       .sign(key);
   }
@@ -23,16 +25,8 @@ class JWTHandler {
       const decoded = await jwtVerify(token!, key);
       return decoded.payload as IPayLoad;
     } catch (_error) {
-      console.error(_error);
       return null;
     }
-  }
-
-  async updateToken(token: string, cookieHandler: CookieTokenHandler) {
-    const payload = await this.verifyToken(token);
-    if (!payload) return;
-    const newToken = await this.createToken(payload);
-    cookieHandler.set(newToken);
   }
 }
 
