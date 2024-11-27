@@ -11,7 +11,6 @@ import {
 import { employeeService } from '@/feature/employee/employee.service';
 import { ScheduleGenerator } from '@/feature/schedule/schedule-generator';
 import { appDataSource } from '@/share/libs/typerom/data-source';
-import axios from 'axios';
 import _ from 'lodash';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -81,7 +80,7 @@ const getWorkConditionEntryWeek = (dayOfWeek: EDayOfWeek, index: number) => [
   ],
 ];
 
-export const userInputCondition: UserInputCondition = {
+const userInputCondition: UserInputCondition = {
   startDateDay,
   maxWorkComboDayCount: 2,
   employeeConditions: [],

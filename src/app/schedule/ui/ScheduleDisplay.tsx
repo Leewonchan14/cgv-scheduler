@@ -2,12 +2,9 @@
 
 'use client';
 
-import { scheduleMutateApi } from '@/app/schedule/api/mutate';
 import { EDAY_OF_WEEKS } from '@/entity/enums/EDayOfWeek';
 import { ISchedule } from '@/entity/interface/ISchedule';
-import { getQueryClient } from '@/share/libs/tasntack-query/get-query-client';
-import { useMutation, useMutationState } from '@tanstack/react-query';
-import React, { useEffect } from 'react';
+import React from 'react';
 
 interface ScheduleDisplayProps {
   schedules: ISchedule[];
