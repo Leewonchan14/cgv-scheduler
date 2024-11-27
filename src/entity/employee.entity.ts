@@ -1,11 +1,16 @@
 import { ERole } from '@/entity/enums/ERole';
 import { EWorkPosition } from '@/entity/enums/EWorkPosition';
-import type { IAbleWorkTime } from '@/entity/enums/EWorkTime';
 import { TimeStampEntity } from '@/entity/timstamp.entity';
-import { EmployeeCondition } from '@/entity/types';
+import {
+  EmployeeCondition,
+  type IAbleWorkTime,
+  IEmployeeSchema,
+  IEmployeeSchemaType,
+} from '@/entity/types';
 import { IPayLoad } from '@/feature/auth/jwt-handler';
 import { pwHandler } from '@/feature/auth/pw-handler';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { z } from 'zod';
 
 @Entity({ name: 'employee' })
 export class Employee extends TimeStampEntity implements IEmployee {
@@ -39,7 +44,7 @@ export class Employee extends TimeStampEntity implements IEmployee {
     };
   }
 
-  toCondition() {
+  toCondition(): EmployeeCondition {
     return {
       employee: this,
       ableMinWorkCount: 1,
@@ -49,16 +54,6 @@ export class Employee extends TimeStampEntity implements IEmployee {
   }
 }
 
-export interface IEmployee {
-  id: number;
-  name: string;
-  ableWorkPosition: EWorkPosition[];
-  ableWorkTime: IAbleWorkTime;
-  role: ERole;
-  createdAt: Date;
-  updatedAt: Date;
-  deletedAt: Date | null;
-
+export type IEmployee = {
   toPayload(): IPayLoad;
-  toCondition(): EmployeeCondition;
-}
+} & IEmployeeSchemaType;

@@ -1,8 +1,10 @@
 import { IEmployee } from '@/entity/employee.entity';
 import { EDayOfWeek } from '@/entity/enums/EDayOfWeek';
+import { ERole } from '@/entity/enums/ERole';
 import { EWorkPosition } from '@/entity/enums/EWorkPosition';
 import { EWorkTime } from '@/entity/enums/EWorkTime';
 import { DateDay } from '@/entity/interface/DateDay';
+import { z } from 'zod';
 
 export interface UserInputCondition {
   // 스케쥴 시작일
@@ -18,38 +20,60 @@ export interface UserInputCondition {
   workConditionOfWeek: WorkConditionOfWeek;
 }
 
-// 각 근무자의 고유 사정 조건
-export type EmployeeCondition = {
-  // 투입 가능한 직원
-  employee: IEmployee;
+export const IAbleWorkTimeSchema = z.record(
+  z.nativeEnum(EDayOfWeek),
+  z.array(z.nativeEnum(EWorkTime)),
+);
 
-  // 근무 가능한 최소 일수
-  ableMinWorkCount: number;
+export const IEmployeeSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  ableWorkPosition: z.array(z.nativeEnum(EWorkPosition)),
+  ableWorkTime: IAbleWorkTimeSchema,
+  role: z.nativeEnum(ERole),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
+  deletedAt: z.coerce.date().nullable(),
+});
 
-  // 근무 가능한 최대 일수
-  ableMaxWorkCount: number;
+export const EmployeeConditionSchema = z.object({
+  employee: IEmployeeSchema,
+  ableMinWorkCount: z.number().default(1),
+  ableMaxWorkCount: z.number().default(4),
+  additionalUnableDayOff: z.array(z.nativeEnum(EDayOfWeek)).default([]),
+});
 
-  // 추가로 불가능한 요일
-  additionalUnableDayOff: EDayOfWeek[];
-};
+export const DateDayEntitySchema = z.object({
+  date: z.coerce.date(),
+  dayOfWeek: z.nativeEnum(EDayOfWeek),
+  startDate: z.coerce.date(),
+});
 
-export type WorkConditionOfWeek = {
-  [K in EDayOfWeek]?: WorkConditionEntry[];
-};
+export const WorkConditionEntrySchema = z.object({
+  dateDay: DateDayEntitySchema,
+  employee: IEmployeeSchema.optional(),
+  workPosition: z.nativeEnum(EWorkPosition),
+  workTime: z.nativeEnum(EWorkTime),
+  workTimeStart: z.coerce.date().optional(),
+  workTimeEnd: z.coerce.date().optional(),
+});
 
-export type WorkConditionEntry = {
-  dateDay: DateDay;
+export const WorkConditionSchema = z.record(
+  z.nativeEnum(EDayOfWeek),
+  z.array(WorkConditionEntrySchema).default([]),
+);
 
-  // 이미 배치된 근무자
-  employee?: IEmployee;
+export const UserInputConditionSchema = z.object({
+  startIDateDayEntity: DateDayEntitySchema,
+  employeeConditions: z.array(EmployeeConditionSchema),
+  maxSchedule: z.number().max(100).min(0),
+  maxWorkComboDayCount: z.number().default(2),
+  workConditionOfWeek: WorkConditionSchema,
+});
 
-  // 근무 포지션
-  workPosition: EWorkPosition;
-
-  // 오픈? 마감? 선택?
-  workTime: EWorkTime;
-  // 근무 시작 시간 (선택 시)
-  workTimeStart?: Date;
-  // 근무 종료 시간 (선택 시)
-  workTimeEnd?: Date;
-};
+export type IDateDayEntity = z.infer<typeof DateDayEntitySchema>;
+export type IAbleWorkTime = z.infer<typeof IAbleWorkTimeSchema>;
+export type WorkConditionEntry = z.infer<typeof WorkConditionEntrySchema>;
+export type WorkConditionOfWeek = z.infer<typeof WorkConditionSchema>;
+export type EmployeeCondition = z.infer<typeof EmployeeConditionSchema>;
+export type IEmployeeSchemaType = z.infer<typeof IEmployeeSchema>;

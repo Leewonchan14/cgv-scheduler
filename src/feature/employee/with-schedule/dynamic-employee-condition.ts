@@ -2,6 +2,7 @@
 
 import { EWorkPosition } from '@/entity/enums/EWorkPosition';
 import { EWorkTime } from '@/entity/enums/EWorkTime';
+import { DateDay } from '@/entity/interface/DateDay';
 import { ISchedule } from '@/entity/interface/ISchedule';
 import { ScheduleEntry } from '@/entity/schedule-entry.entity';
 import { EmployeeCondition, WorkConditionEntry } from '@/entity/types';
@@ -16,7 +17,8 @@ import _ from 'lodash';
  */
 
 export class DynamicEmployeeConditions {
-  private 일주일중_전날까지_배치된_모든_스케쥴: ScheduleEntry[][] = [];
+  private 일주일중_전날까지_배치된_모든_스케쥴: WorkConditionEntry[][] = [];
+  private dateDay: DateDay;
   private conditions: ((_: EmployeeCondition) => Promise<boolean> | boolean)[] =
     [];
   constructor(
@@ -27,16 +29,17 @@ export class DynamicEmployeeConditions {
     private scheduleEntryService: IScheduleEntryService,
     private workConditions: WorkConditionEntry[],
   ) {
-    this.일주일중_전날까지_배치된_모든_스케쥴 = this.workCondition.dateDay
+    this.dateDay = DateDay.fromIDateDayEntity(workCondition.dateDay);
+    this.일주일중_전날까지_배치된_모든_스케쥴 = this.dateDay
       .get요일_시작부터_지금_전날까지()
       .map((dayOfWeek) => this.schedule[dayOfWeek]);
   }
 
   add_조건1_현재_요일에_투입_안된_근무자() {
     const condition = (employeeCondition: EmployeeCondition) => {
-      const dayOfWeek = this.workCondition.dateDay.getDayOfWeek();
+      const dayOfWeek = this.workCondition.dateDay.dayOfWeek;
       const 현재요일에_투입된_근무자_IDS = this.schedule[dayOfWeek].map(
-        ({ employee }) => employee.id,
+        ({ employee }) => employee?.id,
       );
 
       return !현재요일에_투입된_근무자_IDS.includes(
@@ -53,7 +56,7 @@ export class DynamicEmployeeConditions {
       // 현재요일 이전까지의 근무자 수가 최대 근무 수보다 작은 경우
       const 전날까지_근무한_일수 = this.일주일중_전날까지_배치된_모든_스케쥴
         .flat()
-        .filter((s) => s.employee.id === employeeCondition.employee.id).length;
+        .filter((s) => s.employee?.id === employeeCondition.employee.id).length;
 
       return 전날까지_근무한_일수 < employeeCondition.ableMaxWorkCount;
     };
@@ -65,17 +68,19 @@ export class DynamicEmployeeConditions {
   // TODO 목요일일때 데이터 베이스와 연동해서 이전 일을 가져오는 로직을 추가해야 함
   add_조건3_전날_마감_근무후_다음날_오픈_근무가_아닌_근무자() {
     const condition = async (employeeCondition: EmployeeCondition) => {
-      const dateDay = this.workCondition.dateDay;
       const isOpen = this.workCondition.workTime === EWorkTime.오픈;
       if (!isOpen) return true;
 
-      const prevSchedules: ScheduleEntry[][] =
+      const prevSchedules: WorkConditionEntry[][] =
         this.일주일중_전날까지_배치된_모든_스케쥴;
 
       // 만약 첫째요일이라면 prevSchedule 앞에 전날 스케쥴을 추가해준다.
-      if (dateDay.isFirstDayOfWeek()) {
+      if (this.dateDay.isFirstDayOfWeek()) {
         const pre = (
-          await this.scheduleEntryService.findPreviousSchedule(dateDay.date, 1)
+          await this.scheduleEntryService.findPreviousSchedule(
+            this.dateDay.date,
+            1,
+          )
         )[0];
         if (pre) {
           prevSchedules.unshift(pre);
@@ -87,7 +92,7 @@ export class DynamicEmployeeConditions {
         ?.find(
           (s) =>
             s.workTime === EWorkTime.마감 &&
-            s.employee.id === employeeCondition.employee.id,
+            s.employee?.id === employeeCondition.employee.id,
         );
       return !(isOpen && isPreviousDayClose);
     };
@@ -123,7 +128,7 @@ export class DynamicEmployeeConditions {
         최근_최대근무일수_스케쥴.length > 1 &&
         최근_최대근무일수_스케쥴.every((dayOfSchedules) =>
           dayOfSchedules.some(
-            (s) => s.employee.id === employeeCondition.employee.id,
+            (s) => s.employee?.id === employeeCondition.employee.id,
           ),
         );
 
@@ -136,7 +141,7 @@ export class DynamicEmployeeConditions {
 
   add_조건5_멀티_최소인원을_만족하는_근무자() {
     const condition = (employeeCondition: EmployeeCondition) => {
-      const dayOfWeek = this.workCondition.dateDay.getDayOfWeek();
+      const dayOfWeek = this.workCondition.dateDay.dayOfWeek;
 
       const mockSchedule = _.cloneDeep(this.schedule[dayOfWeek]);
       mockSchedule.push({

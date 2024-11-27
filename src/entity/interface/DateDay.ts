@@ -1,5 +1,6 @@
-import { IDateDayEntity } from '@/entity/date-day.entity';
-import { CORRECT_DAY_OF_WEEKS, EDayOfWeek } from '@/entity/enums/EDayOfWeek';
+import { EDAY_OF_WEEKS_CORRECT, EDayOfWeek } from '@/entity/enums/EDayOfWeek';
+import { IDateDayEntity } from '@/entity/types';
+import { addDays, isSameDay } from 'date-fns';
 
 export class DateDay implements IDateDayEntity {
   date: Date;
@@ -13,16 +14,19 @@ export class DateDay implements IDateDayEntity {
     private next: number,
   ) {
     this.startDate = new Date(startDate);
-
-    this.date = new Date(this.startDate);
-    this.date.setDate(this.startDate.getDate() + this.next);
+    this.date = addDays(this.startDate, this.next);
+    this.dayOfWeek = this.getDayOfWeek();
   }
 
   static fromDayOfWeek(startDate: Date, dayOfWeek: EDayOfWeek) {
     const index = new DateDay(startDate, 0)
-      .get요일_시작부터_끝까지()
+      .get요일_시작부터_끝까지DayOfWeek()
       .indexOf(dayOfWeek);
     return new DateDay(startDate, index);
+  }
+
+  static fromIDateDayEntity(entity: IDateDayEntity) {
+    return DateDay.fromDayOfWeek(entity.startDate, entity.dayOfWeek);
   }
 
   getStartDateDay() {
@@ -31,18 +35,18 @@ export class DateDay implements IDateDayEntity {
 
   getDayOfWeek(): EDayOfWeek {
     if (!this.dayOfWeek) {
-      this.dayOfWeek = CORRECT_DAY_OF_WEEKS[this.date.getDay()];
+      this.dayOfWeek = EDAY_OF_WEEKS_CORRECT[this.date.getDay()];
     }
     return this.dayOfWeek;
   }
 
-  get요일_시작부터_끝까지() {
+  get요일_시작부터_끝까지DayOfWeek() {
     if (!this.sliceFullFromStartDate) {
-      const index = CORRECT_DAY_OF_WEEKS.indexOf(
+      const index = EDAY_OF_WEEKS_CORRECT.indexOf(
         this.getStartDateDay().getDayOfWeek(),
       );
-      const front = CORRECT_DAY_OF_WEEKS.slice(index);
-      const back = CORRECT_DAY_OF_WEEKS.slice(0, index);
+      const front = EDAY_OF_WEEKS_CORRECT.slice(index);
+      const back = EDAY_OF_WEEKS_CORRECT.slice(0, index);
       this.sliceFullFromStartDate = [...front, ...back];
     }
     return this.sliceFullFromStartDate;
@@ -50,17 +54,32 @@ export class DateDay implements IDateDayEntity {
 
   get요일_시작부터_지금_전날까지() {
     if (!this.sliceFromStartDateToDayOfWeek) {
-      this.sliceFromStartDateToDayOfWeek = this.get요일_시작부터_끝까지().slice(
-        0,
-        this.getIndexOfSlice(),
-      );
+      this.sliceFromStartDateToDayOfWeek =
+        this.get요일_시작부터_끝까지DayOfWeek().slice(
+          0,
+          this.getIndexOfSlice(),
+        );
     }
     return this.sliceFromStartDateToDayOfWeek;
   }
 
+  get요일_시작부터_끝까지DateDay() {
+    return this.get요일_시작부터_끝까지DayOfWeek().map((dayOfWeek) => {
+      return DateDay.fromDayOfWeek(this.startDate, dayOfWeek);
+    });
+  }
+
+  isSameWeek(date: Date) {
+    return this.get요일_시작부터_끝까지DateDay().some((d) =>
+      isSameDay(d.date, date),
+    );
+  }
+
   getIndexOfSlice() {
     if (!this.index) {
-      this.index = this.get요일_시작부터_끝까지().indexOf(this.getDayOfWeek());
+      this.index = this.get요일_시작부터_끝까지DayOfWeek().indexOf(
+        this.getDayOfWeek(),
+      );
     }
     return this.index;
   }
@@ -69,11 +88,25 @@ export class DateDay implements IDateDayEntity {
     return this.next === 0;
   }
 
+  getNextDateDayByDayOfWeek(dayOfWeek: EDayOfWeek): DateDay {
+    if (this.getDayOfWeek() === dayOfWeek) {
+      return this;
+    }
+    return this.getNextDateDay(1).getNextDateDayByDayOfWeek(dayOfWeek);
+  }
+
+  getPrevDateDayByDayOfWeek(dayOfWeek: EDayOfWeek): DateDay {
+    if (this.getDayOfWeek() === dayOfWeek) {
+      return this;
+    }
+    return this.getPrevDateDay(1).getPrevDateDayByDayOfWeek(dayOfWeek);
+  }
+
   getNextDateDay(n: number) {
-    return new DateDay(this.date, this.next + n);
+    return new DateDay(this.startDate, this.next + n);
   }
 
   getPrevDateDay(n: number) {
-    return new DateDay(this.date, this.next - n);
+    return new DateDay(this.startDate, this.next - n);
   }
 }

@@ -1,9 +1,9 @@
-import { IEmployee } from '@/entity/employee.entity';
-import { EDAY_OF_WEEKS, EDayOfWeek } from '@/entity/enums/EDayOfWeek';
+import { EDAY_OF_WEEKS } from '@/entity/enums/EDayOfWeek';
 import { ISchedule } from '@/entity/interface/ISchedule';
 import { ScheduleEntry } from '@/entity/schedule-entry.entity';
 import {
   EmployeeCondition,
+  IEmployeeSchemaType,
   UserInputCondition,
   WorkConditionEntry,
 } from '@/entity/types';
@@ -17,9 +17,7 @@ export class ScheduleGenerator {
   public isTimeOut = false;
   public isDone = false;
 
-  private result = [] as {
-    [key in EDayOfWeek]: ScheduleEntry[];
-  }[];
+  private result: ISchedule[] = [];
 
   private schedule: ISchedule = _.chain(EDAY_OF_WEEKS)
     .map((day) => [day, []])
@@ -58,11 +56,11 @@ export class ScheduleGenerator {
 
   private prefixRecursive(
     workConditionEntry: WorkConditionEntry,
-    employee: IEmployee,
+    employee: IEmployeeSchemaType,
   ) {
     this.depth += 1;
 
-    this.schedule[workConditionEntry.dateDay.getDayOfWeek()].push({
+    this.schedule[workConditionEntry.dateDay.dayOfWeek].push({
       employee,
       ...workConditionEntry,
     } as ScheduleEntry);
@@ -88,7 +86,7 @@ export class ScheduleGenerator {
     let currentIndex = this.depth;
 
     // 현재 요일
-    for (const dayOfWeek of this.userInput.startDateDay.get요일_시작부터_끝까지()) {
+    for (const dayOfWeek of this.userInput.startDateDay.get요일_시작부터_끝까지DayOfWeek()) {
       if (workConditions[dayOfWeek] === undefined) continue;
       if (currentIndex >= _.size(workConditions[dayOfWeek])) {
         currentIndex -= _.size(workConditions[dayOfWeek]);
@@ -109,7 +107,7 @@ export class ScheduleGenerator {
 
   private async doRecursive(
     workConditionEntry: WorkConditionEntry,
-    employee: IEmployee,
+    employee: IEmployeeSchemaType,
   ) {
     this.prefixRecursive(workConditionEntry, employee);
     await this.recursive();
@@ -148,7 +146,7 @@ export class ScheduleGenerator {
       this.userInput.maxWorkComboDayCount,
       { findPreviousSchedule: async () => [] },
       this.userInput.workConditionOfWeek?.[
-        workConditionEntry.dateDay.getDayOfWeek()
+        workConditionEntry.dateDay.dayOfWeek
       ] ?? [],
     )
       .add_조건1_현재_요일에_투입_안된_근무자()
@@ -173,7 +171,7 @@ export class ScheduleGenerator {
   }
 
   private postRecursive({ dateDay }: WorkConditionEntry) {
-    this.schedule[dateDay.getDayOfWeek()].pop();
+    this.schedule[dateDay.dayOfWeek].pop();
     this.depth -= 1;
   }
 

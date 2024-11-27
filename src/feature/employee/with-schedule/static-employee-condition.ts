@@ -31,7 +31,7 @@ export class StaticEmployeeCondition {
     workTime,
     workTimeStart,
   }: Partial<WorkConditionEntry>) {
-    return [dateDay?.getDayOfWeek(), workPosition, workTime, workTimeStart]
+    return [dateDay?.dayOfWeek, workPosition, workTime, workTimeStart]
       .filter((v) => v !== undefined)
       .join('-');
   }
@@ -50,7 +50,7 @@ export class StaticEmployeeCondition {
 
   add_조건2_직원의_가능한_날(): this {
     const condition = (employeeCondition: EmployeeCondition) => {
-      const dayOfWeek = this.workConditionEntry.dateDay.getDayOfWeek();
+      const dayOfWeek = this.workConditionEntry.dateDay.dayOfWeek;
       return (
         dayOfWeek in
         _.omitBy(employeeCondition.employee.ableWorkTime, _.isUndefined)
@@ -64,7 +64,7 @@ export class StaticEmployeeCondition {
 
   add_조건3_직원의_추가_휴무일(): this {
     const condition = (employeeCondition: EmployeeCondition) => {
-      const dayOfWeek = this.workConditionEntry.dateDay.getDayOfWeek();
+      const dayOfWeek = this.workConditionEntry.dateDay.dayOfWeek;
       const additionalUnableDayOff = employeeCondition.additionalUnableDayOff;
 
       return !additionalUnableDayOff?.includes(dayOfWeek);

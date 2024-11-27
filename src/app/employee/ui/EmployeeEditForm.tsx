@@ -5,7 +5,7 @@ import AbleWorkPosition from '@/app/employee/ui/AbleWorkPosition';
 import AbleWorkTime from '@/app/employee/ui/AbleWorkTime';
 import ErrorMessage from '@/app/employee/ui/ErrorMessage';
 import { EWorkPosition } from '@/entity/enums/EWorkPosition';
-import { IAbleWorkTime } from '@/entity/enums/EWorkTime';
+import { IAbleWorkTime } from '@/entity/types';
 import { NextPage } from 'next';
 import { useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';

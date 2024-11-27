@@ -1,6 +1,6 @@
 import DeleteButton from '@/app/employee/ui/DeleteButton';
 import TableMargin from '@/app/employee/ui/TableMargin';
-import { CORRECT_DAY_OF_WEEKS } from '@/entity/enums/EDayOfWeek';
+import { EDAY_OF_WEEKS_CORRECT } from '@/entity/enums/EDayOfWeek';
 import { ERole } from '@/entity/enums/ERole';
 import { authHandler } from '@/feature/auth/auth-handler';
 import { nextCookieStore } from '@/feature/auth/next-cookie.store';
@@ -62,7 +62,7 @@ const EmployeeTable: NextPage<Props> = async ({ page, pageSize, search }) => {
               <td>{employee.name}</td>
               <td>{employee.ableWorkPosition.join(', ')}</td>
               <td>
-                {CORRECT_DAY_OF_WEEKS.filter(
+                {EDAY_OF_WEEKS_CORRECT.filter(
                   (d) => d in employee.ableWorkTime,
                 ).join(',')}
               </td>

@@ -27,13 +27,12 @@ export class EmployeeService {
     this.employeeRepository = this.appDataSource.getRepository(Employee);
   }
 
-  findByIds(ids: number[]) {
-    return this.employeeRepository.find({
+  async findByIds(ids: number[]) {
+    const employees = await this.employeeRepository.find({
       where: { id: In(ids) },
-      order: {
-        createdAt: 'DESC',
-      },
     });
+
+    return employees.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
   }
 
   findOne = (id: number) => {

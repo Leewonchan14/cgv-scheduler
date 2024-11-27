@@ -48,7 +48,7 @@ const ScheduleDisplay: React.FC<ScheduleDisplayProps> = ({
                           {entry.workPosition}
                         </span>
                         <span className="text-sm text-gray-700">
-                          {entry.employee.name}
+                          {entry.employee?.name}
                         </span>
                       </div>
                     </li>

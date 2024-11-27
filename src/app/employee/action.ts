@@ -1,6 +1,6 @@
 'use server';
 
-import { CORRECT_DAY_OF_WEEKS } from '@/entity/enums/EDayOfWeek';
+import { EDAY_OF_WEEKS_CORRECT } from '@/entity/enums/EDayOfWeek';
 import { EWORK_POSITION } from '@/entity/enums/EWorkPosition';
 import { EWORK_TIMES } from '@/entity/enums/EWorkTime';
 import { employeeValidator } from '@/feature/employee/employee-validator';
@@ -24,7 +24,7 @@ const CreateFormSchema = z.object({
   ableWorkPosition: z.array(z.enum(EWORK_POSITION)),
   ableWorkTime: z.object(
     Object.fromEntries(
-      CORRECT_DAY_OF_WEEKS.map((day) => [
+      EDAY_OF_WEEKS_CORRECT.map((day) => [
         day,
         z.array(z.enum(EWORK_TIMES)).optional(),
       ]),

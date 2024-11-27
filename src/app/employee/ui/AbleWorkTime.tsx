@@ -1,8 +1,6 @@
 import { EDAY_OF_WEEKS } from '@/entity/enums/EDayOfWeek';
-import {
-  EWORK_TIME_WITHOUT_SELECT,
-  IAbleWorkTime,
-} from '@/entity/enums/EWorkTime';
+import { EWORK_TIME_WITHOUT_SELECT } from '@/entity/enums/EWorkTime';
+import { IAbleWorkTime } from '@/entity/types';
 import { toggleListItem } from '@/share/libs/util/toggle-list-item';
 import React, { FC } from 'react';
 
