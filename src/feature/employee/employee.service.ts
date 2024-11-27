@@ -1,5 +1,5 @@
 import { Employee } from '@/entity/employee.entity';
-import { DeepPartial, Like, Repository } from 'typeorm';
+import { DeepPartial, In, Like, Repository } from 'typeorm';
 import { DataSource } from 'typeorm/browser';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity.js';
 import { z } from 'zod';
@@ -18,13 +18,22 @@ export class EmployeeService {
   public static PaginationSchema() {
     return z.object({
       page: z.coerce.number().optional().default(0),
-      pageSize: z.coerce.number().min(0).max(10).optional().default(10),
+      pageSize: z.coerce.number().min(0).max(30).optional().default(30),
       search: z.string().optional().default(''),
     });
   }
 
   constructor(private appDataSource: DataSource) {
     this.employeeRepository = this.appDataSource.getRepository(Employee);
+  }
+
+  findByIds(ids: number[]) {
+    return this.employeeRepository.find({
+      where: { id: In(ids) },
+      order: {
+        createdAt: 'DESC',
+      },
+    });
   }
 
   findOne = (id: number) => {

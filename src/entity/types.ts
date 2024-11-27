@@ -1,4 +1,4 @@
-import { Employee } from '@/entity/employee.entity';
+import { IEmployee } from '@/entity/employee.entity';
 import { EDayOfWeek } from '@/entity/enums/EDayOfWeek';
 import { EWorkPosition } from '@/entity/enums/EWorkPosition';
 import { EWorkTime } from '@/entity/enums/EWorkTime';
@@ -21,7 +21,7 @@ export interface UserInputCondition {
 // 각 근무자의 고유 사정 조건
 export type EmployeeCondition = {
   // 투입 가능한 직원
-  employee: Employee;
+  employee: IEmployee;
 
   // 근무 가능한 최소 일수
   ableMinWorkCount: number;
@@ -41,7 +41,7 @@ export type WorkConditionEntry = {
   dateDay: DateDay;
 
   // 이미 배치된 근무자
-  employee?: Employee;
+  employee?: IEmployee;
 
   // 근무 포지션
   workPosition: EWorkPosition;

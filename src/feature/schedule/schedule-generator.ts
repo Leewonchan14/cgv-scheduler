@@ -1,4 +1,4 @@
-import { Employee } from '@/entity/employee.entity';
+import { IEmployee } from '@/entity/employee.entity';
 import { EDAY_OF_WEEKS, EDayOfWeek } from '@/entity/enums/EDayOfWeek';
 import { ISchedule } from '@/entity/interface/ISchedule';
 import { ScheduleEntry } from '@/entity/schedule-entry.entity';
@@ -46,19 +46,19 @@ export class ScheduleGenerator {
       .value();
   }
 
-  public timeStart(limitMs: number) {
+  public async generate(limitMs: number) {
     // 5초 후에 isFirst를 true로 변경
     setTimeout(() => {
       this.isDone = true;
       this.isTimeOut = true;
     }, limitMs);
 
-    return this;
+    await this.recursive();
   }
 
   private prefixRecursive(
     workConditionEntry: WorkConditionEntry,
-    employee: Employee,
+    employee: IEmployee,
   ) {
     this.depth += 1;
 
@@ -68,7 +68,7 @@ export class ScheduleGenerator {
     } as ScheduleEntry);
   }
 
-  public async recursiveGenerate() {
+  private async recursive() {
     await delay(0);
 
     // 종료 조건
@@ -109,10 +109,10 @@ export class ScheduleGenerator {
 
   private async doRecursive(
     workConditionEntry: WorkConditionEntry,
-    employee: Employee,
+    employee: IEmployee,
   ) {
     this.prefixRecursive(workConditionEntry, employee);
-    await this.recursiveGenerate();
+    await this.recursive();
     this.postRecursive(workConditionEntry);
   }
 
