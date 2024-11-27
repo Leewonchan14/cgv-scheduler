@@ -77,8 +77,7 @@ const ScheduleGeneratorForm: NextPage<Props> = ({ startDate }) => {
   >([]);
 
   const [maxSchedule, setMaxSchedule] = useState(5);
-
-  const [maxWorkComboDayCount, setMaxWorkComboDayCount] = useState(2);
+  const [maxWorkComboDayCount, setMaxWorkComboDayCount] = useState(3);
 
   const handleSelectionChange = (employees: EmployeeCondition[]) => {
     setSelectEmployeeConditions(employees);
@@ -108,7 +107,10 @@ const ScheduleGeneratorForm: NextPage<Props> = ({ startDate }) => {
     <div className="container p-4 mx-auto">
       <h1 className="mb-6 text-3xl font-bold text-center">근무표 생성기</h1>
 
-      <EmployeeSelector onSelectionChange={handleSelectionChange} />
+      <EmployeeSelector
+        selectEmployeeConditions={selectEmployeeConditions}
+        onSelectionChange={handleSelectionChange}
+      />
 
       {/* 최대 연속 근무 일 정하기 */}
       <div className="my-6">

@@ -5,39 +5,32 @@ import { EDAY_OF_WEEKS_CORRECT, EDayOfWeek } from '@/entity/enums/EDayOfWeek';
 import { EmployeeCondition, EmployeeConditionSchema } from '@/entity/types';
 import { useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { z } from 'zod';
 
 interface EmployeeSelectorProps {
+  selectEmployeeConditions: EmployeeCondition[];
   onSelectionChange: (_: EmployeeCondition[]) => void;
 }
 
 const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
+  selectEmployeeConditions,
   onSelectionChange,
 }) => {
-  const [selectEmployeeConditions, setSelectEmployeeConditions] = useState<
-    EmployeeCondition[]
-  >([]);
-
   const { data: employees } = useQuery(employeeQueryApi.findByIds);
 
-  useEffect(() => {
-    onSelectionChange(selectEmployeeConditions);
-  }, [selectEmployeeConditions, onSelectionChange]);
-
   const handleToggle = (employee: EmployeeCondition) => {
-    setSelectEmployeeConditions((prev) =>
-      _.xorBy(prev, [employee], 'employee.id'),
+    onSelectionChange(
+      _.xorBy(selectEmployeeConditions, [employee], 'employee.id'),
     );
   };
 
-  const handleConditionChange = (
-    employeeId: number,
-    field: keyof Omit<EmployeeCondition, 'employee'>,
-    value: any,
-  ) => {
-    setSelectEmployeeConditions((prev) =>
-      prev.map((cond) =>
-        cond.employee.id === employeeId ? { ...cond, [field]: value } : cond,
+  const handleConditionChange = (employeeCondition: EmployeeCondition) => {
+    onSelectionChange(
+      selectEmployeeConditions.map((cond) =>
+        cond.employee.id === employeeCondition.employee.id
+          ? employeeCondition
+          : cond,
       ),
     );
   };
@@ -49,12 +42,14 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       <h2 className="mb-4 text-2xl font-semibold">근무자 선택</h2>
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
         {employees.map((emp) => {
-          const isSelected = selectEmployeeConditions.some(
+          const findCond = selectEmployeeConditions.find(
             (cond) => cond.employee.id === emp.id,
           );
+          const isSelected = findCond?.employee.id === emp.id;
 
           const employeeCondition = EmployeeConditionSchema.parse({
             employee: emp,
+            ...findCond,
           }) as EmployeeCondition;
 
           return (
@@ -71,10 +66,8 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
               </button>
               {isSelected && (
                 <EmployeeConditionForm
-                  condition={employeeCondition}
-                  onChange={(field, value) =>
-                    handleConditionChange(emp.id, field, value)
-                  }
+                  condition={findCond}
+                  onChange={handleConditionChange}
                 />
               )}
             </div>
@@ -85,7 +78,7 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       <div className="flex gap-4">
         <button
           onClick={() => {
-            setSelectEmployeeConditions(
+            onSelectionChange(
               employees.map((emp) =>
                 EmployeeConditionSchema.parse({ employee: emp }),
               ) as EmployeeCondition[],
@@ -96,7 +89,7 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
           전체 선택
         </button>
         <button
-          onClick={() => setSelectEmployeeConditions([])}
+          onClick={() => onSelectionChange([])}
           className="p-2 mt-4 font-bold bg-white border rounded-lg"
         >
           전체 해제
@@ -108,10 +101,7 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
 
 interface EmployeeConditionFormProps {
   condition: EmployeeCondition;
-  onChange: (
-    field: keyof Omit<EmployeeCondition, 'employee'>,
-    value: any,
-  ) => void;
+  onChange: (_: EmployeeCondition) => void;
 }
 
 const EmployeeConditionForm: React.FC<EmployeeConditionFormProps> = ({
@@ -122,7 +112,24 @@ const EmployeeConditionForm: React.FC<EmployeeConditionFormProps> = ({
     condition;
 
   const handleCheckboxChange = (day: EDayOfWeek) => {
-    onChange('additionalUnableDayOff', _.xor(additionalUnableDayOff, [day]));
+    onChange({
+      ...condition,
+      additionalUnableDayOff: _.xor(additionalUnableDayOff, [day]),
+    });
+  };
+
+  const handleAbleMinWorkTimeChange = (n: string) => {
+    onChange({
+      ...condition,
+      ableMinWorkCount: z.coerce.number().parse(n),
+    });
+  };
+
+  const handleAbleMaxWorkTimeChange = (n: string) => {
+    onChange({
+      ...condition,
+      ableMaxWorkCount: z.coerce.number().parse(n),
+    });
   };
 
   return (
@@ -135,9 +142,7 @@ const EmployeeConditionForm: React.FC<EmployeeConditionFormProps> = ({
           type="number"
           min={1}
           value={ableMinWorkCount}
-          onChange={(e) =>
-            onChange('ableMinWorkCount', parseInt(e.target.value) || 0)
-          }
+          onChange={(e) => handleAbleMinWorkTimeChange(e.target.value)}
           className="w-full p-2 mt-1 border rounded-md"
         />
       </div>
@@ -149,9 +154,7 @@ const EmployeeConditionForm: React.FC<EmployeeConditionFormProps> = ({
           type="number"
           min={1}
           value={ableMaxWorkCount}
-          onChange={(e) =>
-            onChange('ableMaxWorkCount', parseInt(e.target.value) || 0)
-          }
+          onChange={(e) => handleAbleMaxWorkTimeChange(e.target.value)}
           className="w-full p-2 mt-1 border rounded-md"
         />
       </div>

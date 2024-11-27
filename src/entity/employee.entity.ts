@@ -4,13 +4,11 @@ import { TimeStampEntity } from '@/entity/timstamp.entity';
 import {
   EmployeeCondition,
   type IAbleWorkTime,
-  IEmployeeSchema,
   IEmployeeSchemaType,
 } from '@/entity/types';
 import { IPayLoad } from '@/feature/auth/jwt-handler';
 import { pwHandler } from '@/feature/auth/pw-handler';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { z } from 'zod';
 
 @Entity({ name: 'employee' })
 export class Employee extends TimeStampEntity implements IEmployee {

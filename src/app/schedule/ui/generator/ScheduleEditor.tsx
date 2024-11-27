@@ -106,7 +106,7 @@ const DayEditor: React.FC<DayEditorProps> = ({
                   onChange={(e) =>
                     handleWorkTimeChange(idx, e.target.value as EWorkTime)
                   }
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+                  className="block w-full p-2 mt-1 border border-gray-300 rounded-md"
                 >
                   {Object.values(EWorkTime).map((time) => (
                     <option key={time} value={time}>
@@ -127,7 +127,7 @@ const DayEditor: React.FC<DayEditorProps> = ({
                       e.target.value as EWorkPosition,
                     )
                   }
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+                  className="block w-full p-2 mt-1 border border-gray-300 rounded-md"
                 >
                   {Object.values(EWorkPosition).map((position) => (
                     <option key={position} value={position}>
@@ -145,7 +145,7 @@ const DayEditor: React.FC<DayEditorProps> = ({
                   onChange={(e) =>
                     handleEmployeeChange(idx, parseInt(e.target.value))
                   }
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+                  className="block w-full p-2 mt-1 border border-gray-300 rounded-md"
                 >
                   <option value="">직원 선택</option>
                   {employees.map((emp) => (
@@ -157,7 +157,7 @@ const DayEditor: React.FC<DayEditorProps> = ({
               </div>
               <button
                 onClick={() => handleRemoveEntry(idx)}
-                className="self-end mt-2 text-red-500 hover:text-red-700"
+                className="self-end w-20 py-2 mt-2 text-white bg-red-500 rounded-lg hover:text-red-700"
               >
                 삭제
               </button>
@@ -167,7 +167,7 @@ const DayEditor: React.FC<DayEditorProps> = ({
       </ul>
       <button
         onClick={handleAddEntry}
-        className="mt-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+        className="px-4 py-2 mt-2 text-white transition-colors bg-green-500 rounded-lg hover:bg-green-600"
       >
         항목 추가
       </button>

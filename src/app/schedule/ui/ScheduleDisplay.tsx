@@ -60,7 +60,7 @@ const ScheduleDisplay: React.FC<ScheduleDisplayProps> = ({
         </div>
       ))}
       {!schedules.length && (
-        <div className="text-center text-red-500">근무표가 없습니다.</div>
+        <div className="text-center text-red-500">가능한 근무표가 없습니다.</div>
       )}
     </div>
   );

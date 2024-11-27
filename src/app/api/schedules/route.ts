@@ -1,9 +1,7 @@
 import { DateDay } from '@/entity/interface/DateDay';
 import { ISchedule } from '@/entity/interface/ISchedule';
 import { UserInputCondition, UserInputConditionSchema } from '@/entity/types';
-import { employeeService } from '@/feature/employee/employee.service';
 import { ScheduleGenerator } from '@/feature/schedule/schedule-generator';
-import { appDataSource } from '@/share/libs/typerom/data-source';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
@@ -25,17 +23,14 @@ export async function POST(request: Request) {
     workConditionOfWeek,
   } = data;
 
-  const employees = await employeeService(await appDataSource()).findByIds(
-    employeeConditions.map((emp) => emp.employee.id),
-  );
+  // const employees = await employeeService(await appDataSource()).findByIds(
+  //   employeeConditions.map((emp) => emp.employee.id),
+  // );
 
   const userInputCondition: UserInputCondition = {
     startDateDay: DateDay.fromIDateDayEntity(startIDateDayEntity),
     maxWorkComboDayCount,
-    employeeConditions: employeeConditions.map((emp, idx) => ({
-      ...emp,
-      employee: employees[idx],
-    })),
+    employeeConditions,
     workConditionOfWeek,
   };
 
@@ -48,8 +43,6 @@ export async function POST(request: Request) {
       { status: 500 },
     );
   }
-
-  generator.getResult();
 
   const response = {
     data: generator.getResult() as ISchedule[],

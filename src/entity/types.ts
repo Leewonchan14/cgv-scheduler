@@ -1,4 +1,3 @@
-import { IEmployee } from '@/entity/employee.entity';
 import { EDayOfWeek } from '@/entity/enums/EDayOfWeek';
 import { ERole } from '@/entity/enums/ERole';
 import { EWorkPosition } from '@/entity/enums/EWorkPosition';

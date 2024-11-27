@@ -48,12 +48,16 @@ export class StaticEmployeeCondition {
     return this;
   }
 
-  add_조건2_직원의_가능한_날(): this {
+  add_조건2_직원의_가능한_시간(): this {
     const condition = (employeeCondition: EmployeeCondition) => {
       const dayOfWeek = this.workConditionEntry.dateDay.dayOfWeek;
+      const definedWorkTime = _.omitBy(
+        employeeCondition.employee.ableWorkTime,
+        _.isUndefined,
+      );
       return (
-        dayOfWeek in
-        _.omitBy(employeeCondition.employee.ableWorkTime, _.isUndefined)
+        dayOfWeek in definedWorkTime &&
+        definedWorkTime[dayOfWeek].includes(this.workConditionEntry.workTime)
       );
     };
 
