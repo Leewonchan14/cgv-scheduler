@@ -117,7 +117,8 @@ const ScheduleGeneratorForm: NextPage<Props> = ({}) => {
   };
 
   const handleSetWorkCondition = (newConditions: WorkConditionOfWeek) => {
-    // setWorkConditionOfWeek(newConditions);
+    console.log('newConditions: ', newConditions);
+    setWorkConditionOfWeek(newConditions);
     reset();
   };
 
