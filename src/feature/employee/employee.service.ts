@@ -39,6 +39,13 @@ export class EmployeeService {
     return this.employeeRepository.findOne({ where: { id } });
   };
 
+  isValidName = async (name: string) => {
+    return !(await this.employeeRepository.findOne({
+      where: { name },
+      withDeleted: true,
+    }));
+  };
+
   findByName = (name: string) => {
     return this.employeeRepository.findOne({ where: { name } });
   };

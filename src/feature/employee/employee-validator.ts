@@ -7,7 +7,7 @@ class EmployeeValidator {
   }
 
   async name(name: string) {
-    return !(await employeeService(await appDataSource()).findByName(name));
+    return await employeeService(await appDataSource()).isValidName(name);
   }
 }
 
