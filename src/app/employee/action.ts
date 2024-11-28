@@ -14,6 +14,10 @@ import { z } from 'zod';
 // TODO 근무자 제거 기능 구현해야함
 export const employeeRemoveAction = async ({ id }: { id: number }) => {
   await employeeService(await appDataSource()).softDelete(id);
+
+  revalidatePath('/employee');
+  revalidatePath('/schedule');
+  redirect('/employee');
 };
 
 const CreateFormSchema = z.object({
@@ -68,6 +72,7 @@ export const employeeCreateAction = async (
   });
 
   revalidatePath('/employee');
+  revalidatePath('/schedule');
   redirect('/employee');
 };
 
@@ -104,5 +109,6 @@ export const employeeUpdateAction = async (
   });
 
   revalidatePath('/employee');
+  revalidatePath('/schedule');
   redirect('/employee');
 };

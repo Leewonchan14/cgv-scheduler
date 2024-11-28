@@ -1,5 +1,5 @@
 import { ISchedule } from '@/entity/interface/ISchedule';
-import { UserInputConditionSchema } from '@/entity/types';
+import { APIUserInputConditionSchema } from '@/entity/types';
 import axios from 'axios';
 import { z } from 'zod';
 
@@ -12,7 +12,7 @@ export const scheduleMutateApi = {
       startIDateDayEntity,
       maxSchedule,
       workConditionOfWeek,
-    }: z.infer<typeof UserInputConditionSchema>) => {
+    }: z.infer<typeof APIUserInputConditionSchema>) => {
       const { data } = await axios.post('/api/schedules', {
         employeeConditions,
         maxWorkComboDayCount,

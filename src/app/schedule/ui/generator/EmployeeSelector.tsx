@@ -17,7 +17,7 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   selectEmployeeConditions,
   onSelectionChange,
 }) => {
-  const { data: employees } = useQuery(employeeQueryApi.findByIds);
+  const { data: employees } = useQuery(employeeQueryApi.findAll);
 
   const handleToggle = (employee: EmployeeCondition) => {
     onSelectionChange(

@@ -1,9 +1,27 @@
+import { OmitStrict } from '@/app/api/types';
 import { EDayOfWeek } from '@/entity/enums/EDayOfWeek';
 import { ERole } from '@/entity/enums/ERole';
 import { EWorkPosition } from '@/entity/enums/EWorkPosition';
 import { EWorkTime } from '@/entity/enums/EWorkTime';
 import { DateDay } from '@/entity/interface/DateDay';
 import { z } from 'zod';
+
+export interface APIUserInputCondition {
+  // 스케쥴 시작일
+  startDateDay: DateDay;
+
+  // 최대 연속 근무 일수
+  maxWorkComboDayCount: number;
+
+  // 각 근무자의 고유 사정 조건
+  employeeConditions: OmitStrict<EmployeeCondition, 'employee'> &
+    {
+      employee: Pick<IEmployeeSchemaType, 'id'>;
+    }[];
+
+  // 근무 조건
+  workConditionOfWeek: WorkConditionOfWeek;
+}
 
 export interface UserInputCondition {
   // 스케쥴 시작일
@@ -62,9 +80,15 @@ export const WorkConditionSchema = z.record(
   z.array(WorkConditionEntrySchema).default([]),
 );
 
-export const UserInputConditionSchema = z.object({
+export const APIUserInputConditionSchema = z.object({
   startIDateDayEntity: DateDayEntitySchema,
-  employeeConditions: z.array(EmployeeConditionSchema),
+  employeeConditions: z.array(
+    EmployeeConditionSchema.omit({ employee: true }).extend({
+      employee: z.object({
+        id: z.coerce.number(),
+      }),
+    }),
+  ),
   maxSchedule: z.number().max(100).min(0),
   maxWorkComboDayCount: z.number().default(2),
   workConditionOfWeek: WorkConditionSchema,

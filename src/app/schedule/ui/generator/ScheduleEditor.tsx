@@ -3,7 +3,7 @@
 'use client';
 
 import { employeeQueryApi } from '@/app/employee/api/queryoption';
-import { EDAY_OF_WEEKS, EDayOfWeek } from '@/entity/enums/EDayOfWeek';
+import { EDayOfWeek } from '@/entity/enums/EDayOfWeek';
 import { EWorkPosition } from '@/entity/enums/EWorkPosition';
 import { EWorkTime } from '@/entity/enums/EWorkTime';
 import { DateDay } from '@/entity/interface/DateDay';
@@ -26,16 +26,18 @@ const ScheduleEditor: React.FC<ScheduleEditorProps> = ({
     <div>
       <h2 className="mb-4 text-2xl font-semibold">근무표 배치</h2>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-7">
-        {EDAY_OF_WEEKS.map((dayOfWeek) => (
-          <DayEditor
-            key={dayOfWeek}
-            dayOfWeek={dayOfWeek}
-            entries={workConditionOfWeek[dayOfWeek] ?? []}
-            onChangeWorkCondition={onChangeWorkCondition}
-            startDate={startDate}
-          />
-        ))}
+      <div className="grid grid-cols-1 gap-1 md:grid-cols-7">
+        {new DateDay(startDate, 0)
+          .get요일_시작부터_끝까지DayOfWeek()
+          .map((dayOfWeek) => (
+            <DayEditor
+              key={dayOfWeek}
+              dayOfWeek={dayOfWeek}
+              entries={workConditionOfWeek[dayOfWeek] ?? []}
+              onChangeWorkCondition={onChangeWorkCondition}
+              startDate={startDate}
+            />
+          ))}
       </div>
     </div>
   );
@@ -54,7 +56,7 @@ const DayEditor: React.FC<DayEditorProps> = ({
   onChangeWorkCondition,
   startDate,
 }) => {
-  const { data: employees } = useQuery(employeeQueryApi.findByIds);
+  const { data: employees } = useQuery(employeeQueryApi.findAll);
   const handleAddEntry = () => {
     const newEntry: WorkConditionEntry = {
       dateDay: DateDay.fromDayOfWeek(startDate, dayOfWeek),
