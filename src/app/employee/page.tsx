@@ -25,11 +25,6 @@ const EmployeePage: NextPage<Props> = async ({ searchParams }) => {
     notFound();
   }
 
-  // const { page, pageSize, search } = data;
-
-  // const response = await fetch('/api/employee');
-  // console.log('await response.json(): ', await response.json());
-
   return (
     <React.Fragment>
       <div className="flex w-full h-16 gap-4">

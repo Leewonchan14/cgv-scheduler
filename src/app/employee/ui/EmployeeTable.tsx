@@ -26,15 +26,8 @@ const EmployeeTable: NextPage<Props> = async ({ page, pageSize, search }) => {
     await appDataSource(),
   ).findAll(page, pageSize, search);
 
-  // const { data: employees, total: _total } = await fetchEmployee.all(
-  //   page,
-  //   pageSize,
-  //   search,
-  // );
-
   const isAdmin = me?.role === ERole.ADMIN;
 
-  // const employees: Employee[] = [];
   return (
     <table className="w-full font-bold text-center employee">
       <colgroup>
@@ -60,26 +53,39 @@ const EmployeeTable: NextPage<Props> = async ({ page, pageSize, search }) => {
           <React.Fragment key={employee.id}>
             <tr className="bg-gray-200" key={employee.id}>
               <td>{employee.name}</td>
-              <td>{employee.ableWorkPosition.join(', ')}</td>
               <td>
-                {EDAY_OF_WEEKS_CORRECT.filter(
-                  (d) => d in employee.ableWorkTime,
-                ).join(',')}
+                {employee.ableWorkPosition.map((po) => (
+                  <div key={po}>{po}</div>
+                ))}
+              </td>
+              <td>
+                {EDAY_OF_WEEKS_CORRECT.map((day) => {
+                  const workTimes = employee.ableWorkTime[day];
+                  if (workTimes && workTimes.length > 0) {
+                    return (
+                      <div key={day}>
+                        <strong>{day}:</strong> {workTimes.join(', ')}
+                      </div>
+                    );
+                  }
+                })}
               </td>
               <td>{moment(employee.createdAt).format('L')}</td>
-              <td className="inline-flex flex-wrap items-center justify-center overflow-clip">
-                <Link
-                  className={`inline-flex flex-wrap items-center justify-center w-20 h-12 px-4 bg-blue-200 border-2 rounded-lg
+              <td className="">
+                <div className="flex flex-col items-center justify-center">
+                  <Link
+                    className={`flex items-center justify-center w-20 h-12 px-4 bg-blue-200 border-2 rounded-lg
                   ${!(isAdmin || me?.id === employee.id) && 'invisible'}`}
-                  href={`/employee/${employee.id}/update`}
-                >
-                  수정
-                </Link>
-                <DeleteButton
-                  isAdmin={isAdmin}
-                  name={employee.name}
-                  id={employee.id}
-                />
+                    href={`/employee/${employee.id}/update`}
+                  >
+                    수정
+                  </Link>
+                  <DeleteButton
+                    isAdmin={isAdmin}
+                    name={employee.name}
+                    id={employee.id}
+                  />
+                </div>
               </td>
             </tr>
             <TableMargin margin={'h-2'} />

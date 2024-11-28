@@ -25,7 +25,7 @@ const DeleteButton: NextPage<Props> = ({ id, name, isAdmin }) => {
         setIsClick(true);
         await employeeRemoveAction({ id });
       }}
-      className={`inline-flex justify-center items-center w-20 px-4 h-12 text-white bg-red-500 border-2 rounded-lg ${!isAdmin && 'invisible'}`}
+      className={`flex justify-center items-center w-20 px-4 h-12 text-white bg-red-500 border-2 rounded-lg ${!isAdmin && 'invisible'}`}
     >
       {isClick ? (
         <div className="w-5 h-5 border-2 rounded-full border-red-500 border-t-white animate-spin" />

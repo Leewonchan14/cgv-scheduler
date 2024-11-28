@@ -4,6 +4,7 @@ import { EWorkTime } from '@/entity/enums/EWorkTime';
 import { DateDay } from '@/entity/interface/DateDay';
 import { WorkConditionEntry } from '@/entity/types';
 import { StaticEmployeeCondition } from '@/feature/employee/with-schedule/static-employee-condition';
+import { mockEmployeeConditions } from '@/mock/employees';
 import { userInputCondition } from '@/mock/user-input-condition';
 import { describe, expect, test } from '@jest/globals';
 import _ from 'lodash';
@@ -157,5 +158,35 @@ describe('정적 근무자 조건 필터링', () => {
       .filter();
 
     expect(filtered).toEqual(filtered2);
+  });
+
+  test('mockEmployeeConditions로 통합 테스트', async () => {
+    const cache = {};
+    const staticFilter = new StaticEmployeeCondition(
+      {
+        workPosition: EWorkPosition.매점,
+        dateDay: DateDay.fromDayOfWeek(new Date(), EDayOfWeek.금),
+        workTime: EWorkTime.마감,
+      } as WorkConditionEntry,
+      mockEmployeeConditions,
+      cache,
+    );
+
+    const filtered = staticFilter
+      .add_조건1_직원의_가능한_포지션()
+      .add_조건2_직원의_가능한_시간()
+      .add_조건3_직원의_추가_휴무일()
+      .filter();
+
+    const fact = mockEmployeeConditions.filter((eCon) => {
+      return (
+        EDayOfWeek.금 in eCon.employee.ableWorkTime &&
+        eCon.employee.ableWorkTime[EDayOfWeek.금]?.includes(EWorkTime.마감) &&
+        eCon.employee.ableWorkPosition.includes(EWorkPosition.매점) &&
+        !eCon.additionalUnableDayOff.includes(EDayOfWeek.금)
+      );
+    });
+
+    expect(filtered.length).toEqual(fact.length);
   });
 });
