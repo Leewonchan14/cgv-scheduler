@@ -29,8 +29,8 @@ const Sidenav: NextPage<Props> = ({}) => {
   return (
     <div className="fixed h-screen bg-gray-100 min-w-sidenav-width px-6">
       <Link className="flex flex-col gap-4 my-12 font-bold" href={'/employee'}>
-        <div className="text-5xl">CGV 주안역</div>
-        <div className="text-2xl">근무자 관리 프로그램</div>
+        <div className="text-2xl">CGV 주안역</div>
+        <div className="text-xl">근무자 관리 프로그램</div>
       </Link>
       <div className="flex flex-col gap-6">
         <SideLink nav={NAV_ENUM.employee} />
