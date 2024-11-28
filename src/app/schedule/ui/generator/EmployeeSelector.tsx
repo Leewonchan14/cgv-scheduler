@@ -3,6 +3,7 @@
 import { employeeQueryApi } from '@/app/employee/api/queryoption';
 import { EDAY_OF_WEEKS_CORRECT, EDayOfWeek } from '@/entity/enums/EDayOfWeek';
 import { EmployeeCondition, EmployeeConditionSchema } from '@/entity/types';
+import { getColor, isLightColor } from '@/share/libs/util/isLightColor';
 import { useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
 import React from 'react';
@@ -51,15 +52,23 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
             employee: emp,
             ...findCond,
           }) as EmployeeCondition;
+          const color = getColor(emp.id);
+          const bgColorSelect = color.slice(0, -2);
+          const isLight = isLightColor(color);
 
           return (
             <div key={emp.id} className="flex flex-col items-center">
               <button
+                style={{
+                  backgroundColor: isSelected ? bgColorSelect : color,
+                }}
                 onClick={() => handleToggle(employeeCondition)}
                 className={`w-full p-2 border rounded-lg font-bold transition-colors duration-200 ${
                   isSelected
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-white text-gray-800'
+                    ? isLight
+                      ? 'text-black'
+                      : 'text-white'
+                    : 'text-black'
                 }`}
               >
                 {emp.name}

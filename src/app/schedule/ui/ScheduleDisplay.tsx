@@ -5,8 +5,7 @@
 import { DateDay } from '@/entity/interface/DateDay';
 import { ISchedule } from '@/entity/interface/ISchedule';
 import { WorkConditionOfWeek } from '@/entity/types';
-import { isLightColor } from '@/share/libs/util/isLightColor';
-import _ from 'lodash';
+import { getColor, isLightColor } from '@/share/libs/util/isLightColor';
 import React, { useState } from 'react';
 
 interface ScheduleDisplayProps {
@@ -16,14 +15,6 @@ interface ScheduleDisplayProps {
   isPending: boolean;
   handleSetWorkCondition: (_: WorkConditionOfWeek) => void;
 }
-
-const makeColor = () =>
-  `#${Math.floor(Math.random() * 16777215)
-    .toString(16)
-    .padStart(6, '0')}50`;
-const colors = _.range(30).map(() => makeColor());
-
-const getColor = (id: number | undefined) => colors[id ?? 0];
 
 const ScheduleDisplay: React.FC<ScheduleDisplayProps> = ({
   startDate,
@@ -60,14 +51,12 @@ const ScheduleDisplay: React.FC<ScheduleDisplayProps> = ({
                   </h3>
                   <ul>
                     {schedule[day]?.map((entry, idx) => {
-                      const isLight = isLightColor(
-                        getColor(entry.employee?.id),
-                      );
+                      const color = getColor(entry.employee?.id);
+                      const isLight = isLightColor(color);
                       const isHover = hoverId === entry.employee?.id;
-                      const bgColorHover = colors[
-                        entry.employee?.id ?? 0
-                      ].slice(0, -2);
-                      const bgColor = colors[entry.employee?.id ?? 0];
+
+                      const bgColorHover = color.slice(0, -2);
+                      const bgColor = color;
                       return (
                         <li
                           onMouseEnter={() =>

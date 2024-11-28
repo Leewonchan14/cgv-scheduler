@@ -1,3 +1,5 @@
+import _ from 'lodash';
+
 export function isLightColor(hex: string): boolean {
   // HEX 코드가 3자리일 경우 6자리로 변환
   if (hex.length === 4) {
@@ -15,3 +17,12 @@ export function isLightColor(hex: string): boolean {
   // YIQ 값이 128 이상이면 밝은 색, 그렇지 않으면 어두운 색
   return yiq >= 128;
 }
+
+export const makeColor = () =>
+  `#${Math.floor(Math.random() * 16777215)
+    .toString(16)
+    .padStart(6, '0')}50`;
+
+const colors = _.range(30).map(() => makeColor());
+
+export const getColor = (id: number | undefined) => colors[id ?? 0];
