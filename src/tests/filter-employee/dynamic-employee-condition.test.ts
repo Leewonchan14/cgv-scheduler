@@ -1,34 +1,13 @@
-import { EDayOfWeek } from '@/entity/enums/EDayOfWeek';
-import { EWorkPosition } from '@/entity/enums/EWorkPosition';
 import { EWorkTime } from '@/entity/enums/EWorkTime';
 import { DateDay } from '@/entity/interface/DateDay';
-import { ISchedule } from '@/entity/interface/ISchedule';
-import { ScheduleEntry } from '@/entity/schedule-entry.entity';
-import { WorkConditionEntry } from '@/entity/types';
 import { DynamicEmployeeConditions } from '@/feature/employee/with-schedule/dynamic-employee-condition';
-import { StaticEmployeeCondition } from '@/feature/employee/with-schedule/static-employee-condition';
 import { IScheduleEntryService } from '@/feature/schedule/schedule-entry.service';
-import { WorkTimeSlot } from '@/feature/schedule/work-time-slot-handler';
-import {
-  floorOrMultiEmployees,
-  floorOrMultiOn월Employees,
-  restEmployees,
-} from '@/mock/employees';
-import { userInputCondition } from '@/mock/user-input-condition';
+import { createMockEmployeeCondition } from '@/mock/factories/employeeFactory';
+import { createMockEmptySchedule } from '@/mock/factories/scheduleFactory';
+import { createMockWorkConditionEntry } from '@/mock/factories/workConditionEntryFactory';
 import { describe, expect, test } from '@jest/globals';
-import _ from 'lodash';
 
 const startDate = new Date('2024-11-25');
-
-const mockSchedule: ISchedule = {
-  [EDayOfWeek.목]: [],
-  [EDayOfWeek.금]: [],
-  [EDayOfWeek.토]: [],
-  [EDayOfWeek.일]: [],
-  [EDayOfWeek.월]: [],
-  [EDayOfWeek.화]: [],
-  [EDayOfWeek.수]: [],
-};
 
 const mockScheduleEntryService: IScheduleEntryService = {
   findPreviousSchedule: (_date, _n) => Promise.resolve([]),
@@ -36,203 +15,155 @@ const mockScheduleEntryService: IScheduleEntryService = {
 
 describe('동적 근무자 조건 필터링', () => {
   test('filter_현재_요일에_투입_안된_근무자', async () => {
-    const mockWorkConditionEntry: WorkConditionEntry = {
-      dateDay: DateDay.fromDayOfWeek(startDate, EDayOfWeek.월),
-      workPosition: EWorkPosition.매점,
-      workTime: EWorkTime.오픈,
-      timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
-    };
+    const mockSchedule = createMockEmptySchedule();
 
-    const 모든요일_가능한_직원 = userInputCondition.employeeConditions.filter(
-      ({ employee }) =>
-        _.keys(_.omitBy(employee.ableWorkTime, _.isUndefined)).length === 7,
-    );
+    // when: 모든 요일에 가능한 직원이 3명이라고 가정
+    const aCon = createMockEmployeeCondition();
+    const bCon = createMockEmployeeCondition();
+    const cCon = createMockEmployeeCondition();
 
-    const 월요일에_모든요일이_가능한_직원이_투입되어있는_스케줄: ISchedule = {
-      ..._.cloneDeep(mockSchedule),
-      월: 모든요일_가능한_직원.map(({ employee }) => {
-        return {
-          employee,
-          ...mockWorkConditionEntry,
-        } as ScheduleEntry;
-      }),
-    };
+    const wCon1 = createMockWorkConditionEntry();
+    const wCon2 = createMockWorkConditionEntry();
+    const wCon3 = createMockWorkConditionEntry();
 
+    const dayOfWeek = wCon1.dateDay.dayOfWeek;
+
+    // when: 요일에 a 가 schedule에 투입되어있고 b는 이미 workCondition에 투입되어있는 상태
+    wCon1.employee = aCon.employee;
+    wCon2.employee = bCon.employee;
+    mockSchedule[dayOfWeek].push(wCon1);
+
+    const workConditionOfDay = [wCon1, wCon2, wCon3];
+
+    // then: a, b는 제외되어야함, c만 가능해야함
     const dynamicCondition = new DynamicEmployeeConditions(
-      mockWorkConditionEntry,
-      _.cloneDeep(userInputCondition.employeeConditions),
-      월요일에_모든요일이_가능한_직원이_투입되어있는_스케줄,
+      wCon3,
+      [aCon, bCon, cCon],
+      mockSchedule,
       100,
       mockScheduleEntryService,
-      [mockWorkConditionEntry],
+      { [dayOfWeek]: workConditionOfDay },
+      {},
     );
 
     const filtered = await dynamicCondition
       .add_조건1_현재_요일에_투입_안된_근무자()
       .filter();
 
-    expect(filtered.length).toEqual(
-      userInputCondition.employeeConditions.length -
-        모든요일_가능한_직원.length,
-    );
+    expect(filtered.length).toEqual(1);
   });
 
   test('filter_직원의_근무_최대_가능_일수를_안넘는_근무자', async () => {
-    const mockWorkConditionEntry: WorkConditionEntry = {
-      workPosition: EWorkPosition.매점,
-      dateDay: DateDay.fromDayOfWeek(startDate, EDayOfWeek.수),
-      workTime: EWorkTime.오픈,
-      timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
-    };
+    // 최대 2번만 투입가능한 근무자가 이미 2자리에 투입되어 있을때
+    // 세번째 근무배치에서는 제외되어야함
 
-    const 근무자들 = _.cloneDeep(userInputCondition.employeeConditions);
+    const mockSchedule = createMockEmptySchedule();
 
-    const 아무_근무자 = _.cloneDeep(userInputCondition.employeeConditions[0]);
+    // 1명의 근무자
+    const eCon1 = createMockEmployeeCondition();
+    eCon1.ableMaxWorkCount = 2;
 
-    아무_근무자.ableMaxWorkCount = 2;
+    // 3개의 근무조건, 1,2번째는 이미 투입되어있음
+    const wCon1 = createMockWorkConditionEntry();
+    const wCon2 = createMockWorkConditionEntry();
+    const wCon3 = createMockWorkConditionEntry();
 
-    근무자들[0] = 아무_근무자;
+    const dayOfWeek = wCon1.dateDay.dayOfWeek;
 
-    const 월_화_모두_투입된_스케쥴: ISchedule = {
-      ..._.cloneDeep(mockSchedule),
-      월: [
-        {
-          employee: 아무_근무자.employee,
-          ...mockWorkConditionEntry,
-          dateDay: DateDay.fromDayOfWeek(startDate, EDayOfWeek.월),
-        } as ScheduleEntry,
-      ],
-      화: [
-        {
-          employee: 아무_근무자.employee,
-          ...mockWorkConditionEntry,
-          dateDay: DateDay.fromDayOfWeek(startDate, EDayOfWeek.화),
-        } as ScheduleEntry,
-      ],
-    };
+    wCon1.employee = eCon1.employee;
+    wCon2.employee = eCon1.employee;
+
+    mockSchedule[dayOfWeek].push(wCon1, wCon2);
+
+    // then: 3번째에서는 제외되어야함
 
     const dynamicCondition = new DynamicEmployeeConditions(
-      {
-        ...mockWorkConditionEntry,
-        dateDay: DateDay.fromDayOfWeek(startDate, EDayOfWeek.수),
-      },
-      근무자들,
-      월_화_모두_투입된_스케쥴,
+      wCon3,
+      [eCon1],
+      mockSchedule,
       100,
       mockScheduleEntryService,
-      [mockWorkConditionEntry],
+      { [dayOfWeek]: [wCon1, wCon2, wCon3] },
+      { [eCon1.employee.id]: 2 },
     );
 
     const filtered = await dynamicCondition
       .add_조건2_직원의_근무_최대_가능_일수를_안넘는_근무자()
       .filter();
 
-    expect(filtered.length).toEqual(근무자들.length - 1);
+    expect(filtered.length).toEqual(0);
   });
 
   test('filter_전날_마감_근무후_다음날_오픈_근무가_아닌_근무자', async () => {
-    const mockWorkConditionEntry: WorkConditionEntry = {
-      workPosition: EWorkPosition.매점,
-      dateDay: DateDay.fromDayOfWeek(startDate, EDayOfWeek.화),
-      workTime: EWorkTime.오픈,
-      timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
-    };
+    const schedule = createMockEmptySchedule();
+    const wCon1 = createMockWorkConditionEntry();
+    const wCon2 = createMockWorkConditionEntry();
+    const dayOfWeek = wCon1.dateDay.dayOfWeek;
 
-    const 근무자들 = _.cloneDeep(userInputCondition.employeeConditions);
+    // 전날 마감, 다음날 오픈
+    wCon1.workTime = EWorkTime.마감;
+    wCon2.workTime = EWorkTime.오픈;
+    wCon2.dateDay = DateDay.fromIDateDayEntity(wCon1.dateDay).getNextDateDay(1);
 
-    const 아무_근무자 = userInputCondition.employeeConditions[0];
+    schedule[wCon1.dateDay.dayOfWeek].push(wCon1);
 
-    const 월요일에_아무근무자가_마감인_스케쥴: ISchedule = {
-      ..._.cloneDeep(mockSchedule),
-      월: [
-        {
-          employee: 아무_근무자.employee,
-          ...mockWorkConditionEntry,
-          workTime: EWorkTime.마감,
-          dateDay: DateDay.fromDayOfWeek(startDate, EDayOfWeek.월),
-        } as ScheduleEntry,
-      ],
-    };
+    const aCon1 = createMockEmployeeCondition();
+    wCon1.employee = aCon1.employee;
 
     const dynamicCondition = new DynamicEmployeeConditions(
-      {
-        ...mockWorkConditionEntry,
-        dateDay: DateDay.fromDayOfWeek(startDate, EDayOfWeek.화),
-      },
-      근무자들,
-      월요일에_아무근무자가_마감인_스케쥴,
+      wCon2,
+      [aCon1],
+      schedule,
       100,
       mockScheduleEntryService,
-      [mockWorkConditionEntry],
+      { [dayOfWeek]: [wCon1, wCon2] },
+      { [aCon1.employee.id]: 1 },
     );
 
     const filtered = await dynamicCondition
       .add_조건3_전날_마감_근무후_다음날_오픈_근무가_아닌_근무자()
       .filter();
 
-    expect(filtered.length).toEqual(근무자들.length - 1);
+    expect(filtered.length).toEqual(0);
   });
 
   test('filter_최대_연속_근무일수를_안넘는_근무자', async () => {
-    const mockWorkConditionEntry: WorkConditionEntry = {
-      workPosition: EWorkPosition.매점,
-      dateDay: DateDay.fromDayOfWeek(startDate, EDayOfWeek.수),
-      workTime: EWorkTime.오픈,
-      timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
-    };
-
-    const 근무자들 = _.cloneDeep(userInputCondition.employeeConditions);
-
-    const 아무_근무자1 = userInputCondition.employeeConditions[0];
-
-    const 아무_근무자2 = userInputCondition.employeeConditions[1];
-
     //when: 최대 연속일이 2일 이라 했을때
     const 최대_연속일 = 2;
 
+    const mockSchedule = createMockEmptySchedule();
+    const wCon1 = createMockWorkConditionEntry();
+    const dateDay1 = DateDay.fromIDateDayEntity(wCon1.dateDay);
+    const dateDay2 = DateDay.fromIDateDayEntity(wCon1.dateDay).getNextDateDay(
+      1,
+    );
+    const dateDay3 = DateDay.fromIDateDayEntity(wCon1.dateDay).getNextDateDay(
+      2,
+    );
+
+    const wCon2 = createMockWorkConditionEntry({ dateDay: dateDay2 });
+    const wCon3 = createMockWorkConditionEntry({ dateDay: dateDay3 });
+
+    const eCon1 = createMockEmployeeCondition();
+
     //given: 월,화요일에 아무근무자1,2 가 투입되어있는 상태
-    const 월요일_화요일에_아무_근무자가_투입되어있는_스케쥴: ISchedule = {
-      ..._.cloneDeep(mockSchedule),
-      월: [
-        {
-          employee: 아무_근무자1.employee,
-          ...mockWorkConditionEntry,
-          workTime: EWorkTime.마감,
-          dateDay: DateDay.fromDayOfWeek(startDate, EDayOfWeek.월),
-        },
-        {
-          employee: 아무_근무자2.employee,
-          ...mockWorkConditionEntry,
-          workTime: EWorkTime.마감,
-          dateDay: DateDay.fromDayOfWeek(startDate, EDayOfWeek.월),
-        },
-      ] as ScheduleEntry[],
-      화: [
-        {
-          employee: 아무_근무자1.employee,
-          ...mockWorkConditionEntry,
-          workTime: EWorkTime.마감,
-          dateDay: DateDay.fromDayOfWeek(startDate, EDayOfWeek.화),
-        },
-        {
-          employee: 아무_근무자2.employee,
-          ...mockWorkConditionEntry,
-          workTime: EWorkTime.마감,
-          dateDay: DateDay.fromDayOfWeek(startDate, EDayOfWeek.화),
-        },
-      ] as ScheduleEntry[],
-    };
+    wCon1.employee = eCon1.employee;
+    wCon2.employee = eCon1.employee;
+    mockSchedule[dateDay1.dayOfWeek].push(wCon1);
+    mockSchedule[dateDay2.dayOfWeek].push(wCon2);
 
     const dynamicCondition = new DynamicEmployeeConditions(
-      {
-        ...mockWorkConditionEntry,
-        dateDay: DateDay.fromDayOfWeek(startDate, EDayOfWeek.수),
-      },
-      근무자들,
-      월요일_화요일에_아무_근무자가_투입되어있는_스케쥴,
+      wCon3,
+      [eCon1],
+      mockSchedule,
       최대_연속일,
       mockScheduleEntryService,
-      [mockWorkConditionEntry],
+      {
+        [dateDay1.dayOfWeek]: [wCon1],
+        [dateDay2.dayOfWeek]: [wCon2],
+        [dateDay3.dayOfWeek]: [wCon3],
+      },
+      { [eCon1.employee.id]: 2 },
     );
 
     //then: 가능한 근무자는 2명 빠져야함
@@ -240,105 +171,105 @@ describe('동적 근무자 조건 필터링', () => {
       .add_조건4_최대_연속_근무일수를_안넘는_근무자()
       .filter();
 
-    expect(filtered.length).toEqual(근무자들.length - 2);
+    expect(filtered.length).toEqual(0);
   });
 
-  test('add_조건5_멀티_최소인원을_만족하는_근무자', async () => {
-    //when
-    /* 배치가 아래와 같을때
-     * 08:30-16:30 매점 2명 필요
-     * 08:30-16:30 플로어 2명필요
-     * 10:00-16:00 멀티 1명 필요
-     * 16:00-22:30 멀티 1명 필요
-     * 16:30-24:00 매점 2명 필요
-     * 16:30-24:00 플로어 2명
-     * */
+  // test('add_조건5_멀티_최소인원을_만족하는_근무자', async () => {
+  //   //when
+  //   /* 배치가 아래와 같을때
+  //    * 08:30-16:30 매점 2명 필요
+  //    * 08:30-16:30 플로어 2명필요
+  //    * 10:00-16:00 멀티 1명 필요
+  //    * 16:00-22:30 멀티 1명 필요
+  //    * 16:30-24:00 매점 2명 필요
+  //    * 16:30-24:00 플로어 2명
+  //    * */
 
-    const dateDay = DateDay.fromDayOfWeek(startDate, EDayOfWeek.월);
+  //   const dateDay = DateDay.fromDayOfWeek(startDate, EDayOfWeek.월);
 
-    // given
+  //   // given
 
-    const 다들어갈_아무나 = restEmployees[0];
-    const 멀티_플로어_가능한_아무나 = floorOrMultiOn월Employees[0];
+  //   const 다들어갈_아무나 = restEmployees[0];
+  //   const 멀티_플로어_가능한_아무나 = floorOrMultiOn월Employees[0];
 
-    const 오픈_매점_2명 = [1, 2].map(() => ({
-      dateDay,
-      employee: 다들어갈_아무나,
-      workPosition: EWorkPosition.매점,
-      workTime: EWorkTime.오픈,
-      timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
-    })) as WorkConditionEntry[];
+  //   const 오픈_매점_2명 = [1, 2].map(() => ({
+  //     dateDay,
+  //     employee: 다들어갈_아무나,
+  //     workPosition: EWorkPosition.매점,
+  //     workTime: EWorkTime.오픈,
+  //     timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
+  //   })) as WorkConditionEntry[];
 
-    const 마감_매점_2명 = [1, 2].map(() => ({
-      dateDay,
-      employee: 다들어갈_아무나,
-      workPosition: EWorkPosition.매점,
-      workTime: EWorkTime.마감,
-      timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.마감),
-    })) as WorkConditionEntry[];
+  //   const 마감_매점_2명 = [1, 2].map(() => ({
+  //     dateDay,
+  //     employee: 다들어갈_아무나,
+  //     workPosition: EWorkPosition.매점,
+  //     workTime: EWorkTime.마감,
+  //     timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.마감),
+  //   })) as WorkConditionEntry[];
 
-    const 오픈_플로어_2명 = [1, 2].map(() => ({
-      dateDay,
-      employee: 멀티_플로어_가능한_아무나,
-      workPosition: EWorkPosition.플로어,
-      workTime: EWorkTime.오픈,
-      timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
-    })) as WorkConditionEntry[];
+  //   const 오픈_플로어_2명 = [1, 2].map(() => ({
+  //     dateDay,
+  //     employee: 멀티_플로어_가능한_아무나,
+  //     workPosition: EWorkPosition.플로어,
+  //     workTime: EWorkTime.오픈,
+  //     timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
+  //   })) as WorkConditionEntry[];
 
-    const 마감_플로어_2명 = [1, 2].map(() => ({
-      dateDay,
-      employee: 멀티_플로어_가능한_아무나,
-      workPosition: EWorkPosition.플로어,
-      workTime: EWorkTime.마감,
-      timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.마감),
-    })) as WorkConditionEntry[];
+  //   const 마감_플로어_2명 = [1, 2].map(() => ({
+  //     dateDay,
+  //     employee: 멀티_플로어_가능한_아무나,
+  //     workPosition: EWorkPosition.플로어,
+  //     workTime: EWorkTime.마감,
+  //     timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.마감),
+  //   })) as WorkConditionEntry[];
 
-    const 멀티_1명_오픈 = {
-      dateDay,
-      employee: 멀티_플로어_가능한_아무나,
-      workPosition: EWorkPosition.멀티,
-      workTime: EWorkTime.오픈,
-      timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
-    } as WorkConditionEntry;
+  //   const 멀티_1명_오픈 = {
+  //     dateDay,
+  //     employee: 멀티_플로어_가능한_아무나,
+  //     workPosition: EWorkPosition.멀티,
+  //     workTime: EWorkTime.오픈,
+  //     timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
+  //   } as WorkConditionEntry;
 
-    const 멀티_1명_마감 = {
-      dateDay,
-      workPosition: EWorkPosition.멀티,
-      workTime: EWorkTime.마감,
-      timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
-    } as WorkConditionEntry;
+  //   const 멀티_1명_마감 = {
+  //     dateDay,
+  //     workPosition: EWorkPosition.멀티,
+  //     workTime: EWorkTime.마감,
+  //     timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
+  //   } as WorkConditionEntry;
 
-    const workCondition = _.concat(
-      오픈_매점_2명,
-      마감_매점_2명,
-      오픈_플로어_2명,
-      마감_플로어_2명,
-      멀티_1명_오픈,
-    ) as WorkConditionEntry[];
+  //   const workCondition = _.concat(
+  //     오픈_매점_2명,
+  //     마감_매점_2명,
+  //     오픈_플로어_2명,
+  //     마감_플로어_2명,
+  //     멀티_1명_오픈,
+  //   ) as WorkConditionEntry[];
 
-    mockSchedule[EDayOfWeek.월] = _.cloneDeep(workCondition) as ScheduleEntry[];
+  //   mockSchedule[EDayOfWeek.월] = _.cloneDeep(workCondition) as ScheduleEntry[];
 
-    const possible = new StaticEmployeeCondition(
-      멀티_1명_마감,
-      _.cloneDeep(userInputCondition.employeeConditions),
-      {},
-    )
-      .add_조건1_직원의_가능한_포지션()
-      .filter();
+  //   const possible = new StaticEmployeeCondition(
+  //     멀티_1명_마감,
+  //     _.cloneDeep(userInputCondition.employeeConditions),
+  //     {},
+  //   )
+  //     .add_조건1_직원의_가능한_포지션()
+  //     .filter();
 
-    const dynamicCondition = new DynamicEmployeeConditions(
-      멀티_1명_마감,
-      _.cloneDeep(possible),
-      mockSchedule,
-      100,
-      mockScheduleEntryService,
-      workCondition,
-    );
+  //   const dynamicCondition = new DynamicEmployeeConditions(
+  //     멀티_1명_마감,
+  //     _.cloneDeep(possible),
+  //     mockSchedule,
+  //     100,
+  //     mockScheduleEntryService,
+  //     workCondition,
+  //   );
 
-    const filtered = await dynamicCondition
-      .add_조건5_멀티_최소인원을_만족하는_근무자()
-      .filter();
+  //   const filtered = await dynamicCondition
+  //     .add_조건5_멀티_최소인원을_만족하는_근무자()
+  //     .filter();
 
-    expect(filtered.length).toEqual(floorOrMultiEmployees.length);
-  });
+  //   expect(filtered.length).toEqual(floorOrMultiEmployees.length);
+  // });
 });

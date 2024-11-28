@@ -33,24 +33,28 @@ const getInitialWorkConditionOfWeek = (startDate: Date) => {
       (dayOfWeek) =>
         [
           {
+            id: parseInt(_.uniqueId()),
             dateDay: DateDay.fromDayOfWeek(startDate, dayOfWeek),
             workPosition: EWorkPosition.매점,
             workTime: EWorkTime.오픈,
             timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
           },
           {
+            id: parseInt(_.uniqueId()),
             dateDay: DateDay.fromDayOfWeek(startDate, dayOfWeek),
             workPosition: EWorkPosition.매점,
             workTime: EWorkTime.마감,
             timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.마감),
           },
           {
+            id: parseInt(_.uniqueId()),
             dateDay: DateDay.fromDayOfWeek(startDate, dayOfWeek),
             workPosition: EWorkPosition.플로어,
             workTime: EWorkTime.오픈,
             timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
           },
           {
+            id: parseInt(_.uniqueId()),
             dateDay: DateDay.fromDayOfWeek(startDate, dayOfWeek),
             workPosition: EWorkPosition.플로어,
             workTime: EWorkTime.마감,
@@ -97,8 +101,8 @@ const ScheduleGeneratorForm: NextPage<Props> = ({}) => {
   };
 
   useEffect(() => {
-    setWorkConditionOfWeek(
-      _.mapValues(workConditionOfWeek, (entry) =>
+    setWorkConditionOfWeek((prev) =>
+      _.mapValues(prev, (entry) =>
         (entry ?? []).map((e) => ({
           ...e,
           dateDay: DateDay.fromDayOfWeek(selectedWeek, e.dateDay.dayOfWeek),

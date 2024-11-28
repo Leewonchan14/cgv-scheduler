@@ -5,7 +5,11 @@ import { EWorkTime } from '@/entity/enums/EWorkTime';
 import { DateDay } from '@/entity/interface/DateDay';
 import { ISchedule } from '@/entity/interface/ISchedule';
 import { ScheduleEntry } from '@/entity/schedule-entry.entity';
-import { EmployeeCondition, WorkConditionEntry } from '@/entity/types';
+import {
+  EmployeeCondition,
+  WorkConditionEntry,
+  WorkConditionOfWeek,
+} from '@/entity/types';
 import { IScheduleEntryService } from '@/feature/schedule/schedule-entry.service';
 import { WorkTimeSlot } from '@/feature/schedule/work-time-slot-handler';
 import _ from 'lodash';
@@ -18,6 +22,7 @@ import _ from 'lodash';
  */
 
 export class DynamicEmployeeConditions {
+  private workConditions: WorkConditionEntry[] = [];
   private 일주일중_전날까지_배치된_모든_스케쥴: WorkConditionEntry[][] = [];
   private dateDay: DateDay;
   private conditions: ((_: EmployeeCondition) => Promise<boolean> | boolean)[] =
@@ -28,8 +33,13 @@ export class DynamicEmployeeConditions {
     private schedule: ISchedule,
     private maxWorkComboDayCount: number,
     private scheduleEntryService: IScheduleEntryService,
-    private workConditions: WorkConditionEntry[],
+    private workConditionOfWeek: WorkConditionOfWeek,
+    private employeeCounter: Record<number, number>,
   ) {
+    this.workConditions =
+      this.workConditionOfWeek[
+        new DateDay(this.workCondition.dateDay.startDate, 0).dayOfWeek
+      ] ?? [];
     this.dateDay = DateDay.fromIDateDayEntity(workCondition.dateDay);
     this.일주일중_전날까지_배치된_모든_스케쥴 = this.dateDay
       .get요일_시작부터_지금_전날까지()
@@ -58,12 +68,10 @@ export class DynamicEmployeeConditions {
 
   add_조건2_직원의_근무_최대_가능_일수를_안넘는_근무자() {
     const condition = (employeeCondition: EmployeeCondition) => {
-      // 현재요일 이전까지의 근무자 수가 최대 근무 수보다 작은 경우
-      const 전날까지_근무한_일수 = this.일주일중_전날까지_배치된_모든_스케쥴
-        .flat()
-        .filter((s) => s.employee?.id === employeeCondition.employee.id).length;
+      const 이제까지_투입된_근무수 =
+        this.employeeCounter[employeeCondition.employee.id];
 
-      return 전날까지_근무한_일수 < employeeCondition.ableMaxWorkCount;
+      return 이제까지_투입된_근무수 + 1 <= employeeCondition.ableMaxWorkCount;
     };
     condition.bind(this);
     this.conditions.push(condition);
@@ -109,33 +117,64 @@ export class DynamicEmployeeConditions {
 
   add_조건4_최대_연속_근무일수를_안넘는_근무자() {
     const condition = async (employeeCondition: EmployeeCondition) => {
+      const dayOfWeek = this.workCondition.dateDay.dayOfWeek;
       // TODO 목요일일때 데이터 베이스와 연동해서 이전 일을 가져오는 로직을 추가해야 함
 
       const 최근_최대근무일수_스케쥴 = _.cloneDeep(
         this.일주일중_전날까지_배치된_모든_스케쥴,
       );
 
-      // 만약 this.maxWorkComboDayCount 보다 작다면 적은만큼가져온다.
-      if (
-        this.일주일중_전날까지_배치된_모든_스케쥴.length <
-        this.maxWorkComboDayCount
-      ) {
-        const prev = await this.scheduleEntryService.findPreviousSchedule(
-          this.workCondition.dateDay.startDate,
-          this.maxWorkComboDayCount -
-            this.일주일중_전날까지_배치된_모든_스케쥴.length,
-        );
+      // 이전 스케쥴을 가져온다.
+      const prev = await this.scheduleEntryService.findPreviousSchedule(
+        this.workCondition.dateDay.startDate,
+        this.maxWorkComboDayCount - 1,
+      );
 
-        prev.forEach((p) => 최근_최대근무일수_스케쥴.unshift(p));
+      prev.forEach((p) => 최근_최대근무일수_스케쥴.unshift(p));
+
+      // 현재 요일 스케쥴을 추가
+      const mockScheduleOfDay = _.cloneDeep(this.schedule[dayOfWeek]);
+      mockScheduleOfDay.push({
+        employee: employeeCondition.employee,
+        ...this.workCondition,
+      } as ScheduleEntry);
+      for (let i = 0; i < this.workConditions.length; i++) {
+        if (i < mockScheduleOfDay.length) continue;
+        mockScheduleOfDay.push(this.workConditions[i]);
       }
 
-      const is_이미_최대연속근무만큼_일했음 =
-        최근_최대근무일수_스케쥴.length > 1 &&
-        최근_최대근무일수_스케쥴.every((dayOfSchedules) =>
-          dayOfSchedules.some(
-            (s) => s.employee?.id === employeeCondition.employee.id,
-          ),
+      최근_최대근무일수_스케쥴.push(mockScheduleOfDay);
+
+      // 나머지 요일 스케쥴을 추가
+      const nextDays = DateDay.fromIDateDayEntity(
+        this.workCondition.dateDay,
+      ).get요일_내일부터_끝까지DateDay();
+
+      for (const nextDayOfWeek of nextDays) {
+        최근_최대근무일수_스케쥴.push(
+          this.workConditionOfWeek[nextDayOfWeek.dayOfWeek] ?? [],
         );
+      }
+
+      // 최대 연속 근무일수를 넘는지 체크
+      const counts = 최근_최대근무일수_스케쥴.map((s) =>
+        _.sumBy(s, (c) =>
+          c.employee?.id === employeeCondition.employee.id ? 1 : 0,
+        ),
+      );
+
+      let cnt = 0;
+      _.range(this.maxWorkComboDayCount).forEach((i) => (cnt += counts[i]));
+
+      let is_이미_최대연속근무만큼_일했음 = cnt >= this.maxWorkComboDayCount;
+
+      for (let i = 1; i < counts.length - this.maxWorkComboDayCount + 1; i++) {
+        if (is_이미_최대연속근무만큼_일했음) break;
+        cnt += counts[i + this.maxWorkComboDayCount - 1];
+        cnt -= counts[i - 1];
+
+        is_이미_최대연속근무만큼_일했음 = cnt >= this.maxWorkComboDayCount;
+      }
 
       return !is_이미_최대연속근무만큼_일했음;
     };

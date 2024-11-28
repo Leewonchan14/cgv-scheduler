@@ -4,12 +4,13 @@
 
 import { employeeQueryApi } from '@/app/employee/api/queryoption';
 import { EDayOfWeek } from '@/entity/enums/EDayOfWeek';
-import { EWorkPosition } from '@/entity/enums/EWorkPosition';
+import { EWORK_POSITION, EWorkPosition } from '@/entity/enums/EWorkPosition';
 import { EWorkTime } from '@/entity/enums/EWorkTime';
 import { DateDay } from '@/entity/interface/DateDay';
 import { WorkConditionEntry, WorkConditionOfWeek } from '@/entity/types';
 import { WorkTimeSlot } from '@/feature/schedule/work-time-slot-handler';
 import { useQuery } from '@tanstack/react-query';
+import _ from 'lodash';
 import React from 'react';
 
 interface ScheduleEditorProps {
@@ -58,38 +59,42 @@ const DayEditor: React.FC<DayEditorProps> = ({
   startDate,
 }) => {
   const { data: employees } = useQuery(employeeQueryApi.findAll);
-  const handleAddEntry = () => {
+
+  const handleAddEntry = (position: EWorkPosition) => {
     const newEntry: WorkConditionEntry = {
+      id: _.uniqueId(),
       dateDay: DateDay.fromDayOfWeek(startDate, dayOfWeek),
-      workPosition: EWorkPosition.매점,
+      workPosition: position,
       workTime: EWorkTime.오픈,
       timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
     };
     onChangeWorkCondition(dayOfWeek, [...entries, newEntry]);
   };
 
-  const handleRemoveEntry = (index: number) => {
-    const updatedEntries = entries.filter((_, idx) => idx !== index);
+  const handleRemoveEntry = (id: string) => {
+    const updatedEntries = entries.filter((e) => e.id !== id);
     onChangeWorkCondition(dayOfWeek, updatedEntries);
   };
 
-  const handleWorkPositionChange = (index: number, position: EWorkPosition) => {
-    const updatedEntries = [...entries];
-    updatedEntries[index].workPosition = position;
-    onChangeWorkCondition(dayOfWeek, updatedEntries);
+  const handleWorkTimeChange = (id: string, time: EWorkTime) => {
+    onChangeWorkCondition(
+      dayOfWeek,
+      _.map(entries, (e) => ({
+        ...e,
+        workTime: e.id === id ? time : e.workTime,
+      })),
+    );
   };
 
-  const handleWorkTimeChange = (index: number, time: EWorkTime) => {
-    const updatedEntries = [...entries];
-    updatedEntries[index].workTime = time;
-    onChangeWorkCondition(dayOfWeek, updatedEntries);
-  };
-
-  const handleEmployeeChange = (index: number, employeeId: number) => {
-    const updatedEntries = [...entries];
+  const handleEmployeeChange = (id: string, employeeId: number) => {
     const findEmp = employees?.find((emp) => emp.id === employeeId);
-    updatedEntries[index].employee = findEmp;
-    onChangeWorkCondition(dayOfWeek, updatedEntries);
+    onChangeWorkCondition(
+      dayOfWeek,
+      _.map(entries, (e) => ({
+        ...e,
+        employee: e.id === id ? findEmp : e.employee,
+      })),
+    );
   };
 
   if (!employees) return null;
@@ -98,7 +103,75 @@ const DayEditor: React.FC<DayEditorProps> = ({
     <div className="p-4 border rounded-lg shadow bg-gray-50">
       <h3 className="mb-2 text-xl font-semibold text-center">{dayOfWeek}</h3>
       <ul>
-        {entries.map((entry, idx) => (
+        {/* position으로 파티션을 나누어 추가 삭제 기능을 구현 */}
+        {EWORK_POSITION.map((po) => (
+          <li key={po} className="mb-4">
+            <div className="flex flex-col space-y-2">
+              <h4 className="text-lg font-semibold">{po}</h4>
+              {entries
+                .filter((entry) => entry.workPosition === po)
+                .map((entry) => (
+                  <div key={entry.id}>
+                    <label className="block text-sm font-medium text-gray-700">
+                      근무 시간
+                    </label>
+                    <select
+                      value={entry.workTime}
+                      onChange={(e) =>
+                        handleWorkTimeChange(
+                          entry.id,
+                          e.target.value as EWorkTime,
+                        )
+                      }
+                      className="block w-full p-2 mt-1 border border-gray-300 rounded-md"
+                    >
+                      {Object.values(EWorkTime).map((time) => (
+                        <option key={time} value={time}>
+                          {time}
+                        </option>
+                      ))}
+                    </select>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        직원
+                      </label>
+                      <select
+                        value={entry.employee?.id ?? ''}
+                        defaultValue={entry.employee?.id ?? ''}
+                        onChange={(e) =>
+                          handleEmployeeChange(
+                            entry.id,
+                            parseInt(e.target.value),
+                          )
+                        }
+                        className="block w-full p-2 mt-1 border border-gray-300 rounded-md"
+                      >
+                        <option value={''}>직원 선택</option>
+                        {employees.map((emp) => (
+                          <option key={emp.id} value={emp.id}>
+                            {emp.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <button
+                      onClick={() => handleRemoveEntry(entry.id)}
+                      className="self-end w-20 py-2 mt-2 text-white bg-red-500 rounded-lg hover:text-red-700"
+                    >
+                      삭제
+                    </button>
+                  </div>
+                ))}
+              <button
+                onClick={() => handleAddEntry(po)}
+                className="px-4 py-2 mt-2 text-white transition-colors bg-green-500 rounded-lg hover:bg-green-600"
+              >
+                항목 추가
+              </button>
+            </div>
+          </li>
+        ))}
+        {/* {entries.map((entry, idx) => (
           <li key={idx} className="mb-4">
             <div className="flex flex-col space-y-2">
               <div>
@@ -168,14 +241,8 @@ const DayEditor: React.FC<DayEditorProps> = ({
               </button>
             </div>
           </li>
-        ))}
+        ))} */}
       </ul>
-      <button
-        onClick={handleAddEntry}
-        className="px-4 py-2 mt-2 text-white transition-colors bg-green-500 rounded-lg hover:bg-green-600"
-      >
-        항목 추가
-      </button>
     </div>
   );
 };

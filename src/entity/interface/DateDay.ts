@@ -69,6 +69,12 @@ export class DateDay implements IDateDayEntity {
     });
   }
 
+  get요일_내일부터_끝까지DateDay() {
+    return this.get요일_시작부터_끝까지DateDay().slice(
+      this.getIndexOfSlice() + 1,
+    );
+  }
+
   isSameWeek(date: Date) {
     return this.get요일_시작부터_끝까지DateDay().some((d) =>
       isSameDay(d.date, date),

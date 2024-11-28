@@ -45,7 +45,8 @@ export class ScheduleGenerator {
         this.totalWorkCnt++;
         if (workConEntry.employee) {
           // 이미 배치된 근무자라면 count
-          this.employeeCounter[workConEntry.employee.id] = 1;
+          this.employeeCounter[workConEntry.employee.id] =
+            (this.employeeCounter[workConEntry.employee.id] ?? 0) + 1;
         }
       }
     }
@@ -70,8 +71,11 @@ export class ScheduleGenerator {
       ...cloneDeep(workConditionEntry),
     } as ScheduleEntry);
 
-    this.employeeCounter[employee.id] =
-      (this.employeeCounter[employee.id] ?? 0) + 1;
+    // 재귀함수로 배치한 근무자만 카운트
+    if (!workConditionEntry.employee) {
+      this.employeeCounter[employee.id] =
+        (this.employeeCounter[employee.id] ?? 0) + 1;
+    }
   }
 
   private async recursive(depth: number) {
@@ -151,9 +155,8 @@ export class ScheduleGenerator {
       this.schedule,
       this.userInput.maxWorkComboDayCount,
       { findPreviousSchedule: async () => [] },
-      this.userInput.workConditionOfWeek?.[
-        workConditionEntry.dateDay.dayOfWeek
-      ] ?? [],
+      this.userInput.workConditionOfWeek,
+      this.employeeCounter,
     )
       .add_조건1_현재_요일에_투입_안된_근무자()
       .add_조건2_직원의_근무_최대_가능_일수를_안넘는_근무자()
@@ -177,11 +180,15 @@ export class ScheduleGenerator {
     return this;
   }
 
-  private postRecursive({ dateDay }: WorkConditionEntry) {
+  private postRecursive({ employee, dateDay }: WorkConditionEntry) {
     const pushed = this.schedule[dateDay.dayOfWeek].pop();
     if (!pushed?.employee?.id) return;
     const id = pushed.employee.id;
-    this.employeeCounter[id] = Math.max(0, this.employeeCounter[id] - 1);
+
+    // 재귀함수로 배치한 근무자만 카운트
+    if (!employee) {
+      this.employeeCounter[id] -= 1;
+    }
   }
 
   /*

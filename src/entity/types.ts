@@ -68,6 +68,7 @@ export const DateDayEntitySchema = z.object({
 });
 
 export const WorkConditionEntrySchema = z.object({
+  id: z.number(),
   dateDay: DateDayEntitySchema,
   employee: IEmployeeSchema.optional(),
   workPosition: z.nativeEnum(EWorkPosition),

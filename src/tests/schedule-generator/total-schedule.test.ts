@@ -21,6 +21,7 @@ describe('스케쥴 생성기 테스트', () => {
     const dateDay = DateDay.fromDayOfWeek(startDate, EDayOfWeek.월);
 
     const 오픈_매점_2명 = [1, 2].map(() => ({
+      id: parseInt(_.uniqueId()),
       dateDay,
       employee: 다들어갈_아무나,
       workPosition: EWorkPosition.매점,
@@ -29,6 +30,7 @@ describe('스케쥴 생성기 테스트', () => {
     })) as WorkConditionEntry[];
 
     const 마감_매점_2명 = [1, 2].map(() => ({
+      id: parseInt(_.uniqueId()),
       dateDay,
       employee: 다들어갈_아무나,
       workPosition: EWorkPosition.매점,
@@ -37,6 +39,7 @@ describe('스케쥴 생성기 테스트', () => {
     })) as WorkConditionEntry[];
 
     const 오픈_플로어_2명 = [1, 2].map(() => ({
+      id: parseInt(_.uniqueId()),
       dateDay,
       employee: 멀티_플로어_가능한_아무나,
       workPosition: EWorkPosition.플로어,
@@ -45,6 +48,7 @@ describe('스케쥴 생성기 테스트', () => {
     })) as WorkConditionEntry[];
 
     const 마감_플로어_2명 = [1, 2].map(() => ({
+      id: parseInt(_.uniqueId()),
       dateDay,
       employee: 멀티_플로어_가능한_아무나,
       workPosition: EWorkPosition.플로어,
@@ -53,6 +57,7 @@ describe('스케쥴 생성기 테스트', () => {
     })) as WorkConditionEntry[];
 
     const 멀티_1명_오픈 = {
+      id: parseInt(_.uniqueId()),
       dateDay,
       employee: 멀티_플로어_가능한_아무나,
       workPosition: EWorkPosition.멀티,
@@ -61,6 +66,7 @@ describe('스케쥴 생성기 테스트', () => {
     } as WorkConditionEntry;
 
     const 멀티_1명_마감 = {
+      id: parseInt(_.uniqueId()),
       dateDay,
       workPosition: EWorkPosition.멀티,
       workTime: EWorkTime.마감,
