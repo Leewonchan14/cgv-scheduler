@@ -99,24 +99,6 @@ const DayEditor: React.FC<DayEditorProps> = ({
             <div className="flex flex-col space-y-2">
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  근무 시간
-                </label>
-                <select
-                  value={entry.workTime}
-                  onChange={(e) =>
-                    handleWorkTimeChange(idx, e.target.value as EWorkTime)
-                  }
-                  className="block w-full p-2 mt-1 border border-gray-300 rounded-md"
-                >
-                  {Object.values(EWorkTime).map((time) => (
-                    <option key={time} value={time}>
-                      {time}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
                   근무 위치
                 </label>
                 <select
@@ -132,6 +114,24 @@ const DayEditor: React.FC<DayEditorProps> = ({
                   {Object.values(EWorkPosition).map((position) => (
                     <option key={position} value={position}>
                       {position}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  근무 시간
+                </label>
+                <select
+                  value={entry.workTime}
+                  onChange={(e) =>
+                    handleWorkTimeChange(idx, e.target.value as EWorkTime)
+                  }
+                  className="block w-full p-2 mt-1 border border-gray-300 rounded-md"
+                >
+                  {Object.values(EWorkTime).map((time) => (
+                    <option key={time} value={time}>
+                      {time}
                     </option>
                   ))}
                 </select>
