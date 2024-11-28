@@ -143,7 +143,7 @@ const DayEditor: React.FC<DayEditorProps> = ({
                   직원
                 </label>
                 <select
-                  defaultValue={''}
+                  defaultValue={entry.employee?.id ?? ''}
                   onChange={(e) =>
                     handleEmployeeChange(idx, parseInt(e.target.value))
                   }
@@ -152,7 +152,7 @@ const DayEditor: React.FC<DayEditorProps> = ({
                   <option value="">직원 선택</option>
                   {employees.map((emp) => (
                     <option key={emp.id} value={emp.id}>
-                      {emp.name} ({emp.role})
+                      {emp.name}
                     </option>
                   ))}
                 </select>

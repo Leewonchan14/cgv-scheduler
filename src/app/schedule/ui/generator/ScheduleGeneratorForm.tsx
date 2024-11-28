@@ -12,8 +12,8 @@ import { EWorkPosition } from '@/entity/enums/EWorkPosition';
 import { EWorkTime } from '@/entity/enums/EWorkTime';
 import { DateDay } from '@/entity/interface/DateDay';
 import {
-  EmployeeCondition,
   APIUserInputConditionSchema,
+  EmployeeCondition,
   WorkConditionEntry,
   WorkConditionOfWeek,
 } from '@/entity/types';
@@ -56,35 +56,51 @@ const getInitialWorkConditionOfWeek = (startDate: Date) => {
   );
 };
 
+const initDayOfWeek = EDayOfWeek.목;
+
 const ScheduleGeneratorForm: NextPage<Props> = ({}) => {
-  const initDayOfWeek = EDayOfWeek.목;
+  // 선택된 주
   const [selectedWeek, setSelectedWeek] = useState<Date>(
     new DateDay(new Date(), 0).getNextDateDayByDayOfWeek(initDayOfWeek).date,
   );
 
-  const handleWeekSelect = (startDate: Date) => {
-    setSelectedWeek(startDate);
-  };
+  // 일주일치 근무 조건
   const [workConditionOfWeek, setWorkConditionOfWeek] =
     useState<WorkConditionOfWeek>(getInitialWorkConditionOfWeek(selectedWeek));
 
-  useEffect(() => {
-    setWorkConditionOfWeek((prev) => {
-      return _.mapValues(prev, (entry) =>
-        (entry ?? []).map((e) => ({
-          ...e,
-          dateDay: DateDay.fromDayOfWeek(selectedWeek, e.dateDay.dayOfWeek),
-        })),
-      );
-    });
-  }, [selectedWeek]);
-
+  // 선택된 근무자
   const [selectEmployeeConditions, setSelectEmployeeConditions] = useState<
     EmployeeCondition[]
   >([]);
 
+  // 최대 스케쥴 갯수
   const [maxSchedule, setMaxSchedule] = useState(5);
+
+  // 최대 연속 근무 일
   const [maxWorkComboDayCount, setMaxWorkComboDayCount] = useState(3);
+
+  const {
+    data: schedules,
+    mutateAsync,
+    isPending,
+    isIdle,
+    reset,
+  } = useMutation(scheduleMutateApi.generate);
+
+  const handleWeekSelect = (startDate: Date) => {
+    setSelectedWeek(startDate);
+  };
+
+  useEffect(() => {
+    setWorkConditionOfWeek(
+      _.mapValues(workConditionOfWeek, (entry) =>
+        (entry ?? []).map((e) => ({
+          ...e,
+          dateDay: DateDay.fromDayOfWeek(selectedWeek, e.dateDay.dayOfWeek),
+        })),
+      ),
+    );
+  }, [selectedWeek]);
 
   const handleSelectionChange = (employees: EmployeeCondition[]) => {
     setSelectEmployeeConditions(employees);
@@ -100,12 +116,11 @@ const ScheduleGeneratorForm: NextPage<Props> = ({}) => {
     }));
   };
 
-  const {
-    data: schedules,
-    mutateAsync,
-    isPending,
-    isIdle,
-  } = useMutation(scheduleMutateApi.generate);
+  const handleSetWorkCondition = (newConditions: WorkConditionOfWeek) => {
+    // setWorkConditionOfWeek(newConditions);
+    reset();
+  };
+
   const { isFetching } = useQuery(employeeQueryApi.findAll);
 
   if (isFetching) return <LoadingAnimation text={'근무자 정보를 가져오는중'} />;
@@ -190,7 +205,7 @@ const ScheduleGeneratorForm: NextPage<Props> = ({}) => {
                   });
                   await mutateAsync(parse);
                 }}
-                className="px-4 py-2 text-white transition-colors bg-blue-500 rounded-lg hover:bg-blue-600 disabled:opacity-50"
+                className="px-4 py-2 font-bold text-white transition-colors bg-blue-500 rounded-lg hover:bg-blue-600 disabled:opacity-50"
               >
                 근무표 생성
               </button>
@@ -201,6 +216,7 @@ const ScheduleGeneratorForm: NextPage<Props> = ({}) => {
               schedules={schedules ?? []}
               isIdle={isIdle}
               isPending={isPending}
+              handleSetWorkCondition={handleSetWorkCondition}
             />
           </div>
         </div>
