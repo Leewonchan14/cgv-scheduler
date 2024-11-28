@@ -49,48 +49,50 @@ const EmployeeTable: NextPage<Props> = async ({ page, pageSize, search }) => {
       <tbody>
         <TableMargin margin={'h-6'} />
         {/* <EmployeeList {...data} /> */}
-        {employees.map((employee) => (
-          <React.Fragment key={employee.id}>
-            <tr className="bg-gray-200" key={employee.id}>
-              <td>{employee.name}</td>
-              <td>
-                {employee.ableWorkPosition.map((po) => (
-                  <div key={po}>{po}</div>
-                ))}
-              </td>
-              <td>
-                {EDAY_OF_WEEKS_CORRECT.map((day) => {
-                  const workTimes = employee.ableWorkTime[day];
-                  if (workTimes && workTimes.length > 0) {
-                    return (
-                      <div key={day}>
-                        <strong>{day}:</strong> {workTimes.join(', ')}
-                      </div>
-                    );
-                  }
-                })}
-              </td>
-              <td>{moment(employee.createdAt).format('L')}</td>
-              <td className="">
-                <div className="flex flex-col items-center justify-center">
-                  <Link
-                    className={`flex items-center justify-center w-20 h-12 px-4 bg-blue-200 border-2 rounded-lg
+        {employees
+          .filter((e) => e.role !== ERole.ADMIN)
+          .map((employee) => (
+            <React.Fragment key={employee.id}>
+              <tr className="bg-gray-200" key={employee.id}>
+                <td>{employee.name}</td>
+                <td>
+                  {employee.ableWorkPosition.map((po) => (
+                    <div key={po}>{po}</div>
+                  ))}
+                </td>
+                <td>
+                  {EDAY_OF_WEEKS_CORRECT.map((day) => {
+                    const workTimes = employee.ableWorkTime[day];
+                    if (workTimes && workTimes.length > 0) {
+                      return (
+                        <div key={day}>
+                          <strong>{day}:</strong> {workTimes.join(', ')}
+                        </div>
+                      );
+                    }
+                  })}
+                </td>
+                <td>{moment(employee.createdAt).format('L')}</td>
+                <td className="">
+                  <div className="flex flex-col items-center justify-center">
+                    <Link
+                      className={`flex items-center justify-center w-20 h-12 px-4 bg-blue-200 border-2 rounded-lg
                   ${!(isAdmin || me?.id === employee.id) && 'invisible'}`}
-                    href={`/employee/${employee.id}/update`}
-                  >
-                    수정
-                  </Link>
-                  <DeleteButton
-                    isAdmin={isAdmin}
-                    name={employee.name}
-                    id={employee.id}
-                  />
-                </div>
-              </td>
-            </tr>
-            <TableMargin margin={'h-2'} />
-          </React.Fragment>
-        ))}
+                      href={`/employee/${employee.id}/update`}
+                    >
+                      수정
+                    </Link>
+                    <DeleteButton
+                      isAdmin={isAdmin}
+                      name={employee.name}
+                      id={employee.id}
+                    />
+                  </div>
+                </td>
+              </tr>
+              <TableMargin margin={'h-2'} />
+            </React.Fragment>
+          ))}
       </tbody>
     </table>
   );

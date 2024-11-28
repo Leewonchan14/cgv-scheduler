@@ -1,5 +1,6 @@
 'use server';
 
+import { Employee } from '@/entity/employee.entity';
 import { ERole } from '@/entity/enums/ERole';
 import { CookieTokenHandler } from '@/feature/auth/cookie-handler';
 import { jwtHandler } from '@/feature/auth/jwt-handler';
@@ -55,11 +56,11 @@ export const loginAction = async (prev: FormState, form: FormData) => {
 };
 
 export const adminDevLogin = async (_formDate: FormData) => {
-  await employeeService(await appDataSource()).upsertWithName({
-    name: '조우철',
-    password: pwHandler.encrypt('1234'),
-    role: ERole.ADMIN,
-  });
+  // await employeeService(await appDataSource()).upsertWithName({
+  //   name: '조우철',
+  //   password: pwHandler.encrypt('1234'),
+  //   role: ERole.ADMIN,
+  // });
 };
 
 /* export const loginAction = async (
