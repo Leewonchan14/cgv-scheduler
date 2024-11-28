@@ -41,10 +41,14 @@ export class DynamicEmployeeConditions {
       const 현재요일에_투입된_근무자_IDS = this.schedule[dayOfWeek].map(
         ({ employee }) => employee?.id,
       );
+      const 이미투입된근무자_IDS = this.workConditions
+        .filter((em) => em.employee)
+        .map(({ employee }) => employee?.id);
 
-      return !현재요일에_투입된_근무자_IDS.includes(
-        employeeCondition.employee.id,
-      );
+      return !_.union(
+        현재요일에_투입된_근무자_IDS,
+        이미투입된근무자_IDS,
+      ).includes(employeeCondition.employee.id);
     };
     condition.bind(this);
     this.conditions.push(condition);
@@ -148,6 +152,14 @@ export class DynamicEmployeeConditions {
         employee: employeeCondition.employee,
         ...this.workCondition,
       } as ScheduleEntry);
+
+      // 이후 이미 배치된 근무자가 있다면 추가
+      this.workConditions.forEach((w, idx) => {
+        if (idx < mockSchedule.length) return;
+        if (w.employee) {
+          mockSchedule.push(w);
+        }
+      });
 
       const findMulti = mockSchedule.filter(
         (s) => s.workPosition === EWorkPosition.멀티,
