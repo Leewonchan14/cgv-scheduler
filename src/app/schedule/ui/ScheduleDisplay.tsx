@@ -5,7 +5,9 @@
 import { DateDay } from '@/entity/interface/DateDay';
 import { ISchedule } from '@/entity/interface/ISchedule';
 import { WorkConditionOfWeek } from '@/entity/types';
-import React from 'react';
+import { isLightColor } from '@/share/libs/util/isLightColor';
+import _ from 'lodash';
+import React, { useState } from 'react';
 
 interface ScheduleDisplayProps {
   startDate: Date;
@@ -15,6 +17,14 @@ interface ScheduleDisplayProps {
   handleSetWorkCondition: (_: WorkConditionOfWeek) => void;
 }
 
+const makeColor = () =>
+  `#${Math.floor(Math.random() * 16777215)
+    .toString(16)
+    .padStart(6, '0')}50`;
+const colors = _.range(30).map(() => makeColor());
+
+const getColor = (id: number | undefined) => colors[id ?? 0];
+
 const ScheduleDisplay: React.FC<ScheduleDisplayProps> = ({
   startDate,
   isIdle,
@@ -22,6 +32,8 @@ const ScheduleDisplay: React.FC<ScheduleDisplayProps> = ({
   schedules,
   handleSetWorkCondition,
 }: ScheduleDisplayProps) => {
+  const [hoverId, setHoverId] = useState(-1);
+
   if (isIdle || !schedules) {
     return <div className="text-center">근무표를 생성해주세요.</div>;
   }
@@ -41,27 +53,51 @@ const ScheduleDisplay: React.FC<ScheduleDisplayProps> = ({
               .map((day) => (
                 <div
                   key={day}
-                  className="p-4 border rounded-lg shadow bg-gray-50"
+                  className="p-4 px-2 border rounded-lg shadow bg-gray-50"
                 >
                   <h3 className="mb-2 text-xl font-semibold text-center">
                     {day}
                   </h3>
                   <ul>
-                    {schedule[day]?.map((entry, idx) => (
-                      <li key={idx} className="mb-2">
-                        <div className="flex flex-col">
-                          <span className="font-medium">
-                            {entry.workPosition}
-                          </span>
-                          <span className="text-sm text-gray-700">
-                            {entry.workTime}
-                          </span>
-                          <span className="text-sm text-gray-700">
-                            {entry.employee?.name}
-                          </span>
-                        </div>
-                      </li>
-                    )) || <li className="text-sm text-gray-500">근무 없음</li>}
+                    {schedule[day]?.map((entry, idx) => {
+                      const isLight = isLightColor(
+                        getColor(entry.employee?.id),
+                      );
+                      const isHover = hoverId === entry.employee?.id;
+                      const bgColorHover = colors[
+                        entry.employee?.id ?? 0
+                      ].slice(0, -2);
+                      const bgColor = colors[entry.employee?.id ?? 0];
+                      return (
+                        <li
+                          onMouseEnter={() =>
+                            setHoverId(entry.employee?.id ?? -1)
+                          }
+                          onMouseLeave={() => setHoverId(-1)}
+                          key={idx}
+                          className="mb-2"
+                        >
+                          <div
+                            style={{
+                              backgroundColor: isHover ? bgColorHover : bgColor,
+                            }}
+                            className={`flex flex-col items-start px-2 py-1 rounded-lg transition-transform duration-200
+                            ${isHover && 'drop-shadow-2xl transform scale-105 font-bold'}
+                            ${isHover && (isLight ? 'text-black' : 'text-white')}`}
+                          >
+                            <span className="text-lg">
+                              {entry.workPosition}
+                            </span>
+                            <span className="text-sm text-opacity-80">
+                              {entry.workTime}
+                            </span>
+                            <span className={`text-sm text-opacity-80`}>
+                              {entry.employee?.name}
+                            </span>
+                          </div>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
               ))}
