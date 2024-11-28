@@ -44,6 +44,17 @@ export class SortEmployeeByWorkCondition {
     return this;
   }
 
+  add_조건4_최소_근무_일수가_큰순() {
+    const condition = (a: EmployeeCondition, b: EmployeeCondition) => {
+      if (a.ableMinWorkCount < b.ableMinWorkCount) return 1;
+      if (a.ableMinWorkCount > b.ableMinWorkCount) return -1;
+      return 0;
+    };
+    condition.bind(this);
+    this.conditions.push(condition);
+    return this;
+  }
+
   // 최대 근무 가능 일수가 큰순
   add_조건3_최대_근무_가능_일수가_큰순() {
     const condition = (a: EmployeeCondition, b: EmployeeCondition) => {

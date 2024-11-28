@@ -1,4 +1,4 @@
-import { EDAY_OF_WEEKS } from '@/entity/enums/EDayOfWeek';
+import { EDAY_OF_WEEKS, EDayOfWeek } from '@/entity/enums/EDayOfWeek';
 import { ISchedule } from '@/entity/interface/ISchedule';
 import { ScheduleEntry } from '@/entity/schedule-entry.entity';
 import {
@@ -30,17 +30,25 @@ export class ScheduleGenerator {
   private employeeCache: {
     [key: string]: EmployeeCondition[];
   } = {};
+  private employeeCounter: Record<number, number> = {};
 
   constructor(
     private userInput: UserInputCondition,
     private 최대_스케쥴_갯수: number,
   ) {
-    // 총 근무 갯수 계산
-    this.totalWorkCnt = _.chain(this.userInput.workConditionOfWeek)
-      .omitBy(_.isUndefined)
-      .map(_.size)
-      .sum()
-      .value();
+    // employeeCounter 초기화, 총 근무 갯수 계산
+    for (let dayOfWeek in this.userInput.workConditionOfWeek) {
+      const entry = this.userInput.workConditionOfWeek[dayOfWeek as EDayOfWeek];
+      if (!entry) continue;
+      for (const workConEntry of entry) {
+        // 총 근무 갯수 count
+        this.totalWorkCnt++;
+        if (workConEntry.employee) {
+          // 이미 배치된 근무자라면 count
+          this.employeeCounter[workConEntry.employee.id] = 1;
+        }
+      }
+    }
   }
 
   public async generate(limitMs: number) {
@@ -61,6 +69,9 @@ export class ScheduleGenerator {
       employee,
       ...cloneDeep(workConditionEntry),
     } as ScheduleEntry);
+
+    this.employeeCounter[employee.id] =
+      (this.employeeCounter[employee.id] ?? 0) + 1;
   }
 
   private async recursive(depth: number) {
@@ -70,6 +81,8 @@ export class ScheduleGenerator {
     if (this.isDone) return;
 
     if (depth >= this.totalWorkCnt) {
+      if (!this.isValidate()) return;
+
       this.result.push(_.cloneDeep(this.schedule));
 
       // 최대 스케쥴 갯수에 도달하면 종료
@@ -157,6 +170,7 @@ export class ScheduleGenerator {
       this.possibleEmployees,
     )
       .add_조건2_근무_가능한_요일이_적은_순()
+      .add_조건4_최소_근무_일수가_큰순()
       .add_조건3_최대_근무_가능_일수가_큰순()
       .sort();
 
@@ -164,7 +178,29 @@ export class ScheduleGenerator {
   }
 
   private postRecursive({ dateDay }: WorkConditionEntry) {
-    this.schedule[dateDay.dayOfWeek].pop();
+    const pushed = this.schedule[dateDay.dayOfWeek].pop();
+    if (!pushed?.employee?.id) return;
+    const id = pushed.employee.id;
+    this.employeeCounter[id] = Math.max(0, this.employeeCounter[id] - 1);
+  }
+
+  /*
+   * 이때 검사하는 항목은 다음과 같다.
+   * 1. 각 근무자의 최소 근무일수를 만족하는지
+   * 2. 각 근무자의 최대 근무일수를 넘지 않는지
+   */
+  private isValidate() {
+    const { employeeConditions } = this.userInput;
+
+    for (const employeeCondition of employeeConditions) {
+      const id = employeeCondition.employee.id;
+      const count = this.employeeCounter[id] ?? 0;
+
+      if (count < employeeCondition.ableMinWorkCount) return false;
+      if (count > employeeCondition.ableMaxWorkCount) return false;
+    }
+
+    return true;
   }
 
   public getResult() {
