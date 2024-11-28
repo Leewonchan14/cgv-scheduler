@@ -7,6 +7,7 @@ import { ISchedule } from '@/entity/interface/ISchedule';
 import { ScheduleEntry } from '@/entity/schedule-entry.entity';
 import { EmployeeCondition, WorkConditionEntry } from '@/entity/types';
 import { IScheduleEntryService } from '@/feature/schedule/schedule-entry.service';
+import { WorkTimeSlot } from '@/feature/schedule/work-time-slot-handler';
 import _ from 'lodash';
 
 /**
@@ -161,6 +162,9 @@ export class DynamicEmployeeConditions {
         }
       });
 
+      // 해당 요일의 마지막 근무 배치가 아니라면 true
+      if (mockSchedule.length !== this.workConditions.length) return true;
+
       const findMulti = mockSchedule.filter(
         (s) => s.workPosition === EWorkPosition.멀티,
       );
@@ -169,37 +173,20 @@ export class DynamicEmployeeConditions {
       if (findMulti.length === 0) return true;
 
       // 해당 요일의 마지막 근무 배치가 아니라면 true
-      if (this.schedule[dayOfWeek].length !== this.workConditions.length - 1)
+      if (this.schedule[dayOfWeek].length !== this.workConditions.length)
         return true;
 
-      const openMul = findMulti.filter(
-        (m) => m.workTime === EWorkTime.오픈,
-      ).length;
-      const openFloor = mockSchedule.filter(
-        (m) =>
-          m.workTime === EWorkTime.오픈 &&
-          m.workPosition === EWorkPosition.플로어,
-      ).length;
+      const workTimeSlots = findMulti.map((m) =>
+        WorkTimeSlot.fromWorkConditionEntry(m),
+      );
+      let listGap30 = workTimeSlots.flatMap((s) => s.getHourMinuteListGap30());
 
-      if (openMul + openFloor !== 3) {
-        return false;
-      }
+      listGap30 = _.uniqBy(listGap30, (v) => `${v.hour}${v.minute}`);
 
-      const closeMul = findMulti.filter(
-        (m) => m.workTime === EWorkTime.마감,
-      ).length;
-
-      const closeFloor = mockSchedule.filter(
-        (m) =>
-          m.workTime === EWorkTime.마감 &&
-          m.workPosition === EWorkPosition.플로어,
-      ).length;
-
-      if (closeMul + closeFloor !== 3) {
-        return false;
-      }
-
-      return true;
+      // 30분 간격으로 모든 간격안에 플로어 + 멀티 가능한 근무자가 3명이상이면 true
+      return listGap30.every((hm) => {
+        return workTimeSlots.filter((s) => s.isContainPoint(hm)).length >= 3;
+      });
     };
 
     condition.bind(this);

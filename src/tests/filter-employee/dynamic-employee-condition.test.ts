@@ -298,14 +298,14 @@ describe('동적 근무자 조건 필터링', () => {
       employee: 멀티_플로어_가능한_아무나,
       workPosition: EWorkPosition.멀티,
       workTime: EWorkTime.오픈,
-      timeSlot: WorkTimeSlot.fromMultiWorkTime(EWorkTime.오픈),
+      timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
     } as WorkConditionEntry;
 
     const 멀티_1명_마감 = {
       dateDay,
       workPosition: EWorkPosition.멀티,
       workTime: EWorkTime.마감,
-      timeSlot: WorkTimeSlot.fromMultiWorkTime(EWorkTime.마감),
+      timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
     } as WorkConditionEntry;
 
     const workCondition = _.concat(
