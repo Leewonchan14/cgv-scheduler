@@ -4,6 +4,7 @@ import { ERole } from '@/entity/enums/ERole';
 import { EWorkPosition } from '@/entity/enums/EWorkPosition';
 import { EWorkTime } from '@/entity/enums/EWorkTime';
 import { DateDay } from '@/entity/interface/DateDay';
+import { WorkTimeSlotSchema } from '@/feature/schedule/work-time-slot-handler';
 import { z } from 'zod';
 
 export interface APIUserInputCondition {
@@ -71,8 +72,7 @@ export const WorkConditionEntrySchema = z.object({
   employee: IEmployeeSchema.optional(),
   workPosition: z.nativeEnum(EWorkPosition),
   workTime: z.nativeEnum(EWorkTime),
-  workTimeStart: z.coerce.date().optional(),
-  workTimeEnd: z.coerce.date().optional(),
+  timeSlot: WorkTimeSlotSchema,
 });
 
 export const WorkConditionSchema = z.record(

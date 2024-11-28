@@ -29,9 +29,14 @@ export class StaticEmployeeCondition {
     dateDay,
     workPosition,
     workTime,
-    workTimeStart,
+    timeSlot,
   }: Partial<WorkConditionEntry>) {
-    return [dateDay?.dayOfWeek, workPosition, workTime, workTimeStart]
+    return [
+      dateDay?.dayOfWeek,
+      workPosition,
+      workTime,
+      JSON.stringify(timeSlot),
+    ]
       .filter((v) => v !== undefined)
       .join('-');
   }

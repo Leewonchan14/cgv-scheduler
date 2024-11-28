@@ -4,6 +4,7 @@ import { EWorkTime } from '@/entity/enums/EWorkTime';
 import { DateDay } from '@/entity/interface/DateDay';
 import { WorkConditionEntry } from '@/entity/types';
 import { StaticEmployeeCondition } from '@/feature/employee/with-schedule/static-employee-condition';
+import { WorkTimeSlot } from '@/feature/schedule/work-time-slot-handler';
 import { mockEmployeeConditions } from '@/mock/employees';
 import { userInputCondition } from '@/mock/user-input-condition';
 import { describe, expect, test } from '@jest/globals';
@@ -19,6 +20,7 @@ describe('정적 근무자 조건 필터링', () => {
       workPosition: EWorkPosition.매점,
       dateDay: DateDay.fromDayOfWeek(startDate, EDayOfWeek.월),
       workTime: EWorkTime.오픈,
+      timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
     };
 
     const staticCondition = new StaticEmployeeCondition(
@@ -45,6 +47,7 @@ describe('정적 근무자 조건 필터링', () => {
       dateDay: DateDay.fromDayOfWeek(startDate, EDayOfWeek.월),
       workPosition: EWorkPosition.매점,
       workTime: EWorkTime.오픈,
+      timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
     };
 
     const staticCondition = new StaticEmployeeCondition(
@@ -74,6 +77,7 @@ describe('정적 근무자 조건 필터링', () => {
       dateDay: DateDay.fromDayOfWeek(startDate, EDayOfWeek.월),
       workPosition: EWorkPosition.매점,
       workTime: EWorkTime.오픈,
+      timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
     };
 
     const empConditions = _.cloneDeep(userInputCondition.employeeConditions);
@@ -100,6 +104,7 @@ describe('정적 근무자 조건 필터링', () => {
       workPosition: EWorkPosition.매점,
       dateDay: DateDay.fromDayOfWeek(startDate, EDayOfWeek.월),
       workTime: EWorkTime.오픈,
+      timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
     };
 
     const staticCondition = new StaticEmployeeCondition(
@@ -137,6 +142,7 @@ describe('정적 근무자 조건 필터링', () => {
       workPosition: EWorkPosition.매점,
       dateDay: DateDay.fromDayOfWeek(startDate, EDayOfWeek.월),
       workTime: EWorkTime.오픈,
+      timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
     };
 
     const staticCondition = new StaticEmployeeCondition(
@@ -167,6 +173,7 @@ describe('정적 근무자 조건 필터링', () => {
         workPosition: EWorkPosition.매점,
         dateDay: DateDay.fromDayOfWeek(new Date(), EDayOfWeek.금),
         workTime: EWorkTime.마감,
+        timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
       } as WorkConditionEntry,
       mockEmployeeConditions,
       cache,

@@ -8,6 +8,7 @@ import { EWorkPosition } from '@/entity/enums/EWorkPosition';
 import { EWorkTime } from '@/entity/enums/EWorkTime';
 import { DateDay } from '@/entity/interface/DateDay';
 import { WorkConditionEntry, WorkConditionOfWeek } from '@/entity/types';
+import { WorkTimeSlot } from '@/feature/schedule/work-time-slot-handler';
 import { useQuery } from '@tanstack/react-query';
 import React from 'react';
 
@@ -62,6 +63,7 @@ const DayEditor: React.FC<DayEditorProps> = ({
       dateDay: DateDay.fromDayOfWeek(startDate, dayOfWeek),
       workPosition: EWorkPosition.매점,
       workTime: EWorkTime.오픈,
+      timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
     };
     onChangeWorkCondition(dayOfWeek, [...entries, newEntry]);
   };

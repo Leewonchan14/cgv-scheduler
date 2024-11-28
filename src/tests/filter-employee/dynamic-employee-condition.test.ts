@@ -8,6 +8,7 @@ import { WorkConditionEntry } from '@/entity/types';
 import { DynamicEmployeeConditions } from '@/feature/employee/with-schedule/dynamic-employee-condition';
 import { StaticEmployeeCondition } from '@/feature/employee/with-schedule/static-employee-condition';
 import { IScheduleEntryService } from '@/feature/schedule/schedule-entry.service';
+import { WorkTimeSlot } from '@/feature/schedule/work-time-slot-handler';
 import {
   floorOrMultiEmployees,
   floorOrMultiOn월Employees,
@@ -39,6 +40,7 @@ describe('동적 근무자 조건 필터링', () => {
       dateDay: DateDay.fromDayOfWeek(startDate, EDayOfWeek.월),
       workPosition: EWorkPosition.매점,
       workTime: EWorkTime.오픈,
+      timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
     };
 
     const 모든요일_가능한_직원 = userInputCondition.employeeConditions.filter(
@@ -80,6 +82,7 @@ describe('동적 근무자 조건 필터링', () => {
       workPosition: EWorkPosition.매점,
       dateDay: DateDay.fromDayOfWeek(startDate, EDayOfWeek.수),
       workTime: EWorkTime.오픈,
+      timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
     };
 
     const 근무자들 = _.cloneDeep(userInputCondition.employeeConditions);
@@ -132,6 +135,7 @@ describe('동적 근무자 조건 필터링', () => {
       workPosition: EWorkPosition.매점,
       dateDay: DateDay.fromDayOfWeek(startDate, EDayOfWeek.화),
       workTime: EWorkTime.오픈,
+      timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
     };
 
     const 근무자들 = _.cloneDeep(userInputCondition.employeeConditions);
@@ -174,6 +178,7 @@ describe('동적 근무자 조건 필터링', () => {
       workPosition: EWorkPosition.매점,
       dateDay: DateDay.fromDayOfWeek(startDate, EDayOfWeek.수),
       workTime: EWorkTime.오픈,
+      timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
     };
 
     const 근무자들 = _.cloneDeep(userInputCondition.employeeConditions);
@@ -261,6 +266,7 @@ describe('동적 근무자 조건 필터링', () => {
       employee: 다들어갈_아무나,
       workPosition: EWorkPosition.매점,
       workTime: EWorkTime.오픈,
+      timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
     })) as WorkConditionEntry[];
 
     const 마감_매점_2명 = [1, 2].map(() => ({
@@ -268,6 +274,7 @@ describe('동적 근무자 조건 필터링', () => {
       employee: 다들어갈_아무나,
       workPosition: EWorkPosition.매점,
       workTime: EWorkTime.마감,
+      timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.마감),
     })) as WorkConditionEntry[];
 
     const 오픈_플로어_2명 = [1, 2].map(() => ({
@@ -275,6 +282,7 @@ describe('동적 근무자 조건 필터링', () => {
       employee: 멀티_플로어_가능한_아무나,
       workPosition: EWorkPosition.플로어,
       workTime: EWorkTime.오픈,
+      timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
     })) as WorkConditionEntry[];
 
     const 마감_플로어_2명 = [1, 2].map(() => ({
@@ -282,6 +290,7 @@ describe('동적 근무자 조건 필터링', () => {
       employee: 멀티_플로어_가능한_아무나,
       workPosition: EWorkPosition.플로어,
       workTime: EWorkTime.마감,
+      timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.마감),
     })) as WorkConditionEntry[];
 
     const 멀티_1명_오픈 = {
@@ -289,12 +298,14 @@ describe('동적 근무자 조건 필터링', () => {
       employee: 멀티_플로어_가능한_아무나,
       workPosition: EWorkPosition.멀티,
       workTime: EWorkTime.오픈,
+      timeSlot: WorkTimeSlot.fromMultiWorkTime(EWorkTime.오픈),
     } as WorkConditionEntry;
 
     const 멀티_1명_마감 = {
       dateDay,
       workPosition: EWorkPosition.멀티,
       workTime: EWorkTime.마감,
+      timeSlot: WorkTimeSlot.fromMultiWorkTime(EWorkTime.마감),
     } as WorkConditionEntry;
 
     const workCondition = _.concat(

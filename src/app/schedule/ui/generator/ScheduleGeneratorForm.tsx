@@ -17,6 +17,7 @@ import {
   WorkConditionEntry,
   WorkConditionOfWeek,
 } from '@/entity/types';
+import { WorkTimeSlot } from '@/feature/schedule/work-time-slot-handler';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
 import { NextPage } from 'next';
@@ -35,21 +36,25 @@ const getInitialWorkConditionOfWeek = (startDate: Date) => {
             dateDay: DateDay.fromDayOfWeek(startDate, dayOfWeek),
             workPosition: EWorkPosition.매점,
             workTime: EWorkTime.오픈,
+            timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
           },
           {
             dateDay: DateDay.fromDayOfWeek(startDate, dayOfWeek),
             workPosition: EWorkPosition.매점,
             workTime: EWorkTime.마감,
+            timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.마감),
           },
           {
             dateDay: DateDay.fromDayOfWeek(startDate, dayOfWeek),
             workPosition: EWorkPosition.플로어,
             workTime: EWorkTime.오픈,
+            timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
           },
           {
             dateDay: DateDay.fromDayOfWeek(startDate, dayOfWeek),
             workPosition: EWorkPosition.플로어,
             workTime: EWorkTime.마감,
+            timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.마감),
           },
         ] as WorkConditionEntry[],
     ),
