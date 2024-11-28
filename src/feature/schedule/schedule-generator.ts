@@ -37,8 +37,8 @@ export class ScheduleGenerator {
     private 최대_스케쥴_갯수: number,
   ) {
     // employeeCounter 초기화, 총 근무 갯수 계산
-    for (let dayOfWeek in this.userInput.workConditionOfWeek) {
-      const entry = this.userInput.workConditionOfWeek[dayOfWeek as EDayOfWeek];
+    for (const day in this.userInput.workConditionOfWeek) {
+      const entry = this.userInput.workConditionOfWeek[day as EDayOfWeek];
       if (!entry) continue;
       for (const workConEntry of entry) {
         // 총 근무 갯수 count
