@@ -1,6 +1,8 @@
 import { EDayOfWeek } from '@/entity/enums/EDayOfWeek';
 import { DateDay } from '@/entity/interface/DateDay';
+import { createMockScheduleEntry } from '@/mock/factories/scheduleFactory';
 import { describe, expect, test } from '@jest/globals';
+import { addDays, differenceInDays, format } from 'date-fns';
 import _ from 'lodash';
 
 describe('lodash 테스트', () => {
@@ -47,5 +49,33 @@ describe('lodash 테스트', () => {
     const c = _.assign(a, { b: 2 });
 
     expect(a === c).toBe(true);
+  });
+
+  test('스케쥴 엔트리 스키마 테스트', () => {
+    const schedules = _.range(7).map((i) => ({
+      ...createMockScheduleEntry(),
+      dateDay: new DateDay(new Date(), i),
+    }));
+
+    // console.log('schedules: ', schedules);
+
+    const result = _.chain(schedules)
+      .groupBy((s) => format(s.dateDay.date, 'yyyy-MM-dd'))
+      .entries()
+      .sortBy(([key]) => key)
+      .reverse()
+      .map(([_, value]) => value)
+      .value();
+
+    // console.log('result: ', result);
+
+    expect(result.length).toBe(7);
+  });
+
+  test('abc', () => {
+    const a = DateDay.fromDate(new Date(), addDays(new Date(), 3));
+    const gap = differenceInDays(a.date, a.startDate);
+
+    expect(gap).toBe(3);
   });
 });

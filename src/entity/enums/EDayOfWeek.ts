@@ -9,14 +9,6 @@ export enum EDayOfWeek {
   토 = '토',
 }
 
-export function getDayOfWeekFromDate(date: Date): EDayOfWeek {
-  return Object.values(EDayOfWeek)[date.getDay()];
-}
-
-export function getDayOfWeekFromIndex(index: number): EDayOfWeek {
-  return Object.values(EDayOfWeek)[index];
-}
-
 export function getSliceFromDayOfWeekReverse(
   dayOfWeek: EDayOfWeek,
 ): EDayOfWeek[] {

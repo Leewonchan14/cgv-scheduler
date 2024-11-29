@@ -1,7 +1,5 @@
-import { DateDayEntity } from '@/entity/date-day.entity';
 import { Employee } from '@/entity/employee.entity';
 import { ScheduleEntry } from '@/entity/schedule-entry.entity';
-import { Schedule } from '@/entity/schedule.entity';
 import { DataSource } from 'typeorm';
 
 const originDataSource = new DataSource({
@@ -11,7 +9,7 @@ const originDataSource = new DataSource({
   username: process.env.POSTGRES_USER,
   password: process.env.POSTGRES_PASSWORD,
   database: process.env.POSTGRES_DATABASE,
-  entities: [Employee, Schedule, ScheduleEntry, DateDayEntity],
+  entities: [Employee, ScheduleEntry],
   synchronize: false,
   logging: ['error'],
   migrations: [],

@@ -11,6 +11,7 @@ import { ZodType } from 'zod';
 export const useQueryParam = <T>(schema: ZodType<T>, key: string) => {
   const pathname = usePathname();
   const params = useSearchParams();
+  const prev = Object.fromEntries(params.entries());
   const router = useRouter();
 
   const newLocal = params.get(key) ?? undefined;
@@ -21,7 +22,7 @@ export const useQueryParam = <T>(schema: ZodType<T>, key: string) => {
   }
 
   const set = (data: string) => {
-    const query = new URLSearchParams({ [key]: data }).toString();
+    const query = new URLSearchParams({ ...prev, [key]: data }).toString();
     router.replace(`${pathname}?${query}`);
   };
 

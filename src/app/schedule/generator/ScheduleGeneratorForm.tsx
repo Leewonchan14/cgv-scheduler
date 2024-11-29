@@ -2,9 +2,9 @@
 
 import { employeeQueryApi } from '@/app/employee/api/queryoption';
 import { scheduleMutateApi } from '@/app/schedule/api/mutate';
-import EmployeeSelector from '@/app/schedule/ui/generator/EmployeeSelector';
-import ScheduleGenDisplay from '@/app/schedule/ui/generator/ScheduleDisplay';
-import ScheduleEditor from '@/app/schedule/ui/generator/ScheduleEditor';
+import EmployeeSelector from '@/app/schedule/generator/EmployeeSelector';
+import ScheduleGenDisplay from '@/app/schedule/generator/ScheduleDisplay';
+import ScheduleEditor from '@/app/schedule/generator/ScheduleEditor';
 import { useQueryParam } from '@/app/share/util/useQueryParam';
 import LoadingAnimation from '@/app/ui/loading/loading-animation';
 import { EDAY_OF_WEEKS, EDayOfWeek } from '@/entity/enums/EDayOfWeek';
@@ -35,28 +35,28 @@ const getInitialWorkConditionOfWeek = (startDate: Date) => {
         [
           {
             id: parseInt(_.uniqueId()),
-            dateDay: DateDay.fromDayOfWeek(startDate, dayOfWeek),
+            date: DateDay.fromDayOfWeek(startDate, dayOfWeek).date,
             workPosition: EWorkPosition.매점,
             workTime: EWorkTime.오픈,
             timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
           },
           {
             id: parseInt(_.uniqueId()),
-            dateDay: DateDay.fromDayOfWeek(startDate, dayOfWeek),
+            date: DateDay.fromDayOfWeek(startDate, dayOfWeek).date,
             workPosition: EWorkPosition.매점,
             workTime: EWorkTime.마감,
             timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.마감),
           },
           {
             id: parseInt(_.uniqueId()),
-            dateDay: DateDay.fromDayOfWeek(startDate, dayOfWeek),
+            date: DateDay.fromDayOfWeek(startDate, dayOfWeek).date,
             workPosition: EWorkPosition.플로어,
             workTime: EWorkTime.오픈,
             timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
           },
           {
             id: parseInt(_.uniqueId()),
-            dateDay: DateDay.fromDayOfWeek(startDate, dayOfWeek),
+            date: DateDay.fromDayOfWeek(startDate, dayOfWeek).date,
             workPosition: EWorkPosition.플로어,
             workTime: EWorkTime.마감,
             timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.마감),
@@ -182,7 +182,7 @@ const ScheduleGeneratorForm: NextPage<Props> = ({}: Props) => {
                 employeeConditions: selectEmployeeConditions,
                 workConditionOfWeek,
                 maxWorkComboDayCount,
-                startIDateDayEntity: new DateDay(selectedWeek, 0),
+                startDate: selectedWeek,
                 maxSchedule,
               });
               await mutateAsync(parse);

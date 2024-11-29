@@ -1,6 +1,5 @@
 jest.useFakeTimers();
 import { Employee } from '@/entity/employee.entity';
-import { DateDay } from '@/entity/interface/DateDay';
 import { EmployeeCondition, UserInputCondition } from '@/entity/types';
 import { ScheduleGenerator } from '@/feature/schedule/schedule-generator';
 import { describe, expect, jest, test } from '@jest/globals';
@@ -143,11 +142,7 @@ describe('스케쥴 생성기 테스트', () => {
         },
       ],
       maxWorkComboDayCount: 3,
-      startIDateDayEntity: {
-        date: '2024-12-05T01:17:51.901Z',
-        dayOfWeek: '목',
-        startDate: '2024-12-05T01:17:51.901Z',
-      },
+      startDate: new Date('2024-12-05T01:17:51.901Z'),
       maxSchedule: 5,
       workConditionOfWeek: {
         목: [
@@ -566,10 +561,6 @@ describe('스케쥴 생성기 테스트', () => {
         employee: employees.find((emp) => emp.id === e.employee.id),
       }),
     ) as EmployeeCondition[];
-
-    userInput.startDateDay = DateDay.fromIDateDayEntity(
-      userInput.startIDateDayEntity,
-    );
 
     const generator = new ScheduleGenerator(userInput as UserInputCondition, 1);
 

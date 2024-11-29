@@ -1,26 +1,24 @@
-import { EDayOfWeek } from '@/entity/enums/EDayOfWeek';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { z } from 'zod';
+// import { EDayOfWeek } from '@/entity/enums/EDayOfWeek';
+// import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+// import { z } from 'zod';
 
-@Entity({ name: 'date_day' })
-export class DateDayEntity implements IDateDayEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+// @Entity({ name: 'date_day' })
+// export class DateDayEntity implements IDateDayEntity {
+//   @PrimaryGeneratedColumn()
+//   id: number;
 
-  @Column()
-  date: Date;
+//   @Column()
+//   date: Date;
 
-  @Column({ type: 'enum', enum: EDayOfWeek })
-  dayOfWeek: EDayOfWeek;
+//   @Column({ type: 'enum', enum: EDayOfWeek })
+//   dayOfWeek: EDayOfWeek;
 
-  @Column()
-  startDate: Date;
-}
+//   @Column()
+//   startDate: Date;
+// }
 
-export const DateDayEntitySchema = z.object({
-  date: z.coerce.date(),
-  dayOfWeek: z.nativeEnum(EDayOfWeek),
-  startDate: z.coerce.date(),
-});
+// export const DateDayEntitySchema = z.object({
+//   date: z.coerce.date(),
+// });
 
-export type IDateDayEntity = z.infer<typeof DateDayEntitySchema>;
+// export type IDateDayEntity = z.infer<typeof DateDayEntitySchema>;

@@ -1,5 +1,4 @@
-import { ISchedule } from '@/entity/schedule-entry.entity';
-import { APIUserInputConditionSchema } from '@/entity/types';
+import { APIUserInputConditionSchema, ISchedule } from '@/entity/types';
 import axios from 'axios';
 import { z } from 'zod';
 
@@ -9,14 +8,14 @@ export const scheduleMutateApi = {
     mutationFn: async ({
       employeeConditions,
       maxWorkComboDayCount,
-      startIDateDayEntity,
+      startDate,
       maxSchedule,
       workConditionOfWeek,
     }: z.infer<typeof APIUserInputConditionSchema>) => {
       const { data } = await axios.post('/api/schedules', {
         employeeConditions,
         maxWorkComboDayCount,
-        startIDateDayEntity,
+        startDate,
         maxSchedule,
         workConditionOfWeek,
       });

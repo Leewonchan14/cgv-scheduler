@@ -18,11 +18,13 @@ describe('스케쥴 생성기 테스트', () => {
 
     const wCon1 = createMockWorkConditionEntry();
 
-    const dateDay = DateDay.fromIDateDayEntity(wCon1.dateDay);
+    const dateDay = new DateDay(wCon1.date, 0);
+
+    const date = dateDay.startDate;
 
     const openMajum_2 = _.range(0, 2).map((i) =>
       createMockWorkConditionEntry({
-        dateDay,
+        date,
         employee: employees[i],
         workPosition: EWorkPosition.매점,
         workTime: EWorkTime.오픈,
@@ -32,7 +34,7 @@ describe('스케쥴 생성기 테스트', () => {
 
     const closeMajum_2 = _.range(2, 4).map((i) =>
       createMockWorkConditionEntry({
-        dateDay,
+        date,
         employee: employees[i],
         workPosition: EWorkPosition.매점,
         workTime: EWorkTime.마감,
@@ -42,7 +44,7 @@ describe('스케쥴 생성기 테스트', () => {
 
     const openFloor_2 = _.range(4, 6).map((i) =>
       createMockWorkConditionEntry({
-        dateDay,
+        date,
         employee: employees[i],
         workPosition: EWorkPosition.플로어,
         timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
@@ -51,7 +53,7 @@ describe('스케쥴 생성기 테스트', () => {
 
     const closeFloor_2 = _.range(6, 8).map((i) =>
       createMockWorkConditionEntry({
-        dateDay,
+        date,
         employee: employees[i],
         workPosition: EWorkPosition.플로어,
         workTime: EWorkTime.마감,
@@ -61,7 +63,7 @@ describe('스케쥴 생성기 테스트', () => {
 
     const multi_2 = _.range(8, 10).map((_i) =>
       createMockWorkConditionEntry({
-        dateDay,
+        date,
         workPosition: EWorkPosition.멀티,
         workTime: EWorkTime.선택,
         timeSlot: new WorkTimeSlot('10:00', '16:00'),
@@ -84,7 +86,7 @@ describe('스케쥴 생성기 테스트', () => {
 
     const scheduleGenerator = new ScheduleGenerator(
       {
-        startDateDay: new DateDay(dateDay.startDate, 0),
+        startDate: date,
         maxWorkComboDayCount: 3,
         employeeConditions: [...employees, ...ableEmp].map((employee) =>
           createMockEmployeeCondition({ employee }),

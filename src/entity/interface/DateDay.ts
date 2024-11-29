@@ -1,8 +1,7 @@
-import { IDateDayEntity } from '@/entity/date-day.entity';
 import { EDAY_OF_WEEKS_CORRECT, EDayOfWeek } from '@/entity/enums/EDayOfWeek';
-import { addDays, isSameDay } from 'date-fns';
+import { addDays, differenceInDays, isSameDay } from 'date-fns';
 
-export class DateDay implements IDateDayEntity {
+export class DateDay {
   date: Date;
   startDate: Date;
   dayOfWeek: EDayOfWeek;
@@ -25,8 +24,9 @@ export class DateDay implements IDateDayEntity {
     return new DateDay(startDate, index);
   }
 
-  static fromIDateDayEntity(entity: IDateDayEntity) {
-    return DateDay.fromDayOfWeek(entity.startDate, entity.dayOfWeek);
+  static fromDate(startDate: Date, date: Date) {
+    const gap = differenceInDays(date, startDate);
+    return new DateDay(startDate, gap);
   }
 
   getStartDateDay() {

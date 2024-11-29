@@ -3,9 +3,10 @@
 import { EWorkPosition } from '@/entity/enums/EWorkPosition';
 import { EWorkTime } from '@/entity/enums/EWorkTime';
 import { DateDay } from '@/entity/interface/DateDay';
-import { ISchedule, ScheduleEntry } from '@/entity/schedule-entry.entity';
+import { ScheduleEntry } from '@/entity/schedule-entry.entity';
 import {
   EmployeeCondition,
+  ISchedule,
   UserInputCondition,
   WorkConditionEntry,
   WorkConditionOfWeek,
@@ -56,18 +57,18 @@ export class DynamicEmployeeConditions extends FilterEmployee {
     private employeeCounter: Record<number, number>,
     userInputCondition: Pick<
       UserInputCondition,
-      'maxWorkComboDayCount' | 'workConditionOfWeek' | 'startDateDay'
+      'maxWorkComboDayCount' | 'workConditionOfWeek' | 'startDate'
     >,
     filters: FilteredEmployeeCon[],
   ) {
     super(filters);
-    const { maxWorkComboDayCount, workConditionOfWeek, startDateDay } =
+    const { maxWorkComboDayCount, workConditionOfWeek, startDate } =
       userInputCondition;
-
+    this.dateDay = DateDay.fromDate(startDate, this.workCondition.date);
     this.maxWorkComboDayCount = maxWorkComboDayCount;
     this.workConditionOfWeek = workConditionOfWeek;
-    this.workConditions = workConditionOfWeek[startDateDay.dayOfWeek] ?? [];
-    this.dateDay = DateDay.fromIDateDayEntity(workCondition.dateDay);
+
+    this.workConditions = workConditionOfWeek[this.dateDay.dayOfWeek] ?? [];
 
     this.일주일중_전날까지_배치된_모든_스케쥴 = this.dateDay
       .get요일_시작부터_지금_전날까지()
@@ -76,10 +77,9 @@ export class DynamicEmployeeConditions extends FilterEmployee {
 
   add_조건1_현재_요일에_투입_안된_근무자() {
     const condition = (employeeCondition: EmployeeCondition) => {
-      const dayOfWeek = this.workCondition.dateDay.dayOfWeek;
-      const 현재요일에_투입된_근무자_IDS = this.schedule[dayOfWeek].map(
-        ({ employee }) => employee?.id,
-      );
+      const 현재요일에_투입된_근무자_IDS = this.schedule[
+        this.dateDay.dayOfWeek
+      ].map(({ employee }) => employee?.id);
       const 이미투입된근무자_IDS = this.workConditions
         .filter((em) => em.employee)
         .map(({ employee }) => employee?.id);
@@ -173,23 +173,23 @@ export class DynamicEmployeeConditions extends FilterEmployee {
 
   add_조건4_최대_연속_근무일수를_안넘는_근무자() {
     const condition = async (employeeCondition: EmployeeCondition) => {
-      const dayOfWeek = this.workCondition.dateDay.dayOfWeek;
       // TODO 목요일일때 데이터 베이스와 연동해서 이전 일을 가져오는 로직을 추가해야 함
-
       const 최근_최대근무일수_스케쥴 = _.cloneDeep(
         this.일주일중_전날까지_배치된_모든_스케쥴,
       );
 
       // 이전 스케쥴을 가져온다.
       const prev = await this.scheduleEntryService.findPreviousSchedule(
-        this.workCondition.dateDay.startDate,
+        this.dateDay.startDate,
         this.maxWorkComboDayCount - 1,
       );
 
       prev.forEach((p) => 최근_최대근무일수_스케쥴.unshift(p));
 
       // 현재 요일 스케쥴을 추가
-      const mockScheduleOfDay = _.cloneDeep(this.schedule[dayOfWeek] ?? []);
+      const mockScheduleOfDay = _.cloneDeep(
+        this.schedule[this.dateDay.dayOfWeek] ?? [],
+      );
       mockScheduleOfDay.push({
         employee: employeeCondition.employee,
         ...this.workCondition,
@@ -203,9 +203,7 @@ export class DynamicEmployeeConditions extends FilterEmployee {
       최근_최대근무일수_스케쥴.push(mockScheduleOfDay);
 
       // 나머지 요일 스케쥴을 추가
-      const nextDays = DateDay.fromIDateDayEntity(
-        this.workCondition.dateDay,
-      ).get요일_내일부터_끝까지DateDay();
+      const nextDays = this.dateDay.get요일_내일부터_끝까지DateDay();
 
       for (const nextDayOfWeek of nextDays) {
         최근_최대근무일수_스케쥴.push(
@@ -250,9 +248,9 @@ export class DynamicEmployeeConditions extends FilterEmployee {
 
   add_조건5_멀티_최소인원을_만족하는_근무자() {
     const condition = (employeeCondition: EmployeeCondition) => {
-      const dayOfWeek = this.workCondition.dateDay.dayOfWeek;
-
-      const mockSchedule = _.cloneDeep(this.schedule[dayOfWeek] ?? []);
+      const mockSchedule = _.cloneDeep(
+        this.schedule[this.dateDay.dayOfWeek] ?? [],
+      );
       mockSchedule.push({
         ...this.workCondition,
         employee: employeeCondition.employee,

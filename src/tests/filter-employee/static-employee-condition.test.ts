@@ -1,3 +1,4 @@
+import { DateDay } from '@/entity/interface/DateDay';
 import { StaticEmployeeCondition } from '@/feature/employee/with-schedule/static-employee-condition';
 import { createMockEmployeeCondition } from '@/mock/factories/employeeFactory';
 import { createMockWorkConditionEntry } from '@/mock/factories/workConditionEntryFactory';
@@ -50,7 +51,7 @@ describe('정적 근무자 조건 필터링', () => {
     const eCon1 = createMockEmployeeCondition();
     const eCon2 = createMockEmployeeCondition();
 
-    eCon1.additionalUnableDayOff = [wCon1.dateDay.dayOfWeek];
+    eCon1.additionalUnableDayOff = [new DateDay(wCon1.date, 0).getDayOfWeek()];
 
     const staticCondition = new StaticEmployeeCondition(
       wCon1,

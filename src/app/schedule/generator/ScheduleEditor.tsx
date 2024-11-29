@@ -63,7 +63,7 @@ const DayEditor: React.FC<DayEditorProps> = ({
   const handleAddEntry = (position: EWorkPosition) => {
     const newEntry: WorkConditionEntry = {
       id: parseInt(_.uniqueId()),
-      dateDay: DateDay.fromDayOfWeek(startDate, dayOfWeek),
+      date: DateDay.fromDayOfWeek(startDate, dayOfWeek).date,
       workPosition: position,
       workTime: EWorkTime.오픈,
       timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),

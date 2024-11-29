@@ -1,4 +1,4 @@
-import ScheduleGeneratorForm from '@/app/schedule/ui/generator/ScheduleGeneratorForm';
+import ScheduleGeneratorForm from '@/app/schedule/generator/ScheduleGeneratorForm';
 import { NextPage } from 'next';
 
 interface Props {}

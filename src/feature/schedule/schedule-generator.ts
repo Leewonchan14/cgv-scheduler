@@ -1,8 +1,10 @@
 import { EDAY_OF_WEEKS, EDayOfWeek } from '@/entity/enums/EDayOfWeek';
-import { ISchedule, ScheduleEntry } from '@/entity/schedule-entry.entity';
+import { DateDay } from '@/entity/interface/DateDay';
+import { ScheduleEntry } from '@/entity/schedule-entry.entity';
 import {
   EmployeeCondition,
   IEmployeeSchemaType,
+  ISchedule,
   UserInputCondition,
   WorkConditionEntry,
 } from '@/entity/types';
@@ -23,6 +25,8 @@ export class ScheduleGenerator {
     .fromPairs()
     .value() as ISchedule;
 
+  private dateDay: DateDay;
+
   private totalWorkCnt = 0;
 
   private possibleEmployees: EmployeeCondition[] = [];
@@ -35,6 +39,8 @@ export class ScheduleGenerator {
     private userInput: UserInputCondition,
     private 최대_스케쥴_갯수: number,
   ) {
+    this.dateDay = new DateDay(this.userInput.startDate, 0);
+
     // employeeCounter 초기화, 총 근무 갯수 계산
     for (const day in this.userInput.workConditionOfWeek) {
       const entry = this.userInput.workConditionOfWeek[day as EDayOfWeek];
@@ -64,8 +70,9 @@ export class ScheduleGenerator {
   private prefixRecursive(
     workConditionEntry: WorkConditionEntry,
     employee: IEmployeeSchemaType,
+    dayOfWeek: EDayOfWeek,
   ) {
-    this.schedule[workConditionEntry.dateDay.dayOfWeek].push({
+    this.schedule[dayOfWeek].push({
       employee,
       ...cloneDeep(workConditionEntry),
     } as ScheduleEntry);
@@ -99,7 +106,7 @@ export class ScheduleGenerator {
     let currentIndex = depth;
 
     // 현재 요일
-    for (const dayOfWeek of this.userInput.startDateDay.get요일_시작부터_끝까지DayOfWeek()) {
+    for (const dayOfWeek of this.dateDay.get요일_시작부터_끝까지DayOfWeek()) {
       if (workConditions[dayOfWeek] === undefined) continue;
       if (currentIndex >= _.size(workConditions[dayOfWeek])) {
         currentIndex -= _.size(workConditions[dayOfWeek]);
@@ -113,9 +120,13 @@ export class ScheduleGenerator {
 
       // 가능한 사람이 있으면 스케줄에 추가하고 다음 재귀 호출
       for (const employeeCondition of this.possibleEmployees) {
-        this.prefixRecursive(workConditionEntry, employeeCondition.employee);
+        this.prefixRecursive(
+          workConditionEntry,
+          employeeCondition.employee,
+          dayOfWeek,
+        );
         await this.recursive(depth + 1);
-        this.postRecursive(workConditionEntry);
+        this.postRecursive(employeeCondition, dayOfWeek);
       }
 
       // 다음 요일로 넘어가기
@@ -181,8 +192,8 @@ export class ScheduleGenerator {
     return this;
   }
 
-  private postRecursive({ employee, dateDay }: WorkConditionEntry) {
-    const pushed = this.schedule[dateDay.dayOfWeek].pop();
+  private postRecursive(employee: EmployeeCondition, dayOfWeek: EDayOfWeek) {
+    const pushed = this.schedule[dayOfWeek].pop();
     if (!pushed?.employee?.id) return;
     const id = pushed.employee.id;
 

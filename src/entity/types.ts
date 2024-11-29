@@ -1,11 +1,10 @@
 import { OmitStrict } from '@/app/api/types';
-import { DateDayEntitySchema } from '@/entity/date-day.entity';
 import { EDayOfWeek } from '@/entity/enums/EDayOfWeek';
 import { ERole } from '@/entity/enums/ERole';
 import { EWorkPosition } from '@/entity/enums/EWorkPosition';
 import { EWorkTime } from '@/entity/enums/EWorkTime';
 import { DateDay } from '@/entity/interface/DateDay';
-import { ScheduleEntrySchema } from '@/entity/schedule-entry.entity';
+import { WorkTimeSlotSchema } from '@/feature/schedule/work-time-slot-handler';
 import { z } from 'zod';
 
 export interface APIUserInputCondition {
@@ -27,7 +26,7 @@ export interface APIUserInputCondition {
 
 export interface UserInputCondition {
   // 스케쥴 시작일
-  startDateDay: DateDay;
+  startDate: Date;
 
   // 최대 연속 근무 일수
   maxWorkComboDayCount: number;
@@ -62,6 +61,25 @@ export const EmployeeConditionSchema = z.object({
   additionalUnableDayOff: z.array(z.nativeEnum(EDayOfWeek)).default([]),
 });
 
+export const ScheduleEntrySchema = z.object({
+  id: z.number(),
+  date: z.coerce.date(),
+  employee: IEmployeeSchema,
+  workPosition: z.nativeEnum(EWorkPosition),
+  workTime: z.nativeEnum(EWorkTime),
+  timeSlot: WorkTimeSlotSchema,
+});
+
+export const ScheduleSchema = z.object({
+  [EDayOfWeek.월]: z.array(ScheduleEntrySchema).default([]),
+  [EDayOfWeek.화]: z.array(ScheduleEntrySchema).default([]),
+  [EDayOfWeek.수]: z.array(ScheduleEntrySchema).default([]),
+  [EDayOfWeek.목]: z.array(ScheduleEntrySchema).default([]),
+  [EDayOfWeek.금]: z.array(ScheduleEntrySchema).default([]),
+  [EDayOfWeek.토]: z.array(ScheduleEntrySchema).default([]),
+  [EDayOfWeek.일]: z.array(ScheduleEntrySchema).default([]),
+});
+
 export const WorkConditionEntrySchema = ScheduleEntrySchema.extend({
   employee: IEmployeeSchema.optional(),
 });
@@ -72,7 +90,7 @@ export const WorkConditionSchema = z.record(
 );
 
 export const APIUserInputConditionSchema = z.object({
-  startIDateDayEntity: DateDayEntitySchema,
+  startDate: z.coerce.date(),
   employeeConditions: z.array(
     EmployeeConditionSchema.omit({ employee: true }).extend({
       employee: z.object({
@@ -90,3 +108,6 @@ export type WorkConditionEntry = z.infer<typeof WorkConditionEntrySchema>;
 export type WorkConditionOfWeek = z.infer<typeof WorkConditionSchema>;
 export type EmployeeCondition = z.infer<typeof EmployeeConditionSchema>;
 export type IEmployeeSchemaType = z.infer<typeof IEmployeeSchema>;
+export type IScheduleEntry = z.infer<typeof ScheduleEntrySchema>;
+export type IStrictSchedule = z.infer<typeof ScheduleSchema>;
+export type ISchedule = z.infer<typeof ScheduleSchema>;

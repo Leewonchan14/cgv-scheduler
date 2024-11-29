@@ -1,6 +1,9 @@
+import { EDayOfWeek } from '@/entity/enums/EDayOfWeek';
 import { EWorkTime } from '@/entity/enums/EWorkTime';
+import { DateDay } from '@/entity/interface/DateDay';
 import { EmployeeCondition, WorkConditionEntry } from '@/entity/types';
 import { FilterEmployee } from '@/feature/employee/with-schedule/filter-employee-condition';
+import { format } from 'date-fns';
 import _ from 'lodash';
 
 /********************정적 조건들********************/
@@ -17,6 +20,7 @@ export enum StaticConditionKey {
 }
 
 export class StaticEmployeeCondition extends FilterEmployee {
+  private dayOfWeek: EDayOfWeek;
   private key: string;
   private conditions: ((_: EmployeeCondition) => boolean)[] = [];
   constructor(
@@ -27,6 +31,11 @@ export class StaticEmployeeCondition extends FilterEmployee {
     },
   ) {
     super();
+    this.dayOfWeek = new DateDay(
+      this.workConditionEntry.date,
+      0,
+    ).getDayOfWeek();
+
     // key로 캐시 확인
     this.key = StaticEmployeeCondition.getCacheKey(workConditionEntry);
     if (this._checkCache()) {
@@ -35,13 +44,13 @@ export class StaticEmployeeCondition extends FilterEmployee {
   }
 
   static getCacheKey({
-    dateDay,
+    date,
     workPosition,
     workTime,
     timeSlot,
   }: Partial<WorkConditionEntry>) {
     return [
-      dateDay?.dayOfWeek,
+      date ? format(date, 'yyyy-MM-dd') : undefined,
       workPosition,
       workTime,
       JSON.stringify(timeSlot),
@@ -72,7 +81,6 @@ export class StaticEmployeeCondition extends FilterEmployee {
 
   add_조건2_직원의_가능한_시간(): this {
     const condition = (employeeCondition: EmployeeCondition) => {
-      const dayOfWeek = this.workConditionEntry.dateDay.dayOfWeek;
       const ableWorkTime = _.omitBy(
         employeeCondition.employee.ableWorkTime,
         _.isUndefined,
@@ -80,9 +88,11 @@ export class StaticEmployeeCondition extends FilterEmployee {
 
       const isAble =
         this.workConditionEntry.workTime === EWorkTime.선택
-          ? dayOfWeek in ableWorkTime
-          : dayOfWeek in ableWorkTime &&
-            ableWorkTime[dayOfWeek].includes(this.workConditionEntry.workTime);
+          ? this.dayOfWeek in ableWorkTime
+          : this.dayOfWeek in ableWorkTime &&
+            ableWorkTime[this.dayOfWeek].includes(
+              this.workConditionEntry.workTime,
+            );
 
       this.addFilters(
         isAble,
@@ -100,10 +110,9 @@ export class StaticEmployeeCondition extends FilterEmployee {
 
   add_조건3_직원의_추가_휴무일(): this {
     const condition = (employeeCondition: EmployeeCondition) => {
-      const dayOfWeek = this.workConditionEntry.dateDay.dayOfWeek;
       const additionalUnableDayOff = employeeCondition.additionalUnableDayOff;
 
-      const isAble = !additionalUnableDayOff?.includes(dayOfWeek);
+      const isAble = !additionalUnableDayOff?.includes(this.dayOfWeek);
 
       this.addFilters(
         isAble,

@@ -3,8 +3,7 @@
 'use client';
 
 import WeeklyScheduleDisplay from '@/app/schedule/ui/WeeklySchedule';
-import { ISchedule } from '@/entity/schedule-entry.entity';
-import { WorkConditionOfWeek } from '@/entity/types';
+import { ISchedule, WorkConditionOfWeek } from '@/entity/types';
 import React from 'react';
 
 interface ScheduleDisplayProps {

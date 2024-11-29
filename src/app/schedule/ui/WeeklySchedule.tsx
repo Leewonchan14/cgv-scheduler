@@ -1,5 +1,6 @@
 'use client';
 
+import LoadingAnimation from '@/app/ui/loading/loading-animation';
 import { DateDay } from '@/entity/interface/DateDay';
 import { WorkConditionEntry, WorkConditionOfWeek } from '@/entity/types';
 import { getColor, isLightColor } from '@/share/libs/util/isLightColor';
@@ -7,7 +8,7 @@ import { useState } from 'react';
 
 interface WeeklyScheduleProps {
   startDate: Date;
-  schedule: WorkConditionOfWeek;
+  schedule?: WorkConditionOfWeek;
 }
 
 const WeeklyScheduleDisplay: React.FC<WeeklyScheduleProps> = ({
@@ -15,6 +16,10 @@ const WeeklyScheduleDisplay: React.FC<WeeklyScheduleProps> = ({
   startDate,
 }) => {
   const [hoverId, setHoverId] = useState<number>(-1);
+
+  if (!schedule) {
+    return <LoadingAnimation text="근무표를 가져오는중..." />;
+  }
 
   return (
     <div className="grid grid-cols-7 gap-1">
