@@ -1,4 +1,6 @@
+import { EWorkTime } from '@/entity/enums/EWorkTime';
 import { EmployeeCondition, WorkConditionEntry } from '@/entity/types';
+import { FilterEmployee } from '@/feature/employee/with-schedule/filter-employee-condition';
 import _ from 'lodash';
 
 /********************정적 조건들********************/
@@ -8,7 +10,13 @@ import _ from 'lodash';
  * 3. 직원의 추가 휴무일인지 체크
  */
 
-export class StaticEmployeeCondition {
+export enum StaticConditionKey {
+  '불가능한 표지션' = '불가능한 표지션',
+  '불가능한 요일 및 시간' = '불가능한 요일 및 시간',
+  '추가로 쉬는날' = '추가로 쉬는날',
+}
+
+export class StaticEmployeeCondition extends FilterEmployee {
   private key: string;
   private conditions: ((_: EmployeeCondition) => boolean)[] = [];
   constructor(
@@ -18,6 +26,7 @@ export class StaticEmployeeCondition {
       [key: string]: EmployeeCondition[];
     },
   ) {
+    super();
     // key로 캐시 확인
     this.key = StaticEmployeeCondition.getCacheKey(workConditionEntry);
     if (this._checkCache()) {
@@ -43,9 +52,17 @@ export class StaticEmployeeCondition {
 
   add_조건1_직원의_가능한_포지션(): this {
     const condition = (employeeCondition: EmployeeCondition) => {
-      return employeeCondition.employee.ableWorkPosition.includes(
+      const isAble = employeeCondition.employee.ableWorkPosition.includes(
         this.workConditionEntry.workPosition,
       );
+
+      this.addFilters(
+        isAble,
+        StaticConditionKey['불가능한 표지션'],
+        employeeCondition,
+      );
+
+      return isAble;
     };
 
     condition.bind(this);
@@ -56,14 +73,24 @@ export class StaticEmployeeCondition {
   add_조건2_직원의_가능한_시간(): this {
     const condition = (employeeCondition: EmployeeCondition) => {
       const dayOfWeek = this.workConditionEntry.dateDay.dayOfWeek;
-      const definedWorkTime = _.omitBy(
+      const ableWorkTime = _.omitBy(
         employeeCondition.employee.ableWorkTime,
         _.isUndefined,
       );
-      return (
-        dayOfWeek in definedWorkTime &&
-        definedWorkTime[dayOfWeek].includes(this.workConditionEntry.workTime)
+
+      const isAble =
+        this.workConditionEntry.workTime === EWorkTime.선택
+          ? dayOfWeek in ableWorkTime
+          : dayOfWeek in ableWorkTime &&
+            ableWorkTime[dayOfWeek].includes(this.workConditionEntry.workTime);
+
+      this.addFilters(
+        isAble,
+        StaticConditionKey['불가능한 요일 및 시간'],
+        employeeCondition,
       );
+
+      return isAble;
     };
 
     condition.bind(this);
@@ -76,7 +103,15 @@ export class StaticEmployeeCondition {
       const dayOfWeek = this.workConditionEntry.dateDay.dayOfWeek;
       const additionalUnableDayOff = employeeCondition.additionalUnableDayOff;
 
-      return !additionalUnableDayOff?.includes(dayOfWeek);
+      const isAble = !additionalUnableDayOff?.includes(dayOfWeek);
+
+      this.addFilters(
+        isAble,
+        StaticConditionKey['추가로 쉬는날'],
+        employeeCondition,
+      );
+
+      return isAble;
     };
 
     condition.bind(this);

@@ -21,6 +21,10 @@ export class WorkTimeSlot implements IWorkTimeSlot {
     this.getEndHourMinute();
   }
 
+  static fromTimeSlot(timeSlot: IWorkTimeSlot) {
+    return new WorkTimeSlot(timeSlot.start, timeSlot.end);
+  }
+
   static fromWorkTime(workTime: EWorkTime) {
     switch (workTime) {
       case EWorkTime.오픈:

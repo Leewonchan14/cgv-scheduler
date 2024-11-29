@@ -41,4 +41,11 @@ describe('lodash 테스트', () => {
       ]),
     );
   });
+
+  test('_.assign 시 새로운 객체를 반환하지 않음', () => {
+    const a = { a: 1 };
+    const c = _.assign(a, { b: 2 });
+
+    expect(a === c).toBe(true);
+  });
 });

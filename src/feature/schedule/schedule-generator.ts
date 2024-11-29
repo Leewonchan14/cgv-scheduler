@@ -138,32 +138,34 @@ export class ScheduleGenerator {
     }
 
     /******************** 정적 조건들 ********************/
-    this.possibleEmployees = new StaticEmployeeCondition(
+    const staticCon = new StaticEmployeeCondition(
       workConditionEntry,
       this.userInput.employeeConditions,
       this.employeeCache,
     )
       .add_조건1_직원의_가능한_포지션()
       .add_조건2_직원의_가능한_시간()
-      .add_조건3_직원의_추가_휴무일()
-      .filter();
+      .add_조건3_직원의_추가_휴무일();
+
+    this.possibleEmployees = staticCon.filter();
 
     /******************** 동적 조건들 ********************/
-    this.possibleEmployees = await new DynamicEmployeeConditions(
+    const dynamicCon = new DynamicEmployeeConditions(
       workConditionEntry,
       this.possibleEmployees,
       this.schedule,
-      this.userInput.maxWorkComboDayCount,
       { findPreviousSchedule: async () => [] },
-      this.userInput.workConditionOfWeek,
       this.employeeCounter,
+      this.userInput,
+      staticCon.getFilters(),
     )
       .add_조건1_현재_요일에_투입_안된_근무자()
       .add_조건2_직원의_근무_최대_가능_일수를_안넘는_근무자()
       .add_조건3_전날_마감_근무후_다음날_오픈_근무가_아닌_근무자()
       .add_조건4_최대_연속_근무일수를_안넘는_근무자()
-      .add_조건5_멀티_최소인원을_만족하는_근무자()
-      .filter();
+      .add_조건5_멀티_최소인원을_만족하는_근무자();
+
+    this.possibleEmployees = await dynamicCon.filter();
 
     return this;
   }

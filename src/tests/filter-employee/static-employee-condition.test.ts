@@ -1,13 +1,10 @@
 import { StaticEmployeeCondition } from '@/feature/employee/with-schedule/static-employee-condition';
 import { createMockEmployeeCondition } from '@/mock/factories/employeeFactory';
 import { createMockWorkConditionEntry } from '@/mock/factories/workConditionEntryFactory';
-import { userInputCondition } from '@/mock/user-input-condition';
 import { describe, expect, test } from '@jest/globals';
 import _ from 'lodash';
 
 const mockPossibleEmployeesCache = {};
-
-const startDate = new Date('2024-11-25');
 
 describe('정적 근무자 조건 필터링', () => {
   test('직원의 가능한 포지션', () => {

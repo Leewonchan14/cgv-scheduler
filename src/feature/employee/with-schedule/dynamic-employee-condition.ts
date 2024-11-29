@@ -7,12 +7,31 @@ import { ISchedule } from '@/entity/interface/ISchedule';
 import { ScheduleEntry } from '@/entity/schedule-entry.entity';
 import {
   EmployeeCondition,
+  UserInputCondition,
   WorkConditionEntry,
   WorkConditionOfWeek,
 } from '@/entity/types';
+import {
+  FilteredEmployeeCon,
+  FilterEmployee,
+} from '@/feature/employee/with-schedule/filter-employee-condition';
 import { IScheduleEntryService } from '@/feature/schedule/schedule-entry.service';
 import { WorkTimeSlot } from '@/feature/schedule/work-time-slot-handler';
 import _ from 'lodash';
+
+export enum DynamicConditionKey {
+  '현재 요일에 이미 투입 되었음' = '현재 요일에 이미 투입 되었음',
+  '직원의 근무 최대 가능 일수를 넘었음' = '직원의 근무 최대 가능 일수를 넘었음',
+  '전날 마감 근무 후 다음날 오픈 근무로 투입되지 않음' = '전날 마감 근무 후 다음날 오픈 근무가 아님',
+  '최대 연속 근무일수를 넘었음' = '최대 연속 근무일수를 넘었음',
+  '멀티 최소 인원을 만족하지 못함' = '멀티 최소 인원을 만족하지 못함',
+}
+
+// | '현재 요일에 이미 투입 되었음'
+// | '직원의 근무 최대 가능 일수를 넘었음'
+// | '전날 마감 근무 후 다음날 오픈 근무가 아님'
+// | '최대 연속 근무일수를 넘었음'
+// | '멀티 최소 인원을 만족하지 못함';
 
 /**
  * 1. 현재 요일에 투입 되어있는지 체크
@@ -21,25 +40,34 @@ import _ from 'lodash';
  * 4. 최대 연속 근무일수 체크
  */
 
-export class DynamicEmployeeConditions {
+export class DynamicEmployeeConditions extends FilterEmployee {
+  private maxWorkComboDayCount: number;
+  private workConditionOfWeek: WorkConditionOfWeek;
   private workConditions: WorkConditionEntry[] = [];
   private 일주일중_전날까지_배치된_모든_스케쥴: WorkConditionEntry[][] = [];
   private dateDay: DateDay;
   private conditions: ((_: EmployeeCondition) => Promise<boolean> | boolean)[] =
     [];
+
   constructor(
     private workCondition: WorkConditionEntry,
     private employeeConditions: EmployeeCondition[],
     private schedule: ISchedule,
-    private maxWorkComboDayCount: number,
     private scheduleEntryService: IScheduleEntryService,
-    private workConditionOfWeek: WorkConditionOfWeek,
     private employeeCounter: Record<number, number>,
+    userInputCondition: Pick<
+      UserInputCondition,
+      'maxWorkComboDayCount' | 'workConditionOfWeek' | 'startDateDay'
+    >,
+    filters: FilteredEmployeeCon[],
   ) {
-    this.workConditions =
-      this.workConditionOfWeek[
-        new DateDay(this.workCondition.dateDay.startDate, 0).dayOfWeek
-      ] ?? [];
+    super(filters);
+    const { maxWorkComboDayCount, workConditionOfWeek, startDateDay } =
+      userInputCondition;
+
+    this.maxWorkComboDayCount = maxWorkComboDayCount;
+    this.workConditionOfWeek = workConditionOfWeek;
+    this.workConditions = workConditionOfWeek[startDateDay.dayOfWeek] ?? [];
     this.dateDay = DateDay.fromIDateDayEntity(workCondition.dateDay);
     this.일주일중_전날까지_배치된_모든_스케쥴 = this.dateDay
       .get요일_시작부터_지금_전날까지()
@@ -56,10 +84,19 @@ export class DynamicEmployeeConditions {
         .filter((em) => em.employee)
         .map(({ employee }) => employee?.id);
 
-      return !_.union(
+      const isAble = !_.union(
         현재요일에_투입된_근무자_IDS,
         이미투입된근무자_IDS,
       ).includes(employeeCondition.employee.id);
+
+      // 필터링 된다면 filtered에 추가
+      this.addFilters(
+        isAble,
+        DynamicConditionKey['현재 요일에 이미 투입 되었음'],
+        employeeCondition,
+      );
+
+      return isAble;
     };
     condition.bind(this);
     this.conditions.push(condition);
@@ -69,9 +106,18 @@ export class DynamicEmployeeConditions {
   add_조건2_직원의_근무_최대_가능_일수를_안넘는_근무자() {
     const condition = (employeeCondition: EmployeeCondition) => {
       const 이제까지_투입된_근무수 =
-        this.employeeCounter[employeeCondition.employee.id];
+        this.employeeCounter[employeeCondition.employee.id] ?? 0;
 
-      return 이제까지_투입된_근무수 + 1 <= employeeCondition.ableMaxWorkCount;
+      const isAble =
+        이제까지_투입된_근무수 + 1 <= employeeCondition.ableMaxWorkCount;
+
+      this.addFilters(
+        isAble,
+        DynamicConditionKey['직원의 근무 최대 가능 일수를 넘었음'],
+        employeeCondition,
+      );
+
+      return isAble;
     };
     condition.bind(this);
     this.conditions.push(condition);
@@ -107,7 +153,17 @@ export class DynamicEmployeeConditions {
             s.workTime === EWorkTime.마감 &&
             s.employee?.id === employeeCondition.employee.id,
         );
-      return !(isOpen && isPreviousDayClose);
+      const isAble = !(isOpen && isPreviousDayClose);
+
+      this.addFilters(
+        isAble,
+        DynamicConditionKey[
+          '전날 마감 근무 후 다음날 오픈 근무로 투입되지 않음'
+        ],
+        employeeCondition,
+      );
+
+      return isAble;
     };
 
     condition.bind(this);
@@ -176,7 +232,15 @@ export class DynamicEmployeeConditions {
         is_이미_최대연속근무만큼_일했음 = cnt >= this.maxWorkComboDayCount;
       }
 
-      return !is_이미_최대연속근무만큼_일했음;
+      const isAble = !is_이미_최대연속근무만큼_일했음;
+
+      this.addFilters(
+        isAble,
+        DynamicConditionKey['최대 연속 근무일수를 넘었음'],
+        employeeCondition,
+      );
+
+      return isAble;
     };
     condition.bind(this);
     this.conditions.push(condition);
@@ -189,8 +253,8 @@ export class DynamicEmployeeConditions {
 
       const mockSchedule = _.cloneDeep(this.schedule[dayOfWeek]);
       mockSchedule.push({
-        employee: employeeCondition.employee,
         ...this.workCondition,
+        employee: employeeCondition.employee,
       } as ScheduleEntry);
 
       // 이후 이미 배치된 근무자가 있다면 추가
@@ -212,8 +276,7 @@ export class DynamicEmployeeConditions {
       if (findMulti.length === 0) return true;
 
       // 해당 요일의 마지막 근무 배치가 아니라면 true
-      if (this.schedule[dayOfWeek].length !== this.workConditions.length)
-        return true;
+      if (mockSchedule.length !== this.workConditions.length) return true;
 
       const workTimeSlots = findMulti.map((m) =>
         WorkTimeSlot.fromWorkConditionEntry(m),
@@ -223,9 +286,24 @@ export class DynamicEmployeeConditions {
       listGap30 = _.uniqBy(listGap30, (v) => `${v.hour}${v.minute}`);
 
       // 30분 간격으로 모든 간격안에 플로어 + 멀티 가능한 근무자가 3명이상이면 true
-      return listGap30.every((hm) => {
-        return workTimeSlots.filter((s) => s.isContainPoint(hm)).length >= 3;
+      const isAble = listGap30.every((hm) => {
+        const filteredSchedules = mockSchedule.filter(
+          (wCon) =>
+            [EWorkPosition.플로어, EWorkPosition.멀티].includes(
+              wCon.workPosition,
+            ) && WorkTimeSlot.fromTimeSlot(wCon.timeSlot).isContainPoint(hm),
+        );
+        // TODO : 멀티 최소 인원을 입력받아서 처리해야함
+        return filteredSchedules.length >= 3;
       });
+
+      this.addFilters(
+        isAble,
+        DynamicConditionKey['멀티 최소 인원을 만족하지 못함'],
+        employeeCondition,
+      );
+
+      return isAble;
     };
 
     condition.bind(this);
@@ -233,15 +311,11 @@ export class DynamicEmployeeConditions {
     return this;
   }
 
-  /* filter_주차_최소인원을_만족하는_근무자() {
-    return this;
-  } */
-
   async filter() {
     const rt: EmployeeCondition[] = [];
     for (const employeeCon of this.employeeConditions) {
-      const promises = this.conditions.map((con) =>
-        con.call(this, employeeCon),
+      const promises = this.conditions.map((condition) =>
+        condition.call(this, employeeCon),
       );
 
       const awaited = await Promise.all(promises);

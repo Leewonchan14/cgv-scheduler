@@ -1,102 +1,99 @@
-import { EDayOfWeek } from '@/entity/enums/EDayOfWeek';
 import { EWorkPosition } from '@/entity/enums/EWorkPosition';
 import { EWorkTime } from '@/entity/enums/EWorkTime';
 import { DateDay } from '@/entity/interface/DateDay';
-import { WorkConditionEntry } from '@/entity/types';
 import { ScheduleGenerator } from '@/feature/schedule/schedule-generator';
 import { WorkTimeSlot } from '@/feature/schedule/work-time-slot-handler';
-import { floorOrMultiOn월Employees, restEmployees } from '@/mock/employees';
-import { userInputCondition } from '@/mock/user-input-condition';
+import {
+  createMockEmployee,
+  createMockEmployeeCondition,
+} from '@/mock/factories/employeeFactory';
+import { createMockWorkConditionEntry } from '@/mock/factories/workConditionEntryFactory';
 import _ from 'lodash';
 
 describe('스케쥴 생성기 테스트', () => {
   test('통합 테스트', async () => {
     jest.useRealTimers();
 
-    const startDate = new Date('2024-11-25');
+    const employees = _.range(9).map(() => createMockEmployee());
 
-    const 다들어갈_아무나 = restEmployees[0];
-    const 멀티_플로어_가능한_아무나 = floorOrMultiOn월Employees[0];
+    const wCon1 = createMockWorkConditionEntry();
 
-    const dateDay = DateDay.fromDayOfWeek(startDate, EDayOfWeek.월);
+    const dateDay = DateDay.fromIDateDayEntity(wCon1.dateDay);
 
-    const 오픈_매점_2명 = [1, 2].map(() => ({
-      id: parseInt(_.uniqueId()),
-      dateDay,
-      employee: 다들어갈_아무나,
-      workPosition: EWorkPosition.매점,
-      workTime: EWorkTime.오픈,
-      timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
-    })) as WorkConditionEntry[];
+    const openMajum_2 = _.range(0, 2).map((i) =>
+      createMockWorkConditionEntry({
+        dateDay,
+        employee: employees[i],
+        workPosition: EWorkPosition.매점,
+        workTime: EWorkTime.오픈,
+        timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
+      }),
+    );
 
-    const 마감_매점_2명 = [1, 2].map(() => ({
-      id: parseInt(_.uniqueId()),
-      dateDay,
-      employee: 다들어갈_아무나,
-      workPosition: EWorkPosition.매점,
-      workTime: EWorkTime.마감,
-      timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.마감),
-    })) as WorkConditionEntry[];
+    const closeMajum_2 = _.range(2, 4).map((i) =>
+      createMockWorkConditionEntry({
+        dateDay,
+        employee: employees[i],
+        workPosition: EWorkPosition.매점,
+        workTime: EWorkTime.마감,
+        timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.마감),
+      }),
+    );
 
-    const 오픈_플로어_2명 = [1, 2].map(() => ({
-      id: parseInt(_.uniqueId()),
-      dateDay,
-      employee: 멀티_플로어_가능한_아무나,
-      workPosition: EWorkPosition.플로어,
-      workTime: EWorkTime.오픈,
-      timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
-    })) as WorkConditionEntry[];
+    const openFloor_2 = _.range(4, 6).map((i) =>
+      createMockWorkConditionEntry({
+        dateDay,
+        employee: employees[i],
+        workPosition: EWorkPosition.플로어,
+        timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
+      }),
+    );
 
-    const 마감_플로어_2명 = [1, 2].map(() => ({
-      id: parseInt(_.uniqueId()),
-      dateDay,
-      employee: 멀티_플로어_가능한_아무나,
-      workPosition: EWorkPosition.플로어,
-      workTime: EWorkTime.마감,
-      timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.마감),
-    })) as WorkConditionEntry[];
+    const closeFloor_2 = _.range(6, 8).map((i) =>
+      createMockWorkConditionEntry({
+        dateDay,
+        employee: employees[i],
+        workPosition: EWorkPosition.플로어,
+        workTime: EWorkTime.마감,
+        timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.마감),
+      }),
+    );
 
-    const 멀티_1명_오픈 = {
-      id: parseInt(_.uniqueId()),
-      dateDay,
-      employee: 멀티_플로어_가능한_아무나,
-      workPosition: EWorkPosition.멀티,
-      workTime: EWorkTime.오픈,
-      timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
-    } as WorkConditionEntry;
+    const multi_2 = _.range(8, 10).map((_i) =>
+      createMockWorkConditionEntry({
+        dateDay,
+        workPosition: EWorkPosition.멀티,
+        workTime: EWorkTime.선택,
+        timeSlot: new WorkTimeSlot('10:00', '16:00'),
+      }),
+    );
 
-    const 멀티_1명_마감 = {
-      id: parseInt(_.uniqueId()),
-      dateDay,
-      workPosition: EWorkPosition.멀티,
-      workTime: EWorkTime.마감,
-      timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
-    } as WorkConditionEntry;
+    multi_2[0].employee = employees[8];
+    multi_2[1].employee = undefined;
+    multi_2[1].timeSlot = new WorkTimeSlot('16:00', '22:30');
 
-    const workCondition = _.concat(
-      오픈_매점_2명,
-      마감_매점_2명,
-      오픈_플로어_2명,
-      마감_플로어_2명,
-      멀티_1명_오픈,
-      멀티_1명_마감,
-    ) as WorkConditionEntry[];
+    const workConditions = [
+      ...openMajum_2,
+      ...closeMajum_2,
+      ...openFloor_2,
+      ...closeFloor_2,
+      ...multi_2,
+    ];
+
+    const ableEmp = _.range(3).map(() => createMockEmployee());
 
     const scheduleGenerator = new ScheduleGenerator(
       {
-        ...userInputCondition,
-        employeeConditions: _.cloneDeep(
-          userInputCondition.employeeConditions,
-        ).map((e) => ({
-          ...e,
-          ableMinWorkCount: 0,
-          ableMaxWorkCount: 10,
-        })),
+        startDateDay: new DateDay(dateDay.startDate, 0),
+        maxWorkComboDayCount: 3,
+        employeeConditions: [...employees, ...ableEmp].map((employee) =>
+          createMockEmployeeCondition({ employee }),
+        ),
         workConditionOfWeek: {
-          [EDayOfWeek.월]: _.cloneDeep(workCondition),
+          [dateDay.dayOfWeek]: workConditions,
         },
       },
-      10000,
+      5,
     );
 
     scheduleGenerator['isValidate'] = jest.fn(() => true);
@@ -105,6 +102,6 @@ describe('스케쥴 생성기 테스트', () => {
 
     const result = scheduleGenerator.getResult();
 
-    expect(result.length).toBe(floorOrMultiOn월Employees.length - 1);
+    expect(result.length).toBe(ableEmp.length);
   });
 });

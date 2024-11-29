@@ -1,3 +1,4 @@
+import { EWorkPosition } from '@/entity/enums/EWorkPosition';
 import { EWorkTime } from '@/entity/enums/EWorkTime';
 import { DateDay } from '@/entity/interface/DateDay';
 import { DynamicEmployeeConditions } from '@/feature/employee/with-schedule/dynamic-employee-condition';
@@ -6,8 +7,6 @@ import { createMockEmployeeCondition } from '@/mock/factories/employeeFactory';
 import { createMockEmptySchedule } from '@/mock/factories/scheduleFactory';
 import { createMockWorkConditionEntry } from '@/mock/factories/workConditionEntryFactory';
 import { describe, expect, test } from '@jest/globals';
-
-const startDate = new Date('2024-11-25');
 
 const mockScheduleEntryService: IScheduleEntryService = {
   findPreviousSchedule: (_date, _n) => Promise.resolve([]),
@@ -40,10 +39,14 @@ describe('동적 근무자 조건 필터링', () => {
       wCon3,
       [aCon, bCon, cCon],
       mockSchedule,
-      100,
       mockScheduleEntryService,
-      { [dayOfWeek]: workConditionOfDay },
       {},
+      {
+        maxWorkComboDayCount: 100,
+        workConditionOfWeek: { [dayOfWeek]: workConditionOfDay },
+        startDateDay: DateDay.fromIDateDayEntity(wCon1.dateDay),
+      },
+      [],
     );
 
     const filtered = await dynamicCondition
@@ -81,10 +84,14 @@ describe('동적 근무자 조건 필터링', () => {
       wCon3,
       [eCon1],
       mockSchedule,
-      100,
       mockScheduleEntryService,
-      { [dayOfWeek]: [wCon1, wCon2, wCon3] },
       { [eCon1.employee.id]: 2 },
+      {
+        startDateDay: DateDay.fromIDateDayEntity(wCon1.dateDay),
+        workConditionOfWeek: { [dayOfWeek]: [wCon1, wCon2, wCon3] },
+        maxWorkComboDayCount: 100,
+      },
+      [],
     );
 
     const filtered = await dynamicCondition
@@ -114,10 +121,14 @@ describe('동적 근무자 조건 필터링', () => {
       wCon2,
       [aCon1],
       schedule,
-      100,
       mockScheduleEntryService,
-      { [dayOfWeek]: [wCon1, wCon2] },
       { [aCon1.employee.id]: 1 },
+      {
+        startDateDay: DateDay.fromIDateDayEntity(wCon1.dateDay),
+        workConditionOfWeek: { [dayOfWeek]: [wCon1, wCon2] },
+        maxWorkComboDayCount: 100,
+      },
+      [],
     );
 
     const filtered = await dynamicCondition
@@ -156,19 +167,132 @@ describe('동적 근무자 조건 필터링', () => {
       wCon3,
       [eCon1],
       mockSchedule,
-      최대_연속일,
       mockScheduleEntryService,
-      {
-        [dateDay1.dayOfWeek]: [wCon1],
-        [dateDay2.dayOfWeek]: [wCon2],
-        [dateDay3.dayOfWeek]: [wCon3],
-      },
       { [eCon1.employee.id]: 2 },
+      {
+        startDateDay: dateDay1,
+        workConditionOfWeek: {
+          [dateDay1.dayOfWeek]: [wCon1],
+          [dateDay2.dayOfWeek]: [wCon2],
+          [dateDay3.dayOfWeek]: [wCon3],
+        },
+        maxWorkComboDayCount: 최대_연속일,
+      },
+      [],
     );
 
     //then: 가능한 근무자는 2명 빠져야함
     const filtered = await dynamicCondition
       .add_조건4_최대_연속_근무일수를_안넘는_근무자()
+      .filter();
+
+    expect(filtered.length).toEqual(0);
+  });
+
+  test('멀티가 없을땐 필터링 되지 않음', async () => {
+    // 멀티가 안되는 근무자
+    const mockSchedule = createMockEmptySchedule();
+
+    const eCon1 = createMockEmployeeCondition({
+      employee: { ableWorkPosition: [EWorkPosition.매점] },
+    });
+
+    expect(eCon1.employee.ableWorkPosition).not.toContain(EWorkPosition.멀티);
+    expect(eCon1.employee.ableWorkPosition).not.toContain(EWorkPosition.플로어);
+
+    const wCon1 = createMockWorkConditionEntry({
+      employee: eCon1.employee,
+      workPosition: EWorkPosition.플로어,
+    });
+    const wCon2 = createMockWorkConditionEntry({
+      employee: eCon1.employee,
+      workPosition: EWorkPosition.플로어,
+    });
+
+    const wCon3 = createMockWorkConditionEntry({
+      workPosition: EWorkPosition.플로어,
+    });
+
+    mockSchedule[wCon1.dateDay.dayOfWeek].push(wCon1, wCon2);
+    const employeeCounter = { [eCon1.employee.id]: 2 };
+
+    //when: 최대 멀티 조건 인원이 3명이라 했을때
+    const 최대_멀티_인원 = 3;
+
+    const dynamicCondition = new DynamicEmployeeConditions(
+      wCon3,
+      [eCon1],
+      mockSchedule,
+      mockScheduleEntryService,
+      employeeCounter,
+      {
+        maxWorkComboDayCount: 최대_멀티_인원,
+        workConditionOfWeek: {
+          [wCon1.dateDay.dayOfWeek]: [wCon1, wCon2, wCon3],
+        },
+        startDateDay: DateDay.fromIDateDayEntity(wCon1.dateDay),
+      },
+      [],
+    );
+
+    //then: 멀티가 없으므로 필터링 되지 않아야함
+    const filtered = await dynamicCondition
+      .add_조건5_멀티_최소인원을_만족하는_근무자()
+      .filter();
+
+    expect(filtered.length).toEqual(1);
+  });
+
+  test('멀티가 있을때 필터링 된다.', async () => {
+    const mockSchedule = createMockEmptySchedule();
+
+    //멀티가 안되는 근무자
+    const eCon1 = createMockEmployeeCondition({
+      employee: {
+        ableWorkPosition: [EWorkPosition.매점, EWorkPosition.플로어],
+      },
+    });
+
+    expect(eCon1.employee.ableWorkPosition).not.toContain(EWorkPosition.멀티);
+
+    const wCon1 = createMockWorkConditionEntry({
+      employee: eCon1.employee,
+      workPosition: EWorkPosition.플로어,
+    });
+    const wCon2 = createMockWorkConditionEntry({
+      employee: eCon1.employee,
+      workPosition: EWorkPosition.플로어,
+    });
+
+    const wCon3 = createMockWorkConditionEntry({
+      workPosition: EWorkPosition.멀티,
+    });
+
+    mockSchedule[wCon1.dateDay.dayOfWeek].push(wCon1, wCon2);
+    const employeeCounter = { [eCon1.employee.id]: 2 };
+
+    //when: 최대 멀티 조건 인원이 3명이라 했을때
+    const 최대_멀티_인원 = 3;
+
+    const dynamicCondition = new DynamicEmployeeConditions(
+      wCon3,
+      [eCon1],
+      mockSchedule,
+      mockScheduleEntryService,
+      employeeCounter,
+      {
+        startDateDay: DateDay.fromIDateDayEntity(wCon1.dateDay),
+        workConditionOfWeek: {
+          [wCon1.dateDay.dayOfWeek]: [wCon1, wCon2, wCon3],
+        },
+        maxWorkComboDayCount: 최대_멀티_인원,
+      },
+      [],
+    );
+
+    //then: 멀티가 없으므로 필터링 되지 않아야함
+    const filtered = await dynamicCondition
+      .add_조건5_멀티_최소인원을_만족하는_근무자()
       .filter();
 
     expect(filtered.length).toEqual(0);
