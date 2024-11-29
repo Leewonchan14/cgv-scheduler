@@ -91,7 +91,7 @@ const ScheduleEditor: React.FC<ScheduleEditorProps> = ({
         newState[dayOfWeek as EDayOfWeek],
       );
     }
-  }, [schedule]);
+  }, [onChangeWorkCondition, schedule, selectedWeek]);
 
   if (isLoading) {
     return <LoadingAnimation text={'근무표를 가져오는중'} />;

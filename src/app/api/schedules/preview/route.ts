@@ -1,5 +1,4 @@
 import { SELECTED_WEEK } from '@/app/schedule/const';
-import { ScheduleSchema } from '@/entity/types';
 import { scheduleEntryService } from '@/feature/schedule/schedule-entry.service';
 import { appDataSource } from '@/share/libs/typerom/data-source';
 import { NextRequest, NextResponse } from 'next/server';

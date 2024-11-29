@@ -6,18 +6,13 @@ import EmployeeSelector from '@/app/schedule/generator/EmployeeSelector';
 import ScheduleGenDisplay from '@/app/schedule/generator/ScheduleDisplay';
 import ScheduleEditor from '@/app/schedule/generator/ScheduleEditor';
 import { useQueryParam } from '@/app/share/util/useQueryParam';
-import { EDAY_OF_WEEKS, EDayOfWeek } from '@/entity/enums/EDayOfWeek';
-import { EWorkPosition } from '@/entity/enums/EWorkPosition';
-import { EWorkTime } from '@/entity/enums/EWorkTime';
-import { DateDay } from '@/entity/interface/DateDay';
+import { EDayOfWeek } from '@/entity/enums/EDayOfWeek';
 import {
   APIUserInputConditionSchema,
   EmployeeCondition,
   WorkConditionEntry,
   WorkConditionOfWeek,
 } from '@/entity/types';
-import { WorkTimeSlot } from '@/feature/schedule/work-time-slot-handler';
-import { uuid } from '@/share/libs/util/uuid';
 import { useMutation } from '@tanstack/react-query';
 import _ from 'lodash';
 import { NextPage } from 'next';

@@ -164,6 +164,7 @@ const MetaDataDisplay: React.FC<MetaDataDisplayProps> = ({
               {_.chain(schedule)
                 .flatMap((v) => v)
                 .filter((e) => e?.employee?.id === employee?.id)
+                // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
                 .map((e) => WorkTimeSlot.fromTimeSlot(e?.timeSlot!).duration())
                 .sum()
                 .value() / 60}

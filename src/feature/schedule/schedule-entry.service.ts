@@ -54,7 +54,7 @@ export class ScheduleEntryService implements IScheduleEntryService {
   async findByDate(selectDate: Date): Promise<number[]> {
     const startDate = startOfMonth(selectDate);
     const endDate = endOfMonth(selectDate);
-    let entries = await this.scheduleRep.find({
+    const entries = await this.scheduleRep.find({
       where: {
         date: Between(startDate, endDate),
       },
