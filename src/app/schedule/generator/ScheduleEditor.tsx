@@ -18,7 +18,7 @@ import { uuid } from '@/share/libs/util/uuid';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
 import { useRouter, useSearchParams } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 const getInitialWorkConditionOfWeek = (startDate: Date) => {
   const startDateDay = new DateDay(startDate, 0);
@@ -57,41 +57,48 @@ const getInitialWorkConditionOfWeek = (startDate: Date) => {
           },
         ] as WorkConditionEntry[],
     ),
-  );
+  ) as WorkConditionOfWeek;
 };
 
 interface ScheduleEditorProps {
   selectedWeek: Date;
   workConditionOfWeek: WorkConditionOfWeek;
-  onChangeWorkCondition: (_: EDayOfWeek, __: WorkConditionEntry[]) => void;
+  handleChangeWorkCondition: (_: WorkConditionOfWeek) => void;
 }
 
 const ScheduleEditor: React.FC<ScheduleEditorProps> = ({
   selectedWeek,
   workConditionOfWeek,
-  onChangeWorkCondition,
+  handleChangeWorkCondition,
 }) => {
   const { data: schedule, isLoading } = useQuery(
     scheduleQueryApi.findWeek(selectedWeek),
+  );
+  const init = useMemo(
+    () => getInitialWorkConditionOfWeek(selectedWeek),
+    [selectedWeek],
   );
   const [hoverId, setHoverId] = useState(-1);
   const [message, setMessage] = useState('');
 
   useEffect(() => {
     if (!schedule) return;
-    const isInit = _.sum(_.map(schedule, (ar) => _.size(ar))) === 0;
+    const newLocal = _.sum(_.map(schedule, (ar) => _.size(ar)));
+    const isInit = newLocal === 0;
+    const newState = isInit ? init : schedule;
+    handleChangeWorkCondition(newState);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [schedule]);
 
-    const newState = isInit
-      ? getInitialWorkConditionOfWeek(selectedWeek)
-      : schedule;
-
-    for (const dayOfWeek in newState) {
-      onChangeWorkCondition(
-        dayOfWeek as EDayOfWeek,
-        newState[dayOfWeek as EDayOfWeek],
-      );
-    }
-  }, [onChangeWorkCondition, schedule, selectedWeek]);
+  const onChangeWorkCondition = (
+    dayOfWeek: EDayOfWeek,
+    entries: WorkConditionEntry[],
+  ) => {
+    handleChangeWorkCondition({
+      ...workConditionOfWeek,
+      [dayOfWeek]: entries,
+    });
+  };
 
   if (isLoading) {
     return <LoadingAnimation text={'근무표를 가져오는중'} />;

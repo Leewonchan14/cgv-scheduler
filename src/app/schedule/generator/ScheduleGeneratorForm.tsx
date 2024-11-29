@@ -6,15 +6,12 @@ import EmployeeSelector from '@/app/schedule/generator/EmployeeSelector';
 import ScheduleGenDisplay from '@/app/schedule/generator/ScheduleDisplay';
 import ScheduleEditor from '@/app/schedule/generator/ScheduleEditor';
 import { useQueryParam } from '@/app/share/util/useQueryParam';
-import { EDayOfWeek } from '@/entity/enums/EDayOfWeek';
 import {
   APIUserInputConditionSchema,
   EmployeeCondition,
-  WorkConditionEntry,
   WorkConditionOfWeek,
 } from '@/entity/types';
 import { useMutation } from '@tanstack/react-query';
-import _ from 'lodash';
 import { NextPage } from 'next';
 import React, { useState } from 'react';
 import { z } from 'zod';
@@ -49,18 +46,22 @@ const ScheduleGeneratorForm: NextPage<Props> = ({}: Props) => {
     setSelectEmployeeConditions(employees);
   };
 
-  const onChangeWorkCondition = (
-    dayOfWeek: EDayOfWeek,
-    workConditionEntry: WorkConditionEntry[],
-  ) => {
-    setWorkConditionOfWeek((prev) => ({
-      ...prev,
-      [dayOfWeek]: _.cloneDeep(workConditionEntry),
-    }));
+  const handleChangeWorkCondition = (newConditions: WorkConditionOfWeek) => {
+    setWorkConditionOfWeek(newConditions);
   };
 
+  // const onChangeWorkCondition = (
+  //   dayOfWeek: EDayOfWeek,
+  //   workConditionEntry: WorkConditionEntry[],
+  // ) => {
+  //   setWorkConditionOfWeek((prev) => ({
+  //     ...prev,
+  //     [dayOfWeek]: _.cloneDeep(workConditionEntry),
+  //   }));
+  // };
+
   const handleSetWorkCondition = (newConditions: WorkConditionOfWeek) => {
-    setWorkConditionOfWeek(newConditions);
+    handleChangeWorkCondition(newConditions);
     reset();
   };
 
@@ -80,7 +81,7 @@ const ScheduleGeneratorForm: NextPage<Props> = ({}: Props) => {
       <ScheduleEditor
         selectedWeek={selectedWeek}
         workConditionOfWeek={workConditionOfWeek}
-        onChangeWorkCondition={onChangeWorkCondition}
+        handleChangeWorkCondition={handleChangeWorkCondition}
       />
 
       <h1 className="my-10 text-3xl font-bold">근무표 자동 생성</h1>
@@ -113,7 +114,7 @@ const ScheduleGeneratorForm: NextPage<Props> = ({}: Props) => {
         startDate={selectedWeek}
         schedules={schedules ?? []}
         isLoading={isPending}
-        handleSetWorkCondition={handleSetWorkCondition}
+        handleSetWorkCondition={handleChangeWorkCondition}
       />
     </div>
   );
