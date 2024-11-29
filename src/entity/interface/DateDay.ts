@@ -1,5 +1,5 @@
+import { IDateDayEntity } from '@/entity/date-day.entity';
 import { EDAY_OF_WEEKS_CORRECT, EDayOfWeek } from '@/entity/enums/EDayOfWeek';
-import { IDateDayEntity } from '@/entity/types';
 import { addDays, isSameDay } from 'date-fns';
 
 export class DateDay implements IDateDayEntity {

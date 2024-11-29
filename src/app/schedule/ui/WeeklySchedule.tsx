@@ -1,53 +1,87 @@
-import { EDAY_OF_WEEKS, EDayOfWeek } from '@/entity/enums/EDayOfWeek';
+'use client';
+
+import { DateDay } from '@/entity/interface/DateDay';
 import { WorkConditionEntry, WorkConditionOfWeek } from '@/entity/types';
+import { getColor, isLightColor } from '@/share/libs/util/isLightColor';
+import { useState } from 'react';
 
 interface WeeklyScheduleProps {
+  startDate: Date;
   schedule: WorkConditionOfWeek;
-  scheduleNumber: number;
 }
 
-const WeeklySchedule: React.FC<WeeklyScheduleProps> = ({
+const WeeklyScheduleDisplay: React.FC<WeeklyScheduleProps> = ({
   schedule,
-  scheduleNumber,
+  startDate,
 }) => {
+  const [hoverId, setHoverId] = useState<number>(-1);
+
   return (
-    <div className="mb-8">
-      <h2 className="mb-4 text-2xl font-semibold">근무표 #{scheduleNumber}</h2>
-      <div className="grid grid-cols-7 gap-4">
-        {EDAY_OF_WEEKS.map((day) => (
-          <DaySchedule key={day} day={day} entries={schedule[day] || []} />
+    <div className="grid grid-cols-7 gap-1">
+      {new DateDay(startDate, 0)
+        .get요일_시작부터_끝까지DayOfWeek()
+        .map((day) => (
+          <div
+            key={day}
+            className="p-4 px-2 border rounded-lg shadow bg-gray-50"
+          >
+            <h3 className="mb-2 text-xl font-semibold text-center">{day}</h3>
+            <ul>
+              {schedule[day]?.map((entry) => (
+                <DayScheduleDisplay
+                  key={entry.id}
+                  hoverId={hoverId}
+                  setHoverId={(id) => setHoverId(id)}
+                  entry={entry}
+                />
+              ))}
+            </ul>
+          </div>
         ))}
-      </div>
     </div>
   );
 };
 
 interface DayScheduleProps {
-  day: EDayOfWeek;
-  entries: WorkConditionEntry[];
+  hoverId: number;
+  setHoverId: (id: number) => void;
+  entry: WorkConditionEntry;
 }
 
-const DaySchedule: React.FC<DayScheduleProps> = ({ day, entries }) => {
+const DayScheduleDisplay: React.FC<DayScheduleProps> = ({
+  entry,
+  hoverId,
+  setHoverId,
+}) => {
+  const color = getColor(entry.employee?.id);
+  const isLight = isLightColor(color);
+  const isHover = hoverId === entry.employee?.id;
+
+  const bgColorHover = color.slice(0, -2);
+  const bgColor = color;
   return (
-    <div className="p-4 border rounded-lg shadow bg-gray-50">
-      <h3 className="mb-2 text-xl font-semibold text-center">{day}</h3>
-      <ul>
-        {entries.map((entry, idx) => (
-          <li key={idx} className="mb-2">
-            <div className="flex flex-col">
-              <span className="font-medium">{entry.workTime}</span>
-              <span className="text-sm text-gray-700">
-                {entry.workPosition}
-              </span>
-              <span className="text-sm text-gray-700">
-                {entry.employee?.name}
-              </span>
-            </div>
-          </li>
-        ))}
-      </ul>
-    </div>
+    <li
+      onMouseEnter={() => setHoverId(entry.employee?.id ?? -1)}
+      onMouseLeave={() => setHoverId(-1)}
+      key={entry.id}
+      className="mb-2"
+    >
+      <div
+        style={{
+          backgroundColor: isHover ? bgColorHover : bgColor,
+        }}
+        className={`flex flex-col items-start px-2 py-1 rounded-lg transition-transform duration-200
+                            ${isHover && 'drop-shadow-2xl transform scale-105 font-bold'}
+                            ${isHover && (isLight ? 'text-black' : 'text-white')}`}
+      >
+        <span className="text-lg">{entry.workPosition}</span>
+        <span className="text-sm text-opacity-80">{entry.workTime}</span>
+        <span className={`text-sm text-opacity-80`}>
+          {entry.employee?.name}
+        </span>
+      </div>
+    </li>
   );
 };
 
-export default WeeklySchedule;
+export default WeeklyScheduleDisplay;

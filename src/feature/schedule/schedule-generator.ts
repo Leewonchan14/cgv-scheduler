@@ -1,6 +1,5 @@
 import { EDAY_OF_WEEKS, EDayOfWeek } from '@/entity/enums/EDayOfWeek';
-import { ISchedule } from '@/entity/interface/ISchedule';
-import { ScheduleEntry } from '@/entity/schedule-entry.entity';
+import { ISchedule, ScheduleEntry } from '@/entity/schedule-entry.entity';
 import {
   EmployeeCondition,
   IEmployeeSchemaType,

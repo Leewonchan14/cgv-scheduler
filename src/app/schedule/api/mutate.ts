@@ -1,4 +1,4 @@
-import { ISchedule } from '@/entity/interface/ISchedule';
+import { ISchedule } from '@/entity/schedule-entry.entity';
 import { APIUserInputConditionSchema } from '@/entity/types';
 import axios from 'axios';
 import { z } from 'zod';

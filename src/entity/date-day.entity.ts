@@ -1,6 +1,6 @@
 import { EDayOfWeek } from '@/entity/enums/EDayOfWeek';
-import { IDateDayEntity } from '@/entity/types';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { z } from 'zod';
 
 @Entity({ name: 'date_day' })
 export class DateDayEntity implements IDateDayEntity {
@@ -16,3 +16,11 @@ export class DateDayEntity implements IDateDayEntity {
   @Column()
   startDate: Date;
 }
+
+export const DateDayEntitySchema = z.object({
+  date: z.coerce.date(),
+  dayOfWeek: z.nativeEnum(EDayOfWeek),
+  startDate: z.coerce.date(),
+});
+
+export type IDateDayEntity = z.infer<typeof DateDayEntitySchema>;

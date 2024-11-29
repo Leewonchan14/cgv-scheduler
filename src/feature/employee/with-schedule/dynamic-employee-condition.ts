@@ -3,8 +3,7 @@
 import { EWorkPosition } from '@/entity/enums/EWorkPosition';
 import { EWorkTime } from '@/entity/enums/EWorkTime';
 import { DateDay } from '@/entity/interface/DateDay';
-import { ISchedule } from '@/entity/interface/ISchedule';
-import { ScheduleEntry } from '@/entity/schedule-entry.entity';
+import { ISchedule, ScheduleEntry } from '@/entity/schedule-entry.entity';
 import {
   EmployeeCondition,
   UserInputCondition,
@@ -69,6 +68,7 @@ export class DynamicEmployeeConditions extends FilterEmployee {
     this.workConditionOfWeek = workConditionOfWeek;
     this.workConditions = workConditionOfWeek[startDateDay.dayOfWeek] ?? [];
     this.dateDay = DateDay.fromIDateDayEntity(workCondition.dateDay);
+
     this.일주일중_전날까지_배치된_모든_스케쥴 = this.dateDay
       .get요일_시작부터_지금_전날까지()
       .map((dayOfWeek) => this.schedule[dayOfWeek]);
@@ -189,14 +189,15 @@ export class DynamicEmployeeConditions extends FilterEmployee {
       prev.forEach((p) => 최근_최대근무일수_스케쥴.unshift(p));
 
       // 현재 요일 스케쥴을 추가
-      const mockScheduleOfDay = _.cloneDeep(this.schedule[dayOfWeek]);
+      const mockScheduleOfDay = _.cloneDeep(this.schedule[dayOfWeek] ?? []);
       mockScheduleOfDay.push({
         employee: employeeCondition.employee,
         ...this.workCondition,
       } as ScheduleEntry);
       for (let i = 0; i < this.workConditions.length; i++) {
         if (i < mockScheduleOfDay.length) continue;
-        mockScheduleOfDay.push(this.workConditions[i]);
+        if (!this.workConditions[i].employee) continue;
+        mockScheduleOfDay.push(this.workConditions[i] as ScheduleEntry);
       }
 
       최근_최대근무일수_스케쥴.push(mockScheduleOfDay);
@@ -251,7 +252,7 @@ export class DynamicEmployeeConditions extends FilterEmployee {
     const condition = (employeeCondition: EmployeeCondition) => {
       const dayOfWeek = this.workCondition.dateDay.dayOfWeek;
 
-      const mockSchedule = _.cloneDeep(this.schedule[dayOfWeek]);
+      const mockSchedule = _.cloneDeep(this.schedule[dayOfWeek] ?? []);
       mockSchedule.push({
         ...this.workCondition,
         employee: employeeCondition.employee,
@@ -261,7 +262,7 @@ export class DynamicEmployeeConditions extends FilterEmployee {
       this.workConditions.forEach((w, idx) => {
         if (idx < mockSchedule.length) return;
         if (w.employee) {
-          mockSchedule.push(w);
+          mockSchedule.push(w as ScheduleEntry);
         }
       });
 

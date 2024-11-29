@@ -1,9 +1,9 @@
 import { DateDay } from '@/entity/interface/DateDay';
-import { ISchedule } from '@/entity/interface/ISchedule';
 import {
   APIUserInputConditionSchema,
   IEmployeeSchema,
   UserInputCondition,
+  WorkConditionOfWeek,
 } from '@/entity/types';
 import { employeeService } from '@/feature/employee/employee.service';
 import { ScheduleGenerator } from '@/feature/schedule/schedule-generator';
@@ -54,7 +54,7 @@ export async function POST(request: Request) {
   }
 
   const response = {
-    data: generator.getResult() as ISchedule[],
+    data: generator.getResult() as WorkConditionOfWeek[],
   };
 
   return NextResponse.json(response);

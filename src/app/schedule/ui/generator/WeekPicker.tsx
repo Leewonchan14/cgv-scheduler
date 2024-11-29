@@ -21,18 +21,17 @@ import { ko } from 'date-fns/locale/ko';
 import React, { useState } from 'react';
 
 interface WeekPickerProps {
-  initDayOfWeek: EDayOfWeek;
   selectedWeek: Date;
   onWeekSelect: (startDate: Date) => void;
 }
 
 const WeekPicker: React.FC<WeekPickerProps> = ({
-  initDayOfWeek,
   selectedWeek,
   onWeekSelect,
 }) => {
-  const [weekStartDayOfWeek, setWeekStartDayOfWeek] =
-    useState<EDayOfWeek>(initDayOfWeek);
+  const [weekStartDayOfWeek, setWeekStartDayOfWeek] = useState<EDayOfWeek>(
+    new DateDay(selectedWeek, 0).dayOfWeek,
+  );
 
   const weekStartsOn = EDAY_OF_WEEKS_CORRECT.indexOf(weekStartDayOfWeek) as Day; // 0: 일요일, 1: 월요일, ..., 6: 토요일;
 

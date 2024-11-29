@@ -1,10 +1,11 @@
 import { OmitStrict } from '@/app/api/types';
+import { DateDayEntitySchema } from '@/entity/date-day.entity';
 import { EDayOfWeek } from '@/entity/enums/EDayOfWeek';
 import { ERole } from '@/entity/enums/ERole';
 import { EWorkPosition } from '@/entity/enums/EWorkPosition';
 import { EWorkTime } from '@/entity/enums/EWorkTime';
 import { DateDay } from '@/entity/interface/DateDay';
-import { WorkTimeSlotSchema } from '@/feature/schedule/work-time-slot-handler';
+import { ScheduleEntrySchema } from '@/entity/schedule-entry.entity';
 import { z } from 'zod';
 
 export interface APIUserInputCondition {
@@ -61,19 +62,8 @@ export const EmployeeConditionSchema = z.object({
   additionalUnableDayOff: z.array(z.nativeEnum(EDayOfWeek)).default([]),
 });
 
-export const DateDayEntitySchema = z.object({
-  date: z.coerce.date(),
-  dayOfWeek: z.nativeEnum(EDayOfWeek),
-  startDate: z.coerce.date(),
-});
-
-export const WorkConditionEntrySchema = z.object({
-  id: z.number(),
-  dateDay: DateDayEntitySchema,
+export const WorkConditionEntrySchema = ScheduleEntrySchema.extend({
   employee: IEmployeeSchema.optional(),
-  workPosition: z.nativeEnum(EWorkPosition),
-  workTime: z.nativeEnum(EWorkTime),
-  timeSlot: WorkTimeSlotSchema,
 });
 
 export const WorkConditionSchema = z.record(
@@ -95,7 +85,6 @@ export const APIUserInputConditionSchema = z.object({
   workConditionOfWeek: WorkConditionSchema,
 });
 
-export type IDateDayEntity = z.infer<typeof DateDayEntitySchema>;
 export type IAbleWorkTime = z.infer<typeof IAbleWorkTimeSchema>;
 export type WorkConditionEntry = z.infer<typeof WorkConditionEntrySchema>;
 export type WorkConditionOfWeek = z.infer<typeof WorkConditionSchema>;

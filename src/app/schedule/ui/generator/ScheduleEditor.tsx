@@ -137,7 +137,6 @@ const DayEditor: React.FC<DayEditorProps> = ({
                       </label>
                       <select
                         value={entry.employee?.id ?? ''}
-                        defaultValue={entry.employee?.id ?? ''}
                         onChange={(e) =>
                           handleEmployeeChange(
                             entry.id,
