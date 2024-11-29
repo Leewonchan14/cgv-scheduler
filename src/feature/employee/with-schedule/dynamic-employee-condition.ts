@@ -275,15 +275,12 @@ export class DynamicEmployeeConditions extends FilterEmployee {
       // 멀티가 없다면 true
       if (findMulti.length === 0) return true;
 
-      // 해당 요일의 마지막 근무 배치가 아니라면 true
-      if (mockSchedule.length !== this.workConditions.length) return true;
-
       const workTimeSlots = findMulti.map((m) =>
         WorkTimeSlot.fromWorkConditionEntry(m),
       );
       let listGap30 = workTimeSlots.flatMap((s) => s.getHourMinuteListGap30());
 
-      listGap30 = _.uniqBy(listGap30, (v) => `${v.hour}${v.minute}`);
+      listGap30 = _.uniqBy(listGap30, (v) => v.hour * 60 + v.minute);
 
       // 30분 간격으로 모든 간격안에 플로어 + 멀티 가능한 근무자가 3명이상이면 true
       const isAble = listGap30.every((hm) => {

@@ -217,7 +217,8 @@ describe('동적 근무자 조건 필터링', () => {
     const employeeCounter = { [eCon1.employee.id]: 2 };
 
     //when: 최대 멀티 조건 인원이 3명이라 했을때
-    const 최대_멀티_인원 = 3;
+    // TODO 입력받게 해야함 userInputCondition에서
+    const _최대_멀티_인원 = 3;
 
     const dynamicCondition = new DynamicEmployeeConditions(
       wCon3,
@@ -226,7 +227,7 @@ describe('동적 근무자 조건 필터링', () => {
       mockScheduleEntryService,
       employeeCounter,
       {
-        maxWorkComboDayCount: 최대_멀티_인원,
+        maxWorkComboDayCount: 3,
         workConditionOfWeek: {
           [wCon1.dateDay.dayOfWeek]: [wCon1, wCon2, wCon3],
         },
@@ -259,16 +260,12 @@ describe('동적 근무자 조건 필터링', () => {
       employee: eCon1.employee,
       workPosition: EWorkPosition.플로어,
     });
-    const wCon2 = createMockWorkConditionEntry({
-      employee: eCon1.employee,
-      workPosition: EWorkPosition.플로어,
-    });
 
     const wCon3 = createMockWorkConditionEntry({
       workPosition: EWorkPosition.멀티,
     });
 
-    mockSchedule[wCon1.dateDay.dayOfWeek].push(wCon1, wCon2);
+    mockSchedule[wCon1.dateDay.dayOfWeek].push(wCon1);
     const employeeCounter = { [eCon1.employee.id]: 2 };
 
     //when: 최대 멀티 조건 인원이 3명이라 했을때
@@ -283,7 +280,7 @@ describe('동적 근무자 조건 필터링', () => {
       {
         startDateDay: DateDay.fromIDateDayEntity(wCon1.dateDay),
         workConditionOfWeek: {
-          [wCon1.dateDay.dayOfWeek]: [wCon1, wCon2, wCon3],
+          [wCon1.dateDay.dayOfWeek]: [wCon1, wCon3],
         },
         maxWorkComboDayCount: 최대_멀티_인원,
       },

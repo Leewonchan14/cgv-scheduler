@@ -62,7 +62,7 @@ const DayEditor: React.FC<DayEditorProps> = ({
 
   const handleAddEntry = (position: EWorkPosition) => {
     const newEntry: WorkConditionEntry = {
-      id: _.uniqueId(),
+      id: parseInt(_.uniqueId()),
       dateDay: DateDay.fromDayOfWeek(startDate, dayOfWeek),
       workPosition: position,
       workTime: EWorkTime.오픈,
@@ -71,12 +71,12 @@ const DayEditor: React.FC<DayEditorProps> = ({
     onChangeWorkCondition(dayOfWeek, [...entries, newEntry]);
   };
 
-  const handleRemoveEntry = (id: string) => {
+  const handleRemoveEntry = (id: number) => {
     const updatedEntries = entries.filter((e) => e.id !== id);
     onChangeWorkCondition(dayOfWeek, updatedEntries);
   };
 
-  const handleWorkTimeChange = (id: string, time: EWorkTime) => {
+  const handleWorkTimeChange = (id: number, time: EWorkTime) => {
     onChangeWorkCondition(
       dayOfWeek,
       _.map(entries, (e) => ({
@@ -86,7 +86,7 @@ const DayEditor: React.FC<DayEditorProps> = ({
     );
   };
 
-  const handleEmployeeChange = (id: string, employeeId: number) => {
+  const handleEmployeeChange = (id: number, employeeId: number) => {
     const findEmp = employees?.find((emp) => emp.id === employeeId);
     onChangeWorkCondition(
       dayOfWeek,
