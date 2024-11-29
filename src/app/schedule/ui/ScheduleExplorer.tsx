@@ -10,8 +10,7 @@ import { DateDay } from '@/entity/interface/DateDay';
 import { useQuery } from '@tanstack/react-query';
 import { format, formatDate } from 'date-fns';
 import { NextPage } from 'next';
-import { useSearchParams } from 'next/navigation';
-import { useRouter } from 'next/router';
+import { useRouter, useSearchParams } from 'next/navigation';
 import React from 'react';
 import { z } from 'zod';
 
