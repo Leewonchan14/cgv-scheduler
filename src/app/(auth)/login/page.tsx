@@ -1,6 +1,6 @@
 'use client';
 
-import { adminDevLogin, loginAction } from '@/app/(auth)/login/action';
+import { loginAction } from '@/app/(auth)/login/action';
 import ErrorMessage from '@/app/employee/ui/ErrorMessage';
 import { NextPage } from 'next';
 import React, { FC } from 'react';
@@ -30,10 +30,6 @@ const LoginPage: NextPage<Props> = ({}) => {
 
         <ErrorMessage errors={state?.message} />
         <LoginButton />
-      </form>
-
-      <form action={adminDevLogin}>
-        <button type="submit">개발용 관리자 로그인하기</button>
       </form>
     </div>
   );
