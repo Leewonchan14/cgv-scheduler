@@ -5,6 +5,7 @@ import { EWorkPosition } from '@/entity/enums/EWorkPosition';
 import { EWorkTime } from '@/entity/enums/EWorkTime';
 import { DateDay } from '@/entity/interface/DateDay';
 import { WorkTimeSlotSchema } from '@/feature/schedule/work-time-slot-handler';
+import { uuid } from '@/share/libs/util/uuid';
 import { z } from 'zod';
 
 export interface APIUserInputCondition {
@@ -55,6 +56,7 @@ export const IEmployeeSchema = z.object({
 });
 
 export const EmployeeConditionSchema = z.object({
+  id: z.string().default(uuid()),
   employee: IEmployeeSchema,
   ableMinWorkCount: z.number().default(1),
   ableMaxWorkCount: z.number().default(4),
@@ -62,7 +64,7 @@ export const EmployeeConditionSchema = z.object({
 });
 
 export const ScheduleEntrySchema = z.object({
-  id: z.number(),
+  id: z.string(),
   date: z.coerce.date(),
   employee: IEmployeeSchema,
   workPosition: z.nativeEnum(EWorkPosition),
@@ -81,6 +83,7 @@ export const ScheduleSchema = z.object({
 });
 
 export const WorkConditionEntrySchema = ScheduleEntrySchema.extend({
+  id: z.string(),
   employee: IEmployeeSchema.optional(),
 });
 
@@ -89,15 +92,27 @@ export const WorkConditionSchema = z.record(
   z.array(WorkConditionEntrySchema).default([]),
 );
 
+export const EmployeeConditionWithIdSchema = EmployeeConditionSchema.omit({
+  employee: true,
+}).extend({
+  employee: z.object({
+    id: z.coerce.number(),
+  }),
+});
+
+export const APIScheduleSchema = z.object({
+  [EDayOfWeek.월]: z.array(ScheduleEntrySchema),
+  [EDayOfWeek.화]: z.array(ScheduleEntrySchema),
+  [EDayOfWeek.수]: z.array(ScheduleEntrySchema),
+  [EDayOfWeek.목]: z.array(ScheduleEntrySchema),
+  [EDayOfWeek.금]: z.array(ScheduleEntrySchema),
+  [EDayOfWeek.토]: z.array(ScheduleEntrySchema),
+  [EDayOfWeek.일]: z.array(ScheduleEntrySchema),
+});
+
 export const APIUserInputConditionSchema = z.object({
   startDate: z.coerce.date(),
-  employeeConditions: z.array(
-    EmployeeConditionSchema.omit({ employee: true }).extend({
-      employee: z.object({
-        id: z.coerce.number(),
-      }),
-    }),
-  ),
+  employeeConditions: z.array(EmployeeConditionWithIdSchema),
   maxSchedule: z.number().max(100).min(0),
   maxWorkComboDayCount: z.number().default(2),
   workConditionOfWeek: WorkConditionSchema,
@@ -111,3 +126,6 @@ export type IEmployeeSchemaType = z.infer<typeof IEmployeeSchema>;
 export type IScheduleEntry = z.infer<typeof ScheduleEntrySchema>;
 export type IStrictSchedule = z.infer<typeof ScheduleSchema>;
 export type ISchedule = z.infer<typeof ScheduleSchema>;
+export type EmployeeConditionWithId = z.infer<
+  typeof EmployeeConditionWithIdSchema
+>;

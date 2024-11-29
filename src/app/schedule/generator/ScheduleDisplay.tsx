@@ -20,11 +20,15 @@ const ScheduleGenDisplay: React.FC<ScheduleDisplayProps> = ({
   handleSetWorkCondition,
 }: ScheduleDisplayProps) => {
   if (!schedules) {
-    return <div className="text-center">근무표를 생성해주세요.</div>;
+    return <div className="text-center">근무표를 먼저 작성 생성해주세요.</div>;
   }
 
   if (isLoading) {
-    return <div className="text-center">생성 중...</div>;
+    return (
+      <div className="flex justify-center">
+        <div className="inline-block w-8 h-8 ml-2 border-2 border-white rounded-full animate-spin border-t-blue-500" />
+      </div>
+    );
   }
 
   return (

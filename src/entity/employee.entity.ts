@@ -1,11 +1,7 @@
 import { ERole } from '@/entity/enums/ERole';
 import { EWorkPosition } from '@/entity/enums/EWorkPosition';
 import { TimeStampEntity } from '@/entity/timstamp.entity';
-import {
-  EmployeeCondition,
-  type IAbleWorkTime,
-  IEmployeeSchemaType,
-} from '@/entity/types';
+import { type IAbleWorkTime, IEmployeeSchemaType } from '@/entity/types';
 import { IPayLoad } from '@/feature/auth/jwt-handler';
 import { pwHandler } from '@/feature/auth/pw-handler';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
@@ -39,15 +35,6 @@ export class Employee extends TimeStampEntity implements IEmployee {
     return {
       id: this.id,
       role: this.role,
-    };
-  }
-
-  toCondition(): EmployeeCondition {
-    return {
-      employee: this,
-      ableMinWorkCount: 1,
-      ableMaxWorkCount: 4,
-      additionalUnableDayOff: [],
     };
   }
 }

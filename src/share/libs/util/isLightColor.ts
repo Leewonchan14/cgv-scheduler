@@ -25,4 +25,5 @@ export const makeColor = () =>
 
 const colors = _.range(30).map(() => makeColor());
 
-export const getColor = (id: number | undefined) => colors[id ?? 0];
+export const getColor = (id: number | undefined) =>
+  colors[(id ?? 0) % colors.length];

@@ -1,15 +1,9 @@
 import { SELECTED_WEEK } from '@/app/schedule/const';
-import {
-  APIUserInputConditionSchema,
-  IEmployeeSchema,
-  ScheduleSchema,
-  UserInputCondition,
-  WorkConditionOfWeek,
-} from '@/entity/types';
+import { APIScheduleSchema, ScheduleSchema } from '@/entity/types';
 import { employeeService } from '@/feature/employee/employee.service';
 import { scheduleEntryService } from '@/feature/schedule/schedule-entry.service';
-import { ScheduleGenerator } from '@/feature/schedule/schedule-generator';
 import { appDataSource } from '@/share/libs/typerom/data-source';
+import _ from 'lodash';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
@@ -21,56 +15,39 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ message: 'Invalid request' }, { status: 400 });
   }
 
-  const result = await (
-    await scheduleEntryService(await appDataSource())
-  ).findWeekSchedule(data);
+  let result = {};
 
-  return NextResponse.json({ data: ScheduleSchema.parse(result) });
-}
-
-export async function POST(request: Request) {
-  const body = await request.json();
-
-  const { success, data, error } = APIUserInputConditionSchema.safeParse(body);
-  if (!success) {
-    return NextResponse.json({ message: error }, { status: 400 });
-  }
-
-  const {
-    employeeConditions,
-    maxSchedule,
-    maxWorkComboDayCount,
-    startDate,
-    workConditionOfWeek,
-  } = data;
-
-  const ids = employeeConditions.map((emp) => emp.employee.id);
-  const employees = await employeeService(await appDataSource()).findByIds(ids);
-  employees.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
-
-  const userInputCondition: UserInputCondition = {
-    startDate,
-    maxWorkComboDayCount,
-    employeeConditions: employeeConditions.map((emp, idx) => ({
-      ...emp,
-      employee: IEmployeeSchema.parse(employees[idx]),
-    })),
-    workConditionOfWeek,
-  };
-
-  const generator = new ScheduleGenerator(userInputCondition, maxSchedule);
-  await generator.generate(1000 * 5);
-
-  if (generator.isTimeOut) {
+  try {
+    result = await scheduleEntryService(await appDataSource()).findWeekSchedule(
+      data,
+    );
+  } catch (e) {
     return NextResponse.json(
-      { data: null, message: 'Timeout' },
+      { message: 'Internal server error', error: e },
       { status: 500 },
     );
   }
 
-  const response = {
-    data: generator.getResult() as WorkConditionOfWeek[],
-  };
+  return NextResponse.json({ data: ScheduleSchema.parse(result) });
+}
 
-  return NextResponse.json(response);
+export async function POST(request: NextRequest) {
+  const body = await request.json();
+
+  const { success, data } = APIScheduleSchema.safeParse(body);
+
+  if (!success || !data) {
+    return NextResponse.json({ message: 'Invalid request' }, { status: 400 });
+  }
+
+  const entries = _.chain(data).values().sort().flatten().value();
+  const ids = _.uniq(entries.map((e) => e.employee.id));
+  const employees = await employeeService(await appDataSource()).findByIds(ids);
+
+  await scheduleEntryService(await appDataSource()).saveWeek(
+    entries,
+    employees,
+  );
+
+  return NextResponse.json({ data: null, message: 'Success' });
 }

@@ -1,248 +1,164 @@
-// components/ScheduleEditor.tsx
-
 'use client';
 
-import { employeeQueryApi } from '@/app/employee/api/queryoption';
-import { EDayOfWeek } from '@/entity/enums/EDayOfWeek';
-import { EWORK_POSITION, EWorkPosition } from '@/entity/enums/EWorkPosition';
+import { scheduleMutateApi } from '@/app/schedule/api/mutate';
+import { scheduleQueryApi } from '@/app/schedule/api/queryoption';
+import DayEditor from '@/app/schedule/generator/ScheduleDayEditor';
+import LoadingAnimation from '@/app/ui/loading/loading-animation';
+import { EDAY_OF_WEEKS, EDayOfWeek } from '@/entity/enums/EDayOfWeek';
+import { EWorkPosition } from '@/entity/enums/EWorkPosition';
 import { EWorkTime } from '@/entity/enums/EWorkTime';
 import { DateDay } from '@/entity/interface/DateDay';
-import { WorkConditionEntry, WorkConditionOfWeek } from '@/entity/types';
+import {
+  APIScheduleSchema,
+  WorkConditionEntry,
+  WorkConditionOfWeek,
+} from '@/entity/types';
 import { WorkTimeSlot } from '@/feature/schedule/work-time-slot-handler';
-import { useQuery } from '@tanstack/react-query';
+import { uuid } from '@/share/libs/util/uuid';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
-import React from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
+
+const getInitialWorkConditionOfWeek = (startDate: Date) => {
+  const startDateDay = new DateDay(startDate, 0);
+  return _.zipObject(
+    EDAY_OF_WEEKS,
+    startDateDay.get요일_시작부터_끝까지DayOfWeek().map(
+      (dayOfWeek) =>
+        [
+          {
+            id: uuid(),
+            date: DateDay.fromDayOfWeek(startDate, dayOfWeek).date,
+            workPosition: EWorkPosition.매점,
+            workTime: EWorkTime.오픈,
+            timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
+          },
+          {
+            id: uuid(),
+            date: DateDay.fromDayOfWeek(startDate, dayOfWeek).date,
+            workPosition: EWorkPosition.매점,
+            workTime: EWorkTime.마감,
+            timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.마감),
+          },
+          {
+            id: uuid(),
+            date: DateDay.fromDayOfWeek(startDate, dayOfWeek).date,
+            workPosition: EWorkPosition.플로어,
+            workTime: EWorkTime.오픈,
+            timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
+          },
+          {
+            id: uuid(),
+            date: DateDay.fromDayOfWeek(startDate, dayOfWeek).date,
+            workPosition: EWorkPosition.플로어,
+            workTime: EWorkTime.마감,
+            timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.마감),
+          },
+        ] as WorkConditionEntry[],
+    ),
+  );
+};
 
 interface ScheduleEditorProps {
-  startDate: Date;
+  selectedWeek: Date;
   workConditionOfWeek: WorkConditionOfWeek;
   onChangeWorkCondition: (_: EDayOfWeek, __: WorkConditionEntry[]) => void;
 }
 
 const ScheduleEditor: React.FC<ScheduleEditorProps> = ({
-  startDate,
+  selectedWeek,
   workConditionOfWeek,
   onChangeWorkCondition,
 }) => {
-  return (
-    <div>
-      <h2 className="mb-4 text-2xl font-semibold">근무표 배치</h2>
+  const { data: schedule, isLoading } = useQuery(
+    scheduleQueryApi.findWeek(selectedWeek),
+  );
+  const [hoverId, setHoverId] = useState(-1);
+  const [message, setMessage] = useState('');
 
+  useEffect(() => {
+    if (!schedule) return;
+    const isInit = _.sum(_.map(schedule, (ar) => _.size(ar))) === 0;
+
+    const newState = isInit
+      ? getInitialWorkConditionOfWeek(selectedWeek)
+      : schedule;
+
+    for (const dayOfWeek in newState) {
+      onChangeWorkCondition(
+        dayOfWeek as EDayOfWeek,
+        newState[dayOfWeek as EDayOfWeek],
+      );
+    }
+  }, [schedule]);
+
+  if (isLoading) {
+    return <LoadingAnimation text={'근무표를 가져오는중'} />;
+  }
+
+  return (
+    <div className="flex flex-col gap-10">
       <div className="grid grid-cols-1 gap-1 md:grid-cols-7">
-        {new DateDay(startDate, 0)
+        {new DateDay(selectedWeek, 0)
           .get요일_시작부터_끝까지DayOfWeek()
           .map((dayOfWeek) => (
             <DayEditor
               key={dayOfWeek}
+              hoverId={hoverId}
+              setHoverId={(id) => setHoverId(id)}
               dayOfWeek={dayOfWeek}
               entries={workConditionOfWeek[dayOfWeek] ?? []}
               onChangeWorkCondition={onChangeWorkCondition}
-              startDate={startDate}
+              selectedWeek={selectedWeek}
             />
           ))}
+      </div>
+      <div className="text-center">
+        <CreateScheduleButton
+          workConditionOfWeek={workConditionOfWeek}
+          setMessage={(s) => setMessage(s)}
+        />
+        <div className="my-4 text-red-500">{message}</div>
       </div>
     </div>
   );
 };
 
-interface DayEditorProps {
-  dayOfWeek: EDayOfWeek;
-  entries: WorkConditionEntry[];
-  onChangeWorkCondition: (_: EDayOfWeek, __: WorkConditionEntry[]) => void;
-  startDate: Date;
-}
+const CreateScheduleButton: React.FC<{
+  setMessage: (_: string) => void;
+  workConditionOfWeek: WorkConditionOfWeek;
+}> = ({ workConditionOfWeek, setMessage }) => {
+  const search = useSearchParams();
+  const query = new URLSearchParams(
+    Object.fromEntries(search.entries()),
+  ).toString();
+  const router = useRouter();
+  const { mutateAsync, isPending } = useMutation(scheduleMutateApi.save);
 
-const DayEditor: React.FC<DayEditorProps> = ({
-  dayOfWeek,
-  entries,
-  onChangeWorkCondition,
-  startDate,
-}) => {
-  const { data: employees } = useQuery(employeeQueryApi.findAll);
+  const onSubmit = async () => {
+    const { success, data } = APIScheduleSchema.safeParse(workConditionOfWeek);
 
-  const handleAddEntry = (position: EWorkPosition) => {
-    const newEntry: WorkConditionEntry = {
-      id: parseInt(_.uniqueId()),
-      date: DateDay.fromDayOfWeek(startDate, dayOfWeek).date,
-      workPosition: position,
-      workTime: EWorkTime.오픈,
-      timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
-    };
-    onChangeWorkCondition(dayOfWeek, [...entries, newEntry]);
+    if (!success || !data) {
+      setMessage('근무표를 생성할 수 없습니다. 근무자를 모두 선택해주세요.');
+      return;
+    }
+
+    await mutateAsync(data);
+    router.replace(`/schedule?${query}`);
   };
-
-  const handleRemoveEntry = (id: number) => {
-    const updatedEntries = entries.filter((e) => e.id !== id);
-    onChangeWorkCondition(dayOfWeek, updatedEntries);
-  };
-
-  const handleWorkTimeChange = (id: number, time: EWorkTime) => {
-    onChangeWorkCondition(
-      dayOfWeek,
-      _.map(entries, (e) => ({
-        ...e,
-        workTime: e.id === id ? time : e.workTime,
-      })),
-    );
-  };
-
-  const handleEmployeeChange = (id: number, employeeId: number) => {
-    const findEmp = employees?.find((emp) => emp.id === employeeId);
-    onChangeWorkCondition(
-      dayOfWeek,
-      _.map(entries, (e) => ({
-        ...e,
-        employee: e.id === id ? findEmp : e.employee,
-      })),
-    );
-  };
-
-  if (!employees) return null;
 
   return (
-    <div className="p-4 border rounded-lg shadow bg-gray-50">
-      <h3 className="mb-2 text-xl font-semibold text-center">{dayOfWeek}</h3>
-      <ul>
-        {/* position으로 파티션을 나누어 추가 삭제 기능을 구현 */}
-        {EWORK_POSITION.map((po) => (
-          <li key={po} className="mb-4">
-            <div className="flex flex-col space-y-2">
-              <h4 className="text-lg font-semibold">{po}</h4>
-              {entries
-                .filter((entry) => entry.workPosition === po)
-                .map((entry) => (
-                  <div key={entry.id}>
-                    <label className="block text-sm font-medium text-gray-700">
-                      근무 시간
-                    </label>
-                    <select
-                      value={entry.workTime}
-                      onChange={(e) =>
-                        handleWorkTimeChange(
-                          entry.id,
-                          e.target.value as EWorkTime,
-                        )
-                      }
-                      className="block w-full p-2 mt-1 border border-gray-300 rounded-md"
-                    >
-                      {Object.values(EWorkTime).map((time) => (
-                        <option key={time} value={time}>
-                          {time}
-                        </option>
-                      ))}
-                    </select>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        직원
-                      </label>
-                      <select
-                        value={entry.employee?.id ?? ''}
-                        onChange={(e) =>
-                          handleEmployeeChange(
-                            entry.id,
-                            parseInt(e.target.value),
-                          )
-                        }
-                        className="block w-full p-2 mt-1 border border-gray-300 rounded-md"
-                      >
-                        <option value={''}>직원 선택</option>
-                        {employees.map((emp) => (
-                          <option key={emp.id} value={emp.id}>
-                            {emp.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <button
-                      onClick={() => handleRemoveEntry(entry.id)}
-                      className="self-end w-20 py-2 mt-2 text-white bg-red-500 rounded-lg hover:text-red-700"
-                    >
-                      삭제
-                    </button>
-                  </div>
-                ))}
-              <button
-                onClick={() => handleAddEntry(po)}
-                className="px-4 py-2 mt-2 text-white transition-colors bg-green-500 rounded-lg hover:bg-green-600"
-              >
-                항목 추가
-              </button>
-            </div>
-          </li>
-        ))}
-        {/* {entries.map((entry, idx) => (
-          <li key={idx} className="mb-4">
-            <div className="flex flex-col space-y-2">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  근무 위치
-                </label>
-                <select
-                  value={entry.workPosition}
-                  onChange={(e) =>
-                    handleWorkPositionChange(
-                      idx,
-                      e.target.value as EWorkPosition,
-                    )
-                  }
-                  className="block w-full p-2 mt-1 border border-gray-300 rounded-md"
-                >
-                  {Object.values(EWorkPosition).map((position) => (
-                    <option key={position} value={position}>
-                      {position}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  근무 시간
-                </label>
-                <select
-                  value={entry.workTime}
-                  onChange={(e) =>
-                    handleWorkTimeChange(idx, e.target.value as EWorkTime)
-                  }
-                  className="block w-full p-2 mt-1 border border-gray-300 rounded-md"
-                >
-                  {Object.values(EWorkTime).map((time) => (
-                    <option key={time} value={time}>
-                      {time}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  직원
-                </label>
-                <select
-                  value={entry.employee?.id ?? ''}
-                  defaultValue={entry.employee?.id ?? ''}
-                  onChange={(e) =>
-                    handleEmployeeChange(idx, parseInt(e.target.value))
-                  }
-                  className="block w-full p-2 mt-1 border border-gray-300 rounded-md"
-                >
-                  <option value={''}>직원 선택</option>
-                  {employees.map((emp) => (
-                    <option key={emp.id} value={emp.id}>
-                      {emp.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <button
-                onClick={() => handleRemoveEntry(idx)}
-                className="self-end w-20 py-2 mt-2 text-white bg-red-500 rounded-lg hover:text-red-700"
-              >
-                삭제
-              </button>
-            </div>
-          </li>
-        ))} */}
-      </ul>
-    </div>
+    <button
+      onClick={onSubmit}
+      disabled={isPending}
+      className="px-4 py-2 font-bold text-white bg-blue-500 rounded hover:bg-blue-700 disabled:opacity-50"
+    >
+      현재 근무표 저장하기
+      {isPending && (
+        <div className="inline-block w-4 h-4 ml-2 border-2 border-white rounded-full animate-spin border-t-blue-500" />
+      )}
+    </button>
   );
 };
 

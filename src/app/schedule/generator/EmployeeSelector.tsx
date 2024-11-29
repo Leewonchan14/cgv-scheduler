@@ -1,6 +1,7 @@
 'use client';
 
 import { employeeQueryApi } from '@/app/employee/api/queryoption';
+import LoadingAnimation from '@/app/ui/loading/loading-animation';
 import { EDAY_OF_WEEKS_CORRECT, EDayOfWeek } from '@/entity/enums/EDayOfWeek';
 import { EmployeeCondition, EmployeeConditionSchema } from '@/entity/types';
 import { getColor, isLightColor } from '@/share/libs/util/isLightColor';
@@ -18,7 +19,7 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   selectEmployeeConditions,
   onSelectionChange,
 }) => {
-  const { data: employees } = useQuery(employeeQueryApi.findAll);
+  const { data: employees, isLoading } = useQuery(employeeQueryApi.findAll);
 
   const handleToggle = (employee: EmployeeCondition) => {
     onSelectionChange(
@@ -36,12 +37,16 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     );
   };
 
-  if (!employees) return <div>서버 에러</div>;
+  if (isLoading || !employees) {
+    return (
+      <LoadingAnimation text="근무자 정보를 가져오는중"></LoadingAnimation>
+    );
+  }
 
   return (
     <div className="mb-6">
       <h2 className="mb-4 text-2xl font-semibold">근무자 선택</h2>
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {employees.map((emp) => {
           const findCond = selectEmployeeConditions.find(
             (cond) => cond.employee.id === emp.id,
@@ -52,6 +57,7 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
             employee: emp,
             ...findCond,
           }) as EmployeeCondition;
+
           const color = getColor(emp.id);
           const bgColorSelect = color.slice(0, -2);
           const isLight = isLightColor(color);
@@ -142,7 +148,7 @@ const EmployeeConditionForm: React.FC<EmployeeConditionFormProps> = ({
   };
 
   return (
-    <div className="w-full mt-2 p-2 border rounded-lg bg-gray-100">
+    <div className="w-full p-2 mt-2 bg-gray-100 border rounded-lg">
       <div className="mb-2">
         <label className="block text-sm font-medium text-gray-700">
           최소 근무 일수
@@ -168,7 +174,7 @@ const EmployeeConditionForm: React.FC<EmployeeConditionFormProps> = ({
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block mb-1 text-sm font-medium text-gray-700">
           추가 불가능한 요일
         </label>
         <div className="flex flex-wrap gap-2">

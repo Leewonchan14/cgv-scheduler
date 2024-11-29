@@ -6,6 +6,7 @@ import { type IWorkTimeSlot } from '@/feature/schedule/work-time-slot-handler';
 import {
   Column,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -14,13 +15,14 @@ import {
 // 하루에 대한 스케쥴 엔트리
 @Entity({ name: 'schedule_entry' })
 export class ScheduleEntry implements IScheduleEntry {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column()
+  @Index()
   date: Date;
 
-  @ManyToOne(() => Employee, { eager: true })
+  @ManyToOne(() => Employee, { eager: true, nullable: false })
   @JoinColumn()
   employee: IEmployeeSchemaType;
 

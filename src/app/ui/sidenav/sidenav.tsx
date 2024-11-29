@@ -2,7 +2,7 @@
 
 import { NextPage } from 'next';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { FC } from 'react';
 
 enum NAV_ENUM {
@@ -42,11 +42,17 @@ const Sidenav: NextPage<Props> = ({}) => {
 
 const SideLink: FC<{ nav: NAV_ENUM }> = ({ nav }) => {
   const { name, path } = NAV_LINKS[nav];
+  const searchParam = useSearchParams();
+
+  const preQuery = new URLSearchParams(
+    Object.fromEntries(searchParam.entries()),
+  ).toString();
+
   const isActive = path === usePathname();
   return (
     <Link
       className={`bg-gray-300 p-4 rounded-lg font-bold ${isActive && '!bg-blue-500 text-white'}`}
-      href={path}
+      href={`${path}?${preQuery}`}
     >
       <div className="">{name}</div>
     </Link>

@@ -6,7 +6,7 @@ interface Props {}
 const ScheduleGeneratorPage: NextPage<Props> = ({}) => {
   return (
     <div className="container mx-auto">
-      <h1 className="text-3xl font-bold mb-6">근무표 관리</h1>
+      <h1 className="text-3xl font-bold mb-6">근무표 수정</h1>
       <ScheduleGeneratorForm />
     </div>
   );

@@ -11,7 +11,6 @@ export class AuthHandler {
 
   async isAllowAdmin(cookieStore: ICookieStore) {
     const payload = await this.getSession(cookieStore);
-    console.log('payload: ', payload);
     if (!payload || payload.role !== ERole.ADMIN) {
       redirect('/warning/admin');
     }
