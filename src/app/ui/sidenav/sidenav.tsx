@@ -3,7 +3,7 @@
 import { NextPage } from 'next';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { FC } from 'react';
+import { FC, Suspense } from 'react';
 
 enum NAV_ENUM {
   employee = 'employee',
@@ -33,8 +33,10 @@ const Sidenav: NextPage<Props> = ({}) => {
         <div className="text-xl">근무자 관리 프로그램</div>
       </Link>
       <div className="flex flex-col gap-6">
-        <SideLink nav={NAV_ENUM.employee} />
-        <SideLink nav={NAV_ENUM.schedule} />
+        <Suspense>
+          <SideLink nav={NAV_ENUM.employee} />
+          <SideLink nav={NAV_ENUM.schedule} />
+        </Suspense>
       </div>
     </div>
   );
