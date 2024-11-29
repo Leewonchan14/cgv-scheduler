@@ -114,7 +114,7 @@ const ScheduleGeneratorForm: NextPage<Props> = ({}: Props) => {
         startDate={selectedWeek}
         schedules={schedules ?? []}
         isLoading={isPending}
-        handleSetWorkCondition={handleChangeWorkCondition}
+        handleSetWorkCondition={handleSetWorkCondition}
       />
     </div>
   );
