@@ -50,16 +50,6 @@ const ScheduleGeneratorForm: NextPage<Props> = ({}: Props) => {
     setWorkConditionOfWeek(newConditions);
   };
 
-  // const onChangeWorkCondition = (
-  //   dayOfWeek: EDayOfWeek,
-  //   workConditionEntry: WorkConditionEntry[],
-  // ) => {
-  //   setWorkConditionOfWeek((prev) => ({
-  //     ...prev,
-  //     [dayOfWeek]: _.cloneDeep(workConditionEntry),
-  //   }));
-  // };
-
   const handleSetWorkCondition = (newConditions: WorkConditionOfWeek) => {
     handleChangeWorkCondition(newConditions);
     reset();

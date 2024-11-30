@@ -70,7 +70,7 @@ const DayEditor: React.FC<DayEditorProps> = ({
   if (!employees) return null;
 
   return (
-    <div className="p-4 border rounded-lg shadow bg-gray-50">
+    <div className="p-2 border rounded-lg shadow bg-gray-50">
       <h3 className="mb-2 text-xl font-semibold text-center">
         {format(DateDay.fromDayOfWeek(selectedWeek, dayOfWeek).date, 'MM-dd')}{' '}
         {dayOfWeek}
@@ -97,9 +97,9 @@ const DayEditor: React.FC<DayEditorProps> = ({
                 ))}
               <button
                 onClick={() => handleAddEntry(po)}
-                className="px-4 py-2 mt-2 text-white transition-colors bg-blue-500 rounded-lg hover:bg-blue-600"
+                className="mt-2 text-white transition-colors bg-blue-500 rounded-lg hover:bg-blue-600"
               >
-                <span className="font-bold text-lg">{po}</span> 추가
+                <span className="text-sm font-bold">✚ {po}</span>
               </button>
             </div>
           </li>
@@ -135,7 +135,7 @@ const WorkEntryForm: React.FC<WorkEntryFormProps> = ({
   const bgColor = color;
 
   const getBg = () => {
-    if (!entry.employee) return 'white';
+    if (!entry.employee) return '';
 
     if (isHover) return bgColorHover;
     return bgColor;
@@ -145,8 +145,8 @@ const WorkEntryForm: React.FC<WorkEntryFormProps> = ({
       style={{
         backgroundColor: getBg(),
       }}
-      className={`flex flex-col items-start px-2 py-1 rounded-lg transition-transform duration-200 
-        ${isHover ? 'transform scale-105' : ''}`}
+      className={`flex flex-col relative items-start px-2 py-1 rounded-lg transition-transform duration-200
+          ${isHover && 'transform scale-105'}`}
       onMouseEnter={() => setHoverId(entry.employee?.id ?? -1)}
       onMouseLeave={() => setHoverId(-1)}
     >
@@ -185,9 +185,9 @@ const WorkEntryForm: React.FC<WorkEntryFormProps> = ({
       </div>
       <button
         onClick={() => handleRemoveEntry(entry.id)}
-        className="self-end w-20 py-2 mt-2 text-white bg-red-500 rounded-lg hover:text-red-700"
+        className="absolute w-5 h-5 align-middle text-white bg-red-500 rounded-lg top-1 right-2 hover:text-red-700"
       >
-        삭제
+        ✖
       </button>
     </div>
   );

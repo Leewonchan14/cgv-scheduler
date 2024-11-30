@@ -79,7 +79,6 @@ const ScheduleEditor: React.FC<ScheduleEditorProps> = ({
     [selectedWeek],
   );
   const [hoverId, setHoverId] = useState(-1);
-  const [message, setMessage] = useState('');
 
   useEffect(() => {
     if (!schedule) return;
@@ -122,20 +121,15 @@ const ScheduleEditor: React.FC<ScheduleEditorProps> = ({
           ))}
       </div>
       <div className="text-center">
-        <CreateScheduleButton
-          workConditionOfWeek={workConditionOfWeek}
-          setMessage={(s) => setMessage(s)}
-        />
-        <div className="my-4 text-red-500">{message}</div>
+        <CreateScheduleButton workConditionOfWeek={workConditionOfWeek} />
       </div>
     </div>
   );
 };
 
 const CreateScheduleButton: React.FC<{
-  setMessage: (_: string) => void;
   workConditionOfWeek: WorkConditionOfWeek;
-}> = ({ workConditionOfWeek, setMessage }) => {
+}> = ({ workConditionOfWeek }) => {
   const search = useSearchParams();
   const query = new URLSearchParams(
     Object.fromEntries(search.entries()),
@@ -147,7 +141,9 @@ const CreateScheduleButton: React.FC<{
     const { success, data } = APIScheduleSchema.safeParse(workConditionOfWeek);
 
     if (!success || !data) {
-      setMessage('근무표를 생성할 수 없습니다. 근무자를 모두 선택해주세요.');
+      window.alert(
+        '근무표를 저장할 수 없습니다. 모든 값이 올바른지 확인하세요.',
+      );
       return;
     }
 

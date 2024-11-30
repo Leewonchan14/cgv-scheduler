@@ -195,7 +195,7 @@ const Cell: React.FC<{
   weekStartsOn: Day;
   onWeekSelect: (_: Date) => void;
 }> = ({ day, selectedWeek, weekStartsOn, onWeekSelect }) => {
-  const { data } = useQuery(scheduleQueryApi.findByDate(day));
+  const { data, isLoading } = useQuery(scheduleQueryApi.findByDate(day));
 
   const dateFormat = 'd';
   const formattedDate = format(day, dateFormat);
@@ -215,10 +215,12 @@ const Cell: React.FC<{
       <div>{formattedDate}</div>
       {/* 랜덤 색 위의 숫자 */}
       <div
-        style={{ backgroundColor: getColor(idx) }}
-        className={`text-xs rounded-full invisible ${!!cnt && '!visible'}`}
+        style={{ ...(!isLoading && { backgroundColor: getColor(idx) }) }}
+        className={`h-4 text-xs rounded-full bg-gray-300
+                      ${isLoading && 'animate-pulse'}
+                      ${!isLoading && cnt === 0 && 'invisible'}`}
       >
-        {cnt ?? 0}
+        {cnt}
       </div>
     </div>
   );

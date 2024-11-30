@@ -87,7 +87,7 @@ export const WorkConditionEntrySchema = ScheduleEntrySchema.extend({
   employee: IEmployeeSchema.optional(),
 });
 
-export const WorkConditionSchema = z.record(
+export const WorkConditionOfWeekSchema = z.record(
   z.nativeEnum(EDayOfWeek),
   z.array(WorkConditionEntrySchema).default([]),
 );
@@ -115,12 +115,12 @@ export const APIUserInputConditionSchema = z.object({
   employeeConditions: z.array(EmployeeConditionWithIdSchema),
   maxSchedule: z.number().max(100).min(0),
   maxWorkComboDayCount: z.number().default(2),
-  workConditionOfWeek: WorkConditionSchema,
+  workConditionOfWeek: WorkConditionOfWeekSchema,
 });
 
 export type IAbleWorkTime = z.infer<typeof IAbleWorkTimeSchema>;
 export type WorkConditionEntry = z.infer<typeof WorkConditionEntrySchema>;
-export type WorkConditionOfWeek = z.infer<typeof WorkConditionSchema>;
+export type WorkConditionOfWeek = z.infer<typeof WorkConditionOfWeekSchema>;
 export type EmployeeCondition = z.infer<typeof EmployeeConditionSchema>;
 export type IEmployeeSchemaType = z.infer<typeof IEmployeeSchema>;
 export type IScheduleEntry = z.infer<typeof ScheduleEntrySchema>;
