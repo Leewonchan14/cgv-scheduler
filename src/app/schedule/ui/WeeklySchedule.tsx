@@ -1,6 +1,7 @@
 'use client';
 
 import LoadingAnimation from '@/app/ui/loading/loading-animation';
+import { EDayOfWeek } from '@/entity/enums/EDayOfWeek';
 import { EWORK_POSITION } from '@/entity/enums/EWorkPosition';
 import { DateDay } from '@/entity/interface/DateDay';
 import { WorkConditionEntry, WorkConditionOfWeek } from '@/entity/types';
@@ -26,37 +27,20 @@ const WeeklyScheduleDisplay: React.FC<WeeklyScheduleProps> = ({
 
   return (
     <React.Fragment>
-      <div className="grid grid-cols-7 gap-1">
+      <div className="grid grid-cols-2 gap-1 md:grid-cols-7 text-nowrap">
         {new DateDay(startDate, 0)
           .get요일_시작부터_끝까지DayOfWeek()
           .map((day) => (
-            <div
+            <DayOfWeekDisplay
               key={day}
-              className="p-4 px-2 border rounded-lg shadow bg-gray-50"
-            >
-              <h3 className="mb-2 text-xl font-semibold text-center">{day}</h3>
-              <ul>
-                {EWORK_POSITION.map((pos) =>
-                  schedule[day]
-                    ?.filter((e) => e.workPosition === pos)
-                    .map((entry) => (
-                      <EntryScheduleDisplay
-                        key={entry.id}
-                        hoverId={hoverId}
-                        setHoverId={(id) => setHoverId(id)}
-                        entry={entry}
-                      />
-                    )),
-                )}
-              </ul>
-              <div className="w-full text-center bg-gray-300 rounded-lg">
-                근무인원 :{' '}
-                {_.uniq(schedule[day]?.map((e) => e.employee?.id)).length}
-              </div>
-            </div>
+              day={day}
+              schedule={schedule}
+              hoverId={hoverId}
+              setHoverId={setHoverId}
+            />
           ))}
       </div>
-      <div className="border-t-8 border-black my-4 border-opacity-80" />
+      <div className="my-4 border-t-8 border-black border-opacity-80" />
       {/* 이름, 근무자들의 일주일간 근무일수, 총 근무시간을 계산 */}
       <MetaDataDisplay
         schedule={schedule}
@@ -67,13 +51,50 @@ const WeeklyScheduleDisplay: React.FC<WeeklyScheduleProps> = ({
   );
 };
 
-interface DayScheduleProps {
+interface DayOfWeekDisplayProps {
+  day: EDayOfWeek;
+  schedule: WorkConditionOfWeek;
+  hoverId: number;
+  setHoverId: (id: number) => void;
+}
+
+const DayOfWeekDisplay: React.FC<DayOfWeekDisplayProps> = ({
+  day,
+  schedule,
+  hoverId,
+  setHoverId,
+}) => {
+  return (
+    <div className="p-4 px-2 border rounded-lg shadow bg-gray-50">
+      <h3 className="mb-2 text-xl font-semibold text-center">{day}</h3>
+      <ul>
+        {EWORK_POSITION.map((pos) =>
+          schedule[day]
+            ?.filter((e) => e.workPosition === pos)
+            .map((entry) => (
+              <EntryScheduleDisplay
+                key={entry.id}
+                hoverId={hoverId}
+                setHoverId={(id) => setHoverId(id)}
+                entry={entry}
+              />
+            )),
+        )}
+      </ul>
+      <div className="w-full text-center bg-gray-300 rounded-lg">
+        근무인원 : {_.uniq(schedule[day]?.map((e) => e.employee?.id)).length}
+      </div>
+    </div>
+  );
+};
+
+interface EntryScheduleDisplayProps {
   hoverId: number;
   setHoverId: (id: number) => void;
   entry: WorkConditionEntry;
 }
 
-const EntryScheduleDisplay: React.FC<DayScheduleProps> = ({
+const EntryScheduleDisplay: React.FC<EntryScheduleDisplayProps> = ({
   entry,
   hoverId,
   setHoverId,
@@ -95,7 +116,7 @@ const EntryScheduleDisplay: React.FC<DayScheduleProps> = ({
         style={{
           backgroundColor: isHover ? bgColorHover : bgColor,
         }}
-        className={`flex flex-col items-start px-2 py-1 rounded-lg transition-transform duration-200
+        className={`flex md:flex-col items-center justify-evenly md:items-start px-2 py-1 rounded-lg transition-transform duration-200
                       ${isHover && 'drop-shadow-2xl transform scale-105 font-bold'}
                       ${isHover && (isLight ? 'text-black' : 'text-white')}`}
       >
@@ -128,7 +149,7 @@ const MetaDataDisplay: React.FC<MetaDataDisplayProps> = ({
     .value();
 
   return (
-    <div className="grid grid-cols-7 gap-4 font-bold text-nowrap">
+    <div className="gap-4 font-bold md:grid md:grid-cols-7 text-nowrap">
       {employees.map((employee) => {
         const color = getColor(employee.id);
         const isLight = isLightColor(color);
@@ -142,8 +163,8 @@ const MetaDataDisplay: React.FC<MetaDataDisplayProps> = ({
             onMouseLeave={() => setHoverId(-1)}
             style={{ backgroundColor: isHover ? bgColorHover : bgColor }}
             key={employee?.id}
-            className={`p-4 rounded-lg transition-transform duration-200
-                          ${isHover && 'drop-shadow-2xl transform scale-105 font-bold'}
+            className={`p-4 rounded-lg transition-transform duration-200 hidden fixed top-0 left-0 right-0 md:relative md:block
+                          ${isHover && '!block drop-shadow-2xl transform scale-105 font-bold'}
                           ${isHover && (isLight ? 'text-black' : 'text-white')}`}
           >
             {/* 8공간중 2공간 차지 */}

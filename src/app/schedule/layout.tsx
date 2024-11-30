@@ -1,4 +1,4 @@
-import Sidenav from '@/app/ui/sidenav/sidenav';
+import SideNavLayout from '@/app/ui/sidenav/SideNavLayout';
 import { NextPage } from 'next';
 import React from 'react';
 
@@ -8,10 +8,9 @@ interface Props {
 
 const ScheduleLayout: NextPage<Props> = async ({ children }) => {
   return (
-    <div className="">
-      <Sidenav />
-      <div className="p-10 ml-sidenav-width">{children}</div>
-    </div>
+    <SideNavLayout>
+      <div className="p-4 md:p-10">{children}</div>
+    </SideNavLayout>
   );
 };
 

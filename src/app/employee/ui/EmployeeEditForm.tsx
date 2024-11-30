@@ -40,9 +40,9 @@ const EmployeeEditForm: NextPage<Props> = ({
         <label htmlFor="name" className="text-xl font-bold">
           근무자 이름
         </label>
-        <span className="my-2 font-bold text-red-400">
-          근무자 이름은 중복이 허용되지 않습니다. (근무표 가독성을 위해 중복을
-          피해주세요)
+        <span className="my-2 font-bold text-red-400 text-wrap">
+          근무자 이름은 중복이 허용되지 않습니다.
+          <div>(근무표 가독성을 위해 중복을 피해주세요)</div>
         </span>
         <input
           required

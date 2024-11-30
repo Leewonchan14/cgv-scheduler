@@ -3,7 +3,7 @@
 import { NextPage } from 'next';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { FC, Suspense } from 'react';
+import React, { FC, Suspense, useState } from 'react';
 
 enum NAV_ENUM {
   employee = 'employee',
@@ -26,19 +26,50 @@ const NAV_LINKS: {
 interface Props {}
 
 const Sidenav: NextPage<Props> = ({}) => {
+  const [isOpen, setIsOpen] = useState(true);
   return (
-    <div className="fixed h-screen bg-gray-100 min-w-sidenav-width px-6">
-      <Link className="flex flex-col gap-4 my-12 font-bold" href={'/employee'}>
-        <div className="text-2xl">CGV 주안역</div>
-        <div className="text-xl">근무자 관리 프로그램</div>
-      </Link>
-      <div className="flex flex-col gap-6">
-        <Suspense>
-          <SideLink nav={NAV_ENUM.employee} />
-          <SideLink nav={NAV_ENUM.schedule} />
-        </Suspense>
+    <React.Fragment>
+      <div
+        className={`fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-10 md:hidden ${!isOpen && 'hidden'}`}
+        onClick={() => setIsOpen(false)}
+      />
+      <div
+        onClick={() => setIsOpen(true)}
+        className={`fixed bottom-5 left-5 w-12 h-12 flex items-center justify-center bg-white border-2 border-gray-700 z-20 cursor-pointer rounded-lg visible md:invisible ${isOpen && 'hidden'}`}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="w-6 h-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M4 6h16M4 12h16m-7 6h7"
+          />
+        </svg>
       </div>
-    </div>
+      <div
+        className={`fixed h-screen px-6 transition-transform duration-300 ease-in-out -translate-x-full bg-gray-100 min-w-sidenav-width md:translate-x-0 z-10 ${isOpen && 'translate-x-0'}`}
+      >
+        <Link
+          className="flex flex-col gap-4 my-12 font-bold"
+          href={'/employee'}
+        >
+          <div className="text-2xl">CGV 주안역</div>
+          <div className="text-xl">근무자 관리 프로그램</div>
+        </Link>
+        <div className="flex flex-col gap-6">
+          <Suspense>
+            <SideLink nav={NAV_ENUM.employee} />
+            <SideLink nav={NAV_ENUM.schedule} />
+          </Suspense>
+        </div>
+      </div>
+    </React.Fragment>
   );
 };
 
