@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { IEmployee } from '@/entity/employee.entity';
 import { ERole } from '@/entity/enums/ERole';
 import { employeeService } from '@/feature/employee/employee.service';
