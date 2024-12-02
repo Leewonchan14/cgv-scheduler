@@ -1,6 +1,5 @@
 import {
   APIUserInputConditionSchema,
-  IEmployeeSchema,
   UserInputCondition,
   WorkConditionOfWeek,
 } from '@/entity/types';
@@ -17,41 +16,34 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: error }, { status: 400 });
   }
 
-  const {
-    employeeConditions,
-    maxSchedule,
-    maxWorkComboDayCount,
-    startDate,
-    workConditionOfWeek,
-  } = data;
+  try {
+    const { maxSchedule, employeeConditions: eConWithId } = data;
 
-  const ids = employeeConditions.map((emp) => emp.employee.id);
-  const employees = await employeeService(await appDataSource()).findByIds(ids);
-  employees.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
+    const employeeConditions = await employeeService(
+      await appDataSource(),
+    ).findByConditionWithId(eConWithId);
 
-  const userInputCondition: UserInputCondition = {
-    startDate,
-    maxWorkComboDayCount,
-    employeeConditions: employeeConditions.map((emp, idx) => ({
-      ...emp,
-      employee: IEmployeeSchema.parse(employees[idx]),
-    })),
-    workConditionOfWeek,
-  };
+    const userInputCondition: UserInputCondition = {
+      ...data,
+      employeeConditions,
+    };
 
-  const generator = new ScheduleGenerator(userInputCondition, maxSchedule);
-  await generator.generate(1000 * 5);
+    const generator = new ScheduleGenerator(userInputCondition, maxSchedule);
+    await generator.generate(1000 * 5);
 
-  if (generator.isTimeOut) {
-    return NextResponse.json(
-      { data: null, message: 'Timeout' },
-      { status: 500 },
-    );
+    if (generator.isTimeOut) {
+      return NextResponse.json(
+        { data: null, message: 'Timeout' },
+        { status: 400 },
+      );
+    }
+
+    const response = {
+      data: generator.getResult() as WorkConditionOfWeek[],
+    };
+
+    return NextResponse.json(response);
+  } catch (error) {
+    return NextResponse.json({ message: error }, { status: 500 });
   }
-
-  const response = {
-    data: generator.getResult() as WorkConditionOfWeek[],
-  };
-
-  return NextResponse.json(response);
 }
