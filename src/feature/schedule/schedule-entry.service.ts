@@ -5,6 +5,7 @@ import {
   ScheduleEntry,
 } from '@/entity/schedule-entry.entity';
 import { ISchedule, ScheduleSchema } from '@/entity/types';
+import { EmployeeService } from '@/feature/employee/employee.service';
 import {
   addDays,
   endOfMonth,
@@ -35,14 +36,18 @@ export class ScheduleEntryService implements IScheduleEntryService {
 
   async saveWeek(
     scheduleEntries: DeepPartial<ScheduleEntry>[],
-    employees: Employee[],
+    employeeService: EmployeeService,
   ): Promise<void> {
+    const ids = _.compact(scheduleEntries.map((e) => e.employee?.id));
+    const employees = await employeeService.findByIds(ids);
+
     const mapper = scheduleEntries.map((e) => {
       const entry = this.scheduleRep.create(e);
       entry.employee = employees.find((emp) => emp.id === e.employee!.id)!;
 
       return entry;
     });
+
     await this.scheduleRep.upsert(mapper, ['id']);
   }
 
