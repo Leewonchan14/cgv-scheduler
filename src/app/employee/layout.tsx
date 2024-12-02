@@ -1,4 +1,3 @@
-import Sidenav from '@/app/ui/sidenav/sidenav';
 import SideNavLayout from '@/app/ui/sidenav/SideNavLayout';
 import { NextPage } from 'next';
 import React from 'react';
