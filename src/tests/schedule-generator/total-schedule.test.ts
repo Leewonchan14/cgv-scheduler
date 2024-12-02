@@ -27,7 +27,7 @@ describe('스케쥴 생성기 테스트', () => {
 
     const date = dateDay.startDate;
 
-    const openMajum_2 = _.range(0, 2).map((i) =>
+    const openMarket_2 = _.range(0, 2).map((i) =>
       createMockWorkConditionEntry({
         date,
         employee: employees[i],
@@ -37,7 +37,7 @@ describe('스케쥴 생성기 테스트', () => {
       }),
     );
 
-    const closeMajum_2 = _.range(2, 4).map((i) =>
+    const closeMarket_2 = _.range(2, 4).map((i) =>
       createMockWorkConditionEntry({
         date,
         employee: employees[i],
@@ -80,8 +80,8 @@ describe('스케쥴 생성기 테스트', () => {
     multi_2[1].timeSlot = new WorkTimeSlot('16:00', '22:30');
 
     const workConditions = [
-      ...openMajum_2,
-      ...closeMajum_2,
+      ...openMarket_2,
+      ...closeMarket_2,
       ...openFloor_2,
       ...closeFloor_2,
       ...multi_2,

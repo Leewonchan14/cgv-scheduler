@@ -58,11 +58,7 @@ describe('동적 근무자 조건 필터링', () => {
       filteredEmployees,
     );
 
-    const filtered = await dynamicCondition
-      .add_조건1_현재_요일에_투입_안된_근무자()
-      .value();
-
-    console.log('filteredEmployees: ', filteredEmployees);
+    await dynamicCondition.add_조건1_현재_요일에_투입_안된_근무자().value();
 
     expect(filteredEmployees['가능한 근무자'].length).toEqual(1);
   });
@@ -114,7 +110,7 @@ describe('동적 근무자 조건 필터링', () => {
       filteredEmployees,
     );
 
-    const filtered = await dynamicCondition
+    await dynamicCondition
       .add_조건2_직원의_근무_최대_가능_일수를_안넘는_근무자()
       .value();
 
@@ -157,7 +153,7 @@ describe('동적 근무자 조건 필터링', () => {
       filteredEmployees,
     );
 
-    const filtered = await dynamicCondition
+    await dynamicCondition
       .add_조건3_전날_마감_근무후_다음날_오픈_근무가_아닌_근무자()
       .value();
 
@@ -209,7 +205,7 @@ describe('동적 근무자 조건 필터링', () => {
     );
 
     //then: 가능한 근무자는 2명 빠져야함
-    const filtered = await dynamicCondition
+    await dynamicCondition
       .add_조건4_최대_연속_근무일수를_안넘는_근무자()
       .value();
 
@@ -270,9 +266,7 @@ describe('동적 근무자 조건 필터링', () => {
     );
 
     //then: 멀티가 없으므로 필터링 되지 않아야함
-    const filtered = await dynamicCondition
-      .add_조건5_멀티_최소인원을_만족하는_근무자()
-      .value();
+    await dynamicCondition.add_조건5_멀티_최소인원을_만족하는_근무자().value();
 
     expect(filteredEmployees['가능한 근무자'].length).toEqual(1);
   });
@@ -323,9 +317,7 @@ describe('동적 근무자 조건 필터링', () => {
     );
 
     //then: 멀티가 없으므로 필터링 되지 않아야함
-    const filtered = await dynamicCondition
-      .add_조건5_멀티_최소인원을_만족하는_근무자()
-      .value();
+    await dynamicCondition.add_조건5_멀티_최소인원을_만족하는_근무자().value();
 
     expect(filteredEmployees['가능한 근무자'].length).toEqual(0);
   });
@@ -422,7 +414,7 @@ describe('동적 근무자 조건 필터링', () => {
   //     workCondition,
   //   );
 
-  //   const filtered = await dynamicCondition
+  //   await dynamicCondition
   //     .add_조건5_멀티_최소인원을_만족하는_근무자()
   //     .filter();
 

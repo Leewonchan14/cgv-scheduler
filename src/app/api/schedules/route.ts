@@ -41,16 +41,11 @@ export async function POST(request: NextRequest) {
   }
 
   const entries = _.chain(data).values().sort().flatten().value();
-  const ids: number[] = _.uniq(
-    entries
-      .filter((e) => !_.isUndefined(e.employee?.id))
-      .map((e) => e.employee?.id as number),
-  );
-  const employees = await employeeService(await appDataSource()).findByIds(ids);
+  const empService = employeeService(await appDataSource());
 
   await scheduleEntryService(await appDataSource()).saveWeek(
     entries,
-    employees,
+    empService,
   );
 
   return NextResponse.json({ data: null, message: 'Success' });
