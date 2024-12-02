@@ -10,6 +10,7 @@ import {
   APIUserInputConditionSchema,
   EmployeeCondition,
   WorkConditionOfWeek,
+  WorkConditionOfWeekSchema,
 } from '@/entity/types';
 import { useMutation } from '@tanstack/react-query';
 import { NextPage } from 'next';
@@ -23,7 +24,7 @@ const ScheduleGeneratorForm: NextPage<Props> = ({}: Props) => {
   const [selectedWeek] = useQueryParam(z.coerce.date(), SELECTED_WEEK);
 
   const [workConditionOfWeek, setWorkConditionOfWeek] =
-    useState<WorkConditionOfWeek>({});
+    useState<WorkConditionOfWeek>(WorkConditionOfWeekSchema.parse({}));
 
   const [selectEmployeeConditions, setSelectEmployeeConditions] = useState<
     EmployeeCondition[]
