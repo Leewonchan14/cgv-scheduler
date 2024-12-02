@@ -1,4 +1,10 @@
 import { Employee } from '@/entity/employee.entity';
+import {
+  EmployeeConditionWithId,
+  IEmployeeSchema,
+  IEmployeeSchemaType,
+} from '@/entity/types';
+import _ from 'lodash';
 import { DeepPartial, In, Like, Repository } from 'typeorm';
 import { DataSource } from 'typeorm/browser';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity.js';
@@ -27,12 +33,24 @@ export class EmployeeService {
     this.employeeRepository = this.appDataSource.getRepository(Employee);
   }
 
-  async findByIds(ids: number[]) {
+  async findByConditionWithId(employeeConditions: EmployeeConditionWithId[]) {
+    const ids = _.uniq(employeeConditions.map((e) => e.employee.id));
+    const employees = await this.findByIds(ids);
+    return employeeConditions.map((emp, idx) => ({
+      ...emp,
+      employee: employees[idx],
+    }));
+  }
+
+  async findByIds(ids: number[]): Promise<IEmployeeSchemaType[]> {
+    ids = _.uniq(ids);
     const employees = await this.employeeRepository.find({
       where: { id: In(ids) },
     });
 
-    return employees.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
+    return employees
+      .sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id))
+      .map((e) => IEmployeeSchema.parse(e));
   }
 
   findOne = (id: number) => {
