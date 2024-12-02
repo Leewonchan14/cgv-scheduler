@@ -43,6 +43,7 @@ describe('동적 근무자 조건 필터링', () => {
     const workConditionOfWeek = WorkConditionOfWeekSchema.parse({
       [dayOfWeek as EDayOfWeek]: workConditionOfDay,
     });
+    const filteredEmployees = { '가능한 근무자': [aCon, bCon, cCon] };
     // then: a, b는 제외되어야함, c만 가능해야함
     const dynamicCondition = new DynamicEmployeeConditions(
       wCon3,
@@ -54,14 +55,16 @@ describe('동적 근무자 조건 필터링', () => {
         workConditionOfWeek,
         startDate: wCon1.date,
       },
-      { '가능한 근무자': [aCon, bCon, cCon] },
+      filteredEmployees,
     );
 
     const filtered = await dynamicCondition
       .add_조건1_현재_요일에_투입_안된_근무자()
       .value();
 
-    expect(filtered.length).toEqual(1);
+    console.log('filteredEmployees: ', filteredEmployees);
+
+    expect(filteredEmployees['가능한 근무자'].length).toEqual(1);
   });
 
   test('filter_직원의_근무_최대_가능_일수를_안넘는_근무자', async () => {
@@ -95,6 +98,7 @@ describe('동적 근무자 조건 필터링', () => {
       [dayOfWeek]: [wCon1, wCon2, wCon3],
     });
 
+    const filteredEmployees = { '가능한 근무자': [eCon1] };
     // then: 3번째에서는 제외되어야함
 
     const dynamicCondition = new DynamicEmployeeConditions(
@@ -107,14 +111,14 @@ describe('동적 근무자 조건 필터링', () => {
         workConditionOfWeek,
         maxWorkComboDayCount: 100,
       },
-      { '가능한 근무자': [eCon1] },
+      filteredEmployees,
     );
 
     const filtered = await dynamicCondition
       .add_조건2_직원의_근무_최대_가능_일수를_안넘는_근무자()
       .value();
 
-    expect(filtered.length).toEqual(0);
+    expect(filteredEmployees['가능한 근무자'].length).toEqual(0);
   });
 
   test('filter_전날_마감_근무후_다음날_오픈_근무가_아닌_근무자', async () => {
@@ -139,6 +143,7 @@ describe('동적 근무자 조건 필터링', () => {
       [dayOfWeek]: [wCon1, wCon2],
     });
 
+    const filteredEmployees = { '가능한 근무자': [aCon1] };
     const dynamicCondition = new DynamicEmployeeConditions(
       wCon2,
       schedule,
@@ -149,14 +154,14 @@ describe('동적 근무자 조건 필터링', () => {
         workConditionOfWeek,
         maxWorkComboDayCount: 100,
       },
-      { '가능한 근무자': [aCon1] },
+      filteredEmployees,
     );
 
     const filtered = await dynamicCondition
       .add_조건3_전날_마감_근무후_다음날_오픈_근무가_아닌_근무자()
       .value();
 
-    expect(filtered.length).toEqual(0);
+    expect(filteredEmployees['가능한 근무자'].length).toEqual(0);
   });
 
   test('filter_최대_연속_근무일수를_안넘는_근무자', async () => {
@@ -189,6 +194,7 @@ describe('동적 근무자 조건 필터링', () => {
       [dateDay3.dayOfWeek]: [wCon3],
     });
 
+    const filteredEmployees = { '가능한 근무자': [eCon1] };
     const dynamicCondition = new DynamicEmployeeConditions(
       wCon3,
       mockSchedule,
@@ -199,7 +205,7 @@ describe('동적 근무자 조건 필터링', () => {
         workConditionOfWeek,
         maxWorkComboDayCount: 최대_연속일,
       },
-      { '가능한 근무자': [eCon1] },
+      filteredEmployees,
     );
 
     //then: 가능한 근무자는 2명 빠져야함
@@ -207,7 +213,7 @@ describe('동적 근무자 조건 필터링', () => {
       .add_조건4_최대_연속_근무일수를_안넘는_근무자()
       .value();
 
-    expect(filtered.length).toEqual(0);
+    expect(filteredEmployees['가능한 근무자'].length).toEqual(0);
   });
 
   test('멀티가 없을땐 필터링 되지 않음', async () => {
@@ -249,6 +255,7 @@ describe('동적 근무자 조건 필터링', () => {
     // TODO 입력받게 해야함 userInputCondition에서
     const _최대_멀티_인원 = 3;
 
+    const filteredEmployees = { '가능한 근무자': [eCon1] };
     const dynamicCondition = new DynamicEmployeeConditions(
       wCon3,
       mockSchedule,
@@ -259,7 +266,7 @@ describe('동적 근무자 조건 필터링', () => {
         workConditionOfWeek,
         startDate: dateDay.startDate,
       },
-      { '가능한 근무자': [eCon1] },
+      filteredEmployees,
     );
 
     //then: 멀티가 없으므로 필터링 되지 않아야함
@@ -267,7 +274,7 @@ describe('동적 근무자 조건 필터링', () => {
       .add_조건5_멀티_최소인원을_만족하는_근무자()
       .value();
 
-    expect(filtered.length).toEqual(1);
+    expect(filteredEmployees['가능한 근무자'].length).toEqual(1);
   });
 
   test('멀티가 있을때 필터링 된다.', async () => {
@@ -301,6 +308,7 @@ describe('동적 근무자 조건 필터링', () => {
     //when: 최대 멀티 조건 인원이 3명이라 했을때
     const 최대_멀티_인원 = 3;
 
+    const filteredEmployees = { '가능한 근무자': [eCon1] };
     const dynamicCondition = new DynamicEmployeeConditions(
       wCon3,
       mockSchedule,
@@ -311,7 +319,7 @@ describe('동적 근무자 조건 필터링', () => {
         workConditionOfWeek,
         maxWorkComboDayCount: 최대_멀티_인원,
       },
-      { '가능한 근무자': [eCon1] },
+      filteredEmployees,
     );
 
     //then: 멀티가 없으므로 필터링 되지 않아야함
@@ -319,7 +327,7 @@ describe('동적 근무자 조건 필터링', () => {
       .add_조건5_멀티_최소인원을_만족하는_근무자()
       .value();
 
-    expect(filtered.length).toEqual(0);
+    expect(filteredEmployees['가능한 근무자'].length).toEqual(0);
   });
 
   // test('add_조건5_멀티_최소인원을_만족하는_근무자', async () => {

@@ -66,7 +66,7 @@ export class DynamicEmployeeConditions extends FilterEmployee {
     this.maxWorkComboDayCount = maxWorkComboDayCount;
     this.workConditionOfWeek = workConditionOfWeek;
 
-    this.workConditions = workConditionOfWeek[this.dateDay.dayOfWeek] ?? [];
+    this.workConditions = workConditionOfWeek[this.dateDay.dayOfWeek];
 
     this.일주일중_전날까지_배치된_모든_스케쥴 = this.dateDay
       .get요일_시작부터_지금_전날까지()
@@ -313,6 +313,8 @@ export class DynamicEmployeeConditions extends FilterEmployee {
         rt.push(employeeCon);
       }
     }
+
+    this.filterEmployees['가능한 근무자'] = rt;
 
     return rt;
   }

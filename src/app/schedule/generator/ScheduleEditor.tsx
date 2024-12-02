@@ -4,7 +4,7 @@ import { scheduleMutateApi } from '@/app/schedule/api/mutate';
 import { scheduleQueryApi } from '@/app/schedule/api/queryoption';
 import DayEditor from '@/app/schedule/generator/ScheduleDayEditor';
 import LoadingAnimation from '@/app/ui/loading/loading-animation';
-import { EDAY_OF_WEEKS, EDayOfWeek } from '@/entity/enums/EDayOfWeek';
+import { EDayOfWeek } from '@/entity/enums/EDayOfWeek';
 import { EWorkPosition } from '@/entity/enums/EWorkPosition';
 import { EWorkTime } from '@/entity/enums/EWorkTime';
 import { DateDay } from '@/entity/interface/DateDay';
@@ -22,41 +22,40 @@ import React, { useEffect, useMemo, useState } from 'react';
 
 const getInitialWorkConditionOfWeek = (startDate: Date) => {
   const startDateDay = new DateDay(startDate, 0);
-  return _.zipObject(
-    EDAY_OF_WEEKS,
-    startDateDay.get요일_시작부터_끝까지DayOfWeek().map(
-      (dayOfWeek) =>
-        [
-          {
-            id: uuid(),
-            date: DateDay.fromDayOfWeek(startDate, dayOfWeek).date,
-            workPosition: EWorkPosition.매점,
-            workTime: EWorkTime.오픈,
-            timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
-          },
-          {
-            id: uuid(),
-            date: DateDay.fromDayOfWeek(startDate, dayOfWeek).date,
-            workPosition: EWorkPosition.매점,
-            workTime: EWorkTime.마감,
-            timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.마감),
-          },
-          {
-            id: uuid(),
-            date: DateDay.fromDayOfWeek(startDate, dayOfWeek).date,
-            workPosition: EWorkPosition.플로어,
-            workTime: EWorkTime.오픈,
-            timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
-          },
-          {
-            id: uuid(),
-            date: DateDay.fromDayOfWeek(startDate, dayOfWeek).date,
-            workPosition: EWorkPosition.플로어,
-            workTime: EWorkTime.마감,
-            timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.마감),
-          },
-        ] as WorkConditionEntry[],
-    ),
+  return Object.fromEntries(
+    startDateDay.get요일_시작부터_끝까지DayOfWeek().map((dayOfWeek) => [
+      dayOfWeek,
+      [
+        {
+          id: uuid(),
+          date: DateDay.fromDayOfWeek(startDate, dayOfWeek).date,
+          workPosition: EWorkPosition.매점,
+          workTime: EWorkTime.오픈,
+          timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
+        },
+        {
+          id: uuid(),
+          date: DateDay.fromDayOfWeek(startDate, dayOfWeek).date,
+          workPosition: EWorkPosition.매점,
+          workTime: EWorkTime.마감,
+          timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.마감),
+        },
+        {
+          id: uuid(),
+          date: DateDay.fromDayOfWeek(startDate, dayOfWeek).date,
+          workPosition: EWorkPosition.플로어,
+          workTime: EWorkTime.오픈,
+          timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
+        },
+        {
+          id: uuid(),
+          date: DateDay.fromDayOfWeek(startDate, dayOfWeek).date,
+          workPosition: EWorkPosition.플로어,
+          workTime: EWorkTime.마감,
+          timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.마감),
+        },
+      ] as WorkConditionEntry[],
+    ]),
   ) as WorkConditionOfWeek;
 };
 
@@ -114,7 +113,7 @@ const ScheduleEditor: React.FC<ScheduleEditorProps> = ({
               hoverId={hoverId}
               setHoverId={(id) => setHoverId(id)}
               dayOfWeek={dayOfWeek}
-              entries={workConditionOfWeek[dayOfWeek] ?? []}
+              entries={workConditionOfWeek[dayOfWeek]}
               onChangeWorkCondition={onChangeWorkCondition}
               selectedWeek={selectedWeek}
             />

@@ -151,9 +151,9 @@ export class StaticEmployeeCondition extends FilterEmployee {
       // 캐시에 저장
       this.possibleEmployeesCache[this.key] = filtered;
     }
-    const possible = this.possibleEmployeesCache[this.key];
+    const possible = _.cloneDeep(this.possibleEmployeesCache[this.key]);
     // filters 에 저장
-    this.filterEmployees['가능한 근무자'].concat(possible);
+    this.filterEmployees['가능한 근무자'] = possible;
 
     return possible;
   }

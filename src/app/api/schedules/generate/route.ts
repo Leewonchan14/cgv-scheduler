@@ -1,3 +1,4 @@
+import { DateDay } from '@/entity/interface/DateDay';
 import {
   APIUserInputConditionSchema,
   UserInputCondition,
@@ -6,6 +7,7 @@ import {
 import { employeeService } from '@/feature/employee/employee.service';
 import { ScheduleGenerator } from '@/feature/schedule/schedule-generator';
 import { appDataSource } from '@/share/libs/typerom/data-source';
+import _ from 'lodash';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
@@ -17,7 +19,20 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { maxSchedule, employeeConditions: eConWithId } = data;
+    const {
+      maxSchedule,
+      employeeConditions: eConWithId,
+      startDate,
+      workConditionOfWeek,
+    } = data;
+
+    const correctWorkOfWeek = _.chain(workConditionOfWeek)
+      .values()
+      .flatten()
+      .groupBy((entry) =>
+        DateDay.fromDate(startDate, entry.date).getDayOfWeek(),
+      )
+      .value() as WorkConditionOfWeek;
 
     const employeeConditions = await employeeService(
       await appDataSource(),
@@ -26,6 +41,7 @@ export async function POST(request: Request) {
     const userInputCondition: UserInputCondition = {
       ...data,
       employeeConditions,
+      workConditionOfWeek: correctWorkOfWeek,
     };
 
     const generator = new ScheduleGenerator(userInputCondition, maxSchedule);

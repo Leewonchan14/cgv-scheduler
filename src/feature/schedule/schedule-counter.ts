@@ -23,8 +23,7 @@ export class ScheduleCounter {
     return this.employeeCounter[employee.id] ?? 0;
   }
 
-  public countEmployee(employee?: IEmployeeSchemaType) {
-    if (!employee) return;
+  public countEmployee(employee: IEmployeeSchemaType) {
     this.employeeCounter[employee.id] ??= 0;
     this.employeeCounter[employee.id]++;
     return this.employeeCounter[employee.id];

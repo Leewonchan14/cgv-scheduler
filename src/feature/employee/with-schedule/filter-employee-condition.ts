@@ -27,6 +27,7 @@ export class FilterEmployee {
         EmployeeCondition[]
       >,
     )
+      .omit('가능한 근무자')
       .values()
       .flatten()
       .some({ employee: { id: employeeConditions.employee.id } })

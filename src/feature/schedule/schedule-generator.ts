@@ -3,6 +3,7 @@ import { DateDay } from '@/entity/interface/DateDay';
 import { ScheduleEntry } from '@/entity/schedule-entry.entity';
 import {
   EmployeeCondition,
+  IEmployeeSchemaType,
   ISchedule,
   UserInputCondition,
   WorkConditionEntry,
@@ -54,16 +55,18 @@ export class ScheduleGenerator {
 
   private prefixRecursive(
     workConditionEntry: WorkConditionEntry,
-    employeeCon: EmployeeCondition,
+    employee: IEmployeeSchemaType,
     dayOfWeek: EDayOfWeek,
   ) {
     this.schedule[dayOfWeek].push({
-      employee: employeeCon,
+      employee,
       ...cloneDeep(workConditionEntry),
     } as ScheduleEntry);
 
     // 재귀함수로 배치한 근무자만 카운트
-    this.scheduleCounter.countEmployee(workConditionEntry.employee);
+    if (!workConditionEntry.employee) {
+      this.scheduleCounter.countEmployee(employee);
+    }
   }
 
   private async recursive(depth: number) {
@@ -102,9 +105,13 @@ export class ScheduleGenerator {
 
       // 가능한 사람이 있으면 스케줄에 추가하고 다음 재귀 호출
       for (const employeeCondition of filtered['가능한 근무자']) {
-        this.prefixRecursive(workConditionEntry, employeeCondition, dayOfWeek);
+        this.prefixRecursive(
+          workConditionEntry,
+          employeeCondition.employee,
+          dayOfWeek,
+        );
         await this.recursive(depth + 1);
-        this.postRecursive(dayOfWeek);
+        this.postRecursive(dayOfWeek, workConditionEntry);
       }
 
       // 다음 요일로 넘어가기
@@ -141,7 +148,7 @@ export class ScheduleGenerator {
       .value();
 
     /******************** 동적 조건들 ********************/
-    await new DynamicEmployeeConditions(
+    filteredEmployees['가능한 근무자'] = await new DynamicEmployeeConditions(
       workConditionEntry,
       this.schedule,
       { findPreviousSchedule: async () => [] },
@@ -167,11 +174,16 @@ export class ScheduleGenerator {
       .value();
   }
 
-  private postRecursive(dayOfWeek: EDayOfWeek) {
+  private postRecursive(
+    dayOfWeek: EDayOfWeek,
+    workConditionEntry: WorkConditionEntry,
+  ) {
     const pushed = this.schedule[dayOfWeek].pop();
 
     // 재귀함수로 배치한 근무자만 카운트
-    this.scheduleCounter.discountEmployee(pushed?.employee);
+    if (!workConditionEntry.employee) {
+      this.scheduleCounter.discountEmployee(pushed?.employee);
+    }
   }
 
   /*
