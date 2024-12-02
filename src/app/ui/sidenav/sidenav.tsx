@@ -26,7 +26,7 @@ const NAV_LINKS: {
 interface Props {}
 
 const Sidenav: NextPage<Props> = ({}) => {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   return (
     <React.Fragment>
       <div
