@@ -17,11 +17,11 @@ describe('정적 근무자 조건 필터링', () => {
 
     const staticCondition = new StaticEmployeeCondition(
       wCon1,
-      [eCon1, eCon2],
       _.cloneDeep(mockPossibleEmployeesCache),
+      { '가능한 근무자': [eCon1, eCon2] },
     );
 
-    const filtered = staticCondition.add_조건1_직원의_가능한_포지션().filter();
+    const filtered = staticCondition.add_조건1_직원의_가능한_포지션().value();
     expect(filtered.length).toEqual(1);
 
     expect(filtered[0].employee.id).toEqual(eCon2.employee.id);
@@ -36,11 +36,11 @@ describe('정적 근무자 조건 필터링', () => {
 
     const staticCondition = new StaticEmployeeCondition(
       wCon1,
-      [eCon1, eCon2],
       _.cloneDeep(mockPossibleEmployeesCache),
+      { '가능한 근무자': [eCon1, eCon2] },
     );
 
-    const filtered = staticCondition.add_조건2_직원의_가능한_시간().filter();
+    const filtered = staticCondition.add_조건2_직원의_가능한_시간().value();
     expect(filtered.length).toEqual(1);
 
     expect(filtered[0].employee.id).toEqual(eCon2.employee.id);
@@ -55,11 +55,11 @@ describe('정적 근무자 조건 필터링', () => {
 
     const staticCondition = new StaticEmployeeCondition(
       wCon1,
-      [eCon1, eCon2],
       _.cloneDeep(mockPossibleEmployeesCache),
+      { '가능한 근무자': [eCon1, eCon2] },
     );
 
-    const filtered = staticCondition.add_조건3_직원의_추가_휴무일().filter();
+    const filtered = staticCondition.add_조건3_직원의_추가_휴무일().value();
     expect(filtered.length).toEqual(1);
 
     expect(filtered[0].employee.id).toEqual(eCon2.employee.id);

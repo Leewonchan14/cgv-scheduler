@@ -2,7 +2,10 @@ import { EDayOfWeek } from '@/entity/enums/EDayOfWeek';
 import { EWorkTime } from '@/entity/enums/EWorkTime';
 import { DateDay } from '@/entity/interface/DateDay';
 import { EmployeeCondition, WorkConditionEntry } from '@/entity/types';
-import { FilterEmployee } from '@/feature/employee/with-schedule/filter-employee-condition';
+import {
+  FilteredEmployees,
+  FilterEmployee,
+} from '@/feature/employee/with-schedule/filter-employee-condition';
 import { format } from 'date-fns';
 import _ from 'lodash';
 
@@ -13,24 +16,33 @@ import _ from 'lodash';
  * 3. 직원의 추가 휴무일인지 체크
  */
 
-export enum StaticConditionKey {
+/* export enum StaticConditionKey {
   '불가능한 표지션' = '불가능한 표지션',
   '불가능한 요일 및 시간' = '불가능한 요일 및 시간',
   '추가로 쉬는날' = '추가로 쉬는날',
+} */
+
+declare module './filter-employee-condition' {
+  interface FilteredEmployees {
+    '불가능한 표지션'?: EmployeeCondition[];
+    '불가능한 요일 및 시간'?: EmployeeCondition[];
+    '추가로 쉬는날'?: EmployeeCondition[];
+  }
 }
 
 export class StaticEmployeeCondition extends FilterEmployee {
   private dayOfWeek: EDayOfWeek;
   private key: string;
   private conditions: ((_: EmployeeCondition) => boolean)[] = [];
+  private employeeConditions: EmployeeCondition[];
   constructor(
     private workConditionEntry: WorkConditionEntry,
-    private employeeConditions: EmployeeCondition[],
     private possibleEmployeesCache: {
       [key: string]: EmployeeCondition[];
     },
+    filteredEmployees: FilteredEmployees,
   ) {
-    super();
+    super(filteredEmployees);
     this.dayOfWeek = new DateDay(
       this.workConditionEntry.date,
       0,
@@ -41,6 +53,8 @@ export class StaticEmployeeCondition extends FilterEmployee {
     if (this._checkCache()) {
       this.employeeConditions = _.cloneDeep(possibleEmployeesCache[this.key]);
     }
+
+    this.employeeConditions = filteredEmployees['가능한 근무자'];
   }
 
   static getCacheKey({
@@ -65,11 +79,7 @@ export class StaticEmployeeCondition extends FilterEmployee {
         this.workConditionEntry.workPosition,
       );
 
-      this.addFilters(
-        isAble,
-        StaticConditionKey['불가능한 표지션'],
-        employeeCondition,
-      );
+      this.addFilters(isAble, '불가능한 표지션', employeeCondition);
 
       return isAble;
     };
@@ -94,11 +104,7 @@ export class StaticEmployeeCondition extends FilterEmployee {
               this.workConditionEntry.workTime,
             );
 
-      this.addFilters(
-        isAble,
-        StaticConditionKey['불가능한 요일 및 시간'],
-        employeeCondition,
-      );
+      this.addFilters(isAble, '불가능한 요일 및 시간', employeeCondition);
 
       return isAble;
     };
@@ -114,11 +120,7 @@ export class StaticEmployeeCondition extends FilterEmployee {
 
       const isAble = !additionalUnableDayOff?.includes(this.dayOfWeek);
 
-      this.addFilters(
-        isAble,
-        StaticConditionKey['추가로 쉬는날'],
-        employeeCondition,
-      );
+      this.addFilters(isAble, '추가로 쉬는날', employeeCondition);
 
       return isAble;
     };
@@ -136,19 +138,23 @@ export class StaticEmployeeCondition extends FilterEmployee {
     return false;
   }
 
-  filter(): EmployeeCondition[] {
-    // 캐시가 있으면 캐시 반환
-    if (this._checkCache()) return this.possibleEmployeesCache[this.key];
+  public value(): EmployeeCondition[] {
+    // 캐시가 없으면
+    if (!this._checkCache()) {
+      // 모든 조건을 만족하는 직원만 필터링
+      const filtered = this.employeeConditions.filter((employeeCondition) => {
+        return this.conditions.every((condition) =>
+          condition.call(this, employeeCondition),
+        );
+      });
 
-    // 모든 조건을 만족하는 직원만 필터링
-    const filtered = this.employeeConditions.filter((employeeCondition) => {
-      return this.conditions.every((condition) =>
-        condition.call(this, employeeCondition),
-      );
-    });
+      // 캐시에 저장
+      this.possibleEmployeesCache[this.key] = filtered;
+    }
+    const possible = this.possibleEmployeesCache[this.key];
+    // filters 에 저장
+    this.filterEmployees['가능한 근무자'].concat(possible);
 
-    // 캐시에 저장
-    this.possibleEmployeesCache[this.key] = filtered;
-    return filtered;
+    return possible;
   }
 }

@@ -1,40 +1,43 @@
 import { EmployeeCondition } from '@/entity/types';
 import _ from 'lodash';
 
-export type FilteredEmployeeCon = {
-  message: string;
-  employeeConditions: EmployeeCondition;
-};
+export interface FilteredEmployees {
+  '가능한 근무자': EmployeeCondition[];
+}
 
 export class FilterEmployee {
-  filters: FilteredEmployeeCon[] = [];
+  filterEmployees: FilteredEmployees;
 
-  constructor(filters: FilteredEmployeeCon[] = []) {
-    this.filters = filters;
+  constructor(filters: FilteredEmployees) {
+    this.filterEmployees = filters;
   }
 
   public addFilters(
     isAble: boolean,
-    message: string,
+    conditionKey: keyof FilteredEmployees,
     employeeConditions: EmployeeCondition,
   ) {
     // 필터링 되지 않았다면 return
     if (isAble) return;
 
     // 이미 필터링 되었다면 return
-    if (
-      _.some(this.filters, {
-        employeeConditions: {
-          employee: { id: employeeConditions.employee.id },
-        },
-      })
+    const preFiltered = _.chain(
+      this.filterEmployees as Record<
+        keyof FilteredEmployees,
+        EmployeeCondition[]
+      >,
     )
-      return;
+      .values()
+      .flatten()
+      .some({ employee: { id: employeeConditions.employee.id } })
+      .value();
 
-    this.filters.push({ message, employeeConditions });
+    if (preFiltered) return;
+
+    (this.filterEmployees[conditionKey] ??= []).push(employeeConditions);
   }
 
   public getFilters() {
-    return this.filters;
+    return this.filterEmployees;
   }
 }

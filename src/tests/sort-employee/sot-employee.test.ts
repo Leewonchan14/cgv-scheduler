@@ -38,7 +38,7 @@ describe('근무자 정렬 테스트', () => {
 
     const actualSorted = new SortEmployeeByWorkCondition(employeeConditions)
       .add_조건2_근무_가능한_요일이_적은_순()
-      .sort();
+      .value();
 
     const expectSorted = employeeConditions.sort((a, b) => {
       const aScore = sortBy[a.employee.id];
@@ -70,7 +70,7 @@ describe('근무자 정렬 테스트', () => {
     // then 근무 가능한 최대 일수가 4,3,2,1 인 순서로 정렬된다.
     const actualSorted = new SortEmployeeByWorkCondition(employeeConditions)
       .add_조건3_최대_근무_가능_일수가_큰순()
-      .sort();
+      .value();
 
     const expectSorted = employeeConditions.sort(
       (a, b) => b.ableMaxWorkCount - a.ableMaxWorkCount,
