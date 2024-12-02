@@ -8,15 +8,18 @@ import _ from 'lodash';
 // 4. 최대 근무 가능 일수가 큰순
 // 5. 나머지는 랜덤
 export class SortEmployeeByWorkCondition {
+  constructor(private employeeConditions: EmployeeCondition[]) {}
   private conditions: ((
     _: EmployeeCondition,
     __: EmployeeCondition,
   ) => number)[] = [];
-  constructor(private employeeConditions: EmployeeCondition[]) {}
 
   // 근무 가능한 요일이 적은 순
   add_조건2_근무_가능한_요일이_적은_순() {
-    const condition = (a: EmployeeCondition, b: EmployeeCondition) => {
+    const condition = (
+      a: EmployeeCondition,
+      b: EmployeeCondition,
+    ) => {
       const get근무가능요일수 = (condition: EmployeeCondition) =>
         _.chain(condition.employee.ableWorkTime)
           .omitBy(_.isUndefined)
@@ -45,7 +48,10 @@ export class SortEmployeeByWorkCondition {
   }
 
   add_조건4_최소_근무_일수가_큰순() {
-    const condition = (a: EmployeeCondition, b: EmployeeCondition) => {
+    const condition = (
+      a: EmployeeCondition,
+      b: EmployeeCondition,
+    ) => {
       if (a.ableMinWorkCount < b.ableMinWorkCount) return 1;
       if (a.ableMinWorkCount > b.ableMinWorkCount) return -1;
       return 0;
@@ -57,7 +63,10 @@ export class SortEmployeeByWorkCondition {
 
   // 최대 근무 가능 일수가 큰순
   add_조건3_최대_근무_가능_일수가_큰순() {
-    const condition = (a: EmployeeCondition, b: EmployeeCondition) => {
+    const condition = (
+      a: EmployeeCondition,
+      b: EmployeeCondition,
+    ) => {
       if (a.ableMaxWorkCount < b.ableMaxWorkCount) return -1;
       if (a.ableMaxWorkCount > b.ableMaxWorkCount) return 1;
       return 0;
@@ -68,7 +77,7 @@ export class SortEmployeeByWorkCondition {
     return this;
   }
 
-  sort() {
+  value() {
     return this.employeeConditions.sort((a, b) => {
       const reduce = this.conditions.reduce((acc, condition) => {
         if (acc !== 0) return acc;
