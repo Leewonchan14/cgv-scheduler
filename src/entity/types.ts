@@ -3,7 +3,6 @@ import { ERole } from '@/entity/enums/ERole';
 import { EWorkPosition } from '@/entity/enums/EWorkPosition';
 import { EWorkTime } from '@/entity/enums/EWorkTime';
 import { WorkTimeSlotSchema } from '@/feature/schedule/work-time-slot-handler';
-import { uuid } from '@/share/libs/util/uuid';
 import { z } from 'zod';
 
 // export interface APIUserInputCondition {
@@ -40,7 +39,6 @@ export const IEmployeeSchema = z.object({
 });
 
 export const EmployeeConditionSchema = z.object({
-  id: z.string().default(uuid()),
   employee: IEmployeeSchema,
   ableMinWorkCount: z.number().default(1),
   ableMaxWorkCount: z.number().default(4),
@@ -81,9 +79,7 @@ export const WorkConditionOfWeekSchema = z.object({
   [EDayOfWeek.일]: z.array(WorkConditionEntrySchema).default([]),
 });
 
-export const EmployeeConditionWithIdSchema = EmployeeConditionSchema.omit({
-  employee: true,
-}).extend({
+export const EmployeeConditionWithIdSchema = EmployeeConditionSchema.extend({
   employee: z.object({
     id: z.coerce.number(),
   }),
