@@ -148,29 +148,29 @@ export class DynamicEmployeeConditions extends FilterEmployee {
 
   add_조건4_최대_연속_근무일수를_안넘는_근무자() {
     const condition = async (employeeCondition: EmployeeCondition) => {
-      // TODO 목요일일때 데이터 베이스와 연동해서 이전 일을 가져오는 로직을 추가해야 함
       // 현재 요일 좌,우로 최대 근무일수만큼의 스케쥴을 확인해 최대근무일수보다 많이 근무했는지 확인한다.
 
       // 이전 스케쥴을 가져온다.
       const prev = this.dateDay
         .get요일_시작부터_지금_전날까지()
+        .slice(-this.userInput.maxWorkComboDayCount)
         .map((day) => this.workConditionOfWeek[day]);
 
       const cloneHead = _.clone(this.headSchedule);
 
       while (
         cloneHead.length > 0 &&
-        prev.length < this.userInput.maxWorkComboDayCount - 1
+        prev.length < this.userInput.maxWorkComboDayCount
       ) {
         prev.unshift(cloneHead.pop()!);
       }
 
-      // 이전 스케쥴이 maxWorkComboDayCount - 1 만큼 일했다면 false
+      // 이전 스케쥴이 maxWorkComboDayCount 만큼 일했다면 false
       const prevCnt = _.sumBy(prev.flat(), (s) =>
         s.employee?.id === employeeCondition.employee.id ? 1 : 0,
       );
 
-      if (prevCnt >= this.userInput.maxWorkComboDayCount - 1) {
+      if (prevCnt >= this.userInput.maxWorkComboDayCount) {
         this.addFilters(
           false,
           '최대 연속 근무일수를 넘었음',
@@ -182,23 +182,24 @@ export class DynamicEmployeeConditions extends FilterEmployee {
       // 다음 스케쥴을 가져온다.
       const next = this.dateDay
         .get요일_내일부터_끝까지DateDay()
+        .slice(0, this.userInput.maxWorkComboDayCount)
         .map((day) => this.workConditionOfWeek[day.dayOfWeek]);
 
       // 만약 부족하다면 다음 스케쥴을 가져온다.
       const cloneTail = _.clone(this.tailSchedule);
       while (
         cloneTail.length > 0 &&
-        next.length < this.userInput.maxWorkComboDayCount - 1
+        next.length < this.userInput.maxWorkComboDayCount
       ) {
         next.push(cloneTail.shift()!);
       }
 
-      // 다음 스케쥴이 maxWorkComboDayCount - 1 만큼 일했다면 false
+      // 다음 스케쥴이 maxWorkComboDayCount 만큼 일했다면 false
       const nextCnt = _.sumBy(next.flat(), (s) =>
         s.employee?.id === employeeCondition.employee.id ? 1 : 0,
       );
 
-      if (nextCnt >= this.userInput.maxWorkComboDayCount - 1) {
+      if (nextCnt >= this.userInput.maxWorkComboDayCount) {
         this.addFilters(
           false,
           '최대 연속 근무일수를 넘었음',

@@ -53,11 +53,12 @@ export class ScheduleGenerator {
   }
 
   private prefixRecursive(
+    isExist: boolean,
     workConditionEntry: WorkConditionEntry,
     employee: IEmployeeSchemaType,
   ) {
     // 재귀함수로 배치한 근무자만 카운트
-    if (!workConditionEntry.employee) {
+    if (!isExist) {
       this.scheduleCounter.countEmployee(employee);
       workConditionEntry.employee = employee;
     }
@@ -85,7 +86,6 @@ export class ScheduleGenerator {
 
     // 현재 요일
     for (const dayOfWeek of this.dateDay.get요일_시작부터_끝까지DayOfWeek()) {
-      if (this.workConditionOfWeek[dayOfWeek] === undefined) continue;
       if (currentIndex >= _.size(this.workConditionOfWeek[dayOfWeek])) {
         currentIndex -= _.size(this.workConditionOfWeek[dayOfWeek]);
         continue;
@@ -99,12 +99,16 @@ export class ScheduleGenerator {
 
       // 가능한 사람이 있으면 스케줄에 추가하고 다음 재귀 호출
       for (const employeeCondition of filtered['가능한 근무자']) {
-        this.prefixRecursive(workConditionEntry, employeeCondition.employee);
+        const isExist = workConditionEntry.employee !== undefined;
+        this.prefixRecursive(
+          isExist,
+          workConditionEntry,
+          employeeCondition.employee,
+        );
         await this.recursive(depth + 1);
-        this.postRecursive(workConditionEntry);
+        this.postRecursive(isExist, workConditionEntry);
       }
 
-      // 다음 요일로 넘어가기
       return;
     }
   }
@@ -165,9 +169,12 @@ export class ScheduleGenerator {
       .value();
   }
 
-  private postRecursive(workConditionEntry: WorkConditionEntry) {
+  private postRecursive(
+    isExist: boolean,
+    workConditionEntry: WorkConditionEntry,
+  ) {
     // 재귀함수로 배치한 근무자만 카운트
-    if (!workConditionEntry.employee) {
+    if (!isExist) {
       this.scheduleCounter.discountEmployee(workConditionEntry.employee);
       delete workConditionEntry.employee;
     }

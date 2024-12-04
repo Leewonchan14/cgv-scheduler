@@ -99,8 +99,11 @@ describe('스케쥴 생성기 테스트', () => {
         workConditionOfWeek: WorkConditionOfWeekSchema.parse({
           [dateDay.dayOfWeek]: workConditions,
         }),
+        multiLimit: 3,
       },
       5,
+      [[], []],
+      [[], []],
     );
 
     scheduleGenerator['isValidate'] = jest.fn(() => true);
@@ -118,6 +121,8 @@ describe('스케쥴 생성기 테스트', () => {
     const generator = new ScheduleGenerator(
       { ...realInput, employeeConditions: realEmployeeConditions },
       5,
+      [[], []],
+      [[], []],
     );
 
     await generator.generate(1000 * 50);

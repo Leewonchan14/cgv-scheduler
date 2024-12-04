@@ -1,13 +1,13 @@
-import { Employee } from '@/entity/employee.entity';
 import { DateDay } from '@/entity/interface/DateDay';
 import {
   ScheduleEntry as IScheduleEntry,
   ScheduleEntry,
 } from '@/entity/schedule-entry.entity';
-import { ISchedule, ScheduleSchema } from '@/entity/types';
+import { ISchedule, ScheduleSchema, WorkConditionEntry } from '@/entity/types';
 import { EmployeeService } from '@/feature/employee/employee.service';
 import {
   addDays,
+  differenceInDays,
   endOfMonth,
   format,
   getDaysInMonth,
@@ -16,8 +16,7 @@ import {
 import _ from 'lodash';
 import { Between, DataSource, DeepPartial, Repository } from 'typeorm';
 
-export class ScheduleEntryService implements IScheduleEntryService {
-  private employeeRep: Repository<Employee>;
+export class ScheduleEntryService {
   private scheduleRep: Repository<IScheduleEntry>;
   static getInstance(appDataSource: DataSource): ScheduleEntryService {
     return new ScheduleEntryService(appDataSource);
@@ -25,7 +24,6 @@ export class ScheduleEntryService implements IScheduleEntryService {
 
   constructor(appDataSource: DataSource) {
     this.scheduleRep = appDataSource.getRepository(IScheduleEntry);
-    this.employeeRep = appDataSource.getRepository(Employee);
   }
 
   save(scheduleEntry: DeepPartial<ScheduleEntry>): Promise<IScheduleEntry> {
@@ -96,28 +94,66 @@ export class ScheduleEntryService implements IScheduleEntryService {
   async findPreviousSchedule(
     date: Date,
     cnt: number,
-  ): Promise<IScheduleEntry[][]> {
-    const end = format(new DateDay(date, -1).date, 'yyyy-MM-dd');
-    const start = format(new DateDay(date, -cnt).date, 'yyyy-MM-dd');
+  ): Promise<WorkConditionEntry[][]> {
+    const startDate = new Date(addDays(date, -cnt));
+    const endDate = new Date(addDays(date, -1));
+
     const rt = await this.scheduleRep.find({
       where: {
-        date: Between(new Date(start), new Date(end)),
+        date: Between(startDate, endDate),
+      },
+      order: {
+        date: 'ASC',
       },
     });
 
-    return _.chain(rt)
+    const dicSchedule = _.chain(rt)
       .groupBy((e) => format(e.date, 'yyyy-MM-dd'))
-      .entries()
-      .sortBy(([key]) => key)
-      .reverse()
-      .map(([_, value]) => value)
       .value();
-  }
-}
 
-export interface IScheduleEntryService {
-  // 주어질 날짜보다 더 이른 날짜의 스케쥴을 n 개 가져온다. (늦은 날짜부터 빠른 날짜 순서로)
-  findPreviousSchedule(date: Date, cnt: number): Promise<IScheduleEntry[][]>;
+    const temp = [] as WorkConditionEntry[][];
+    let tempDate = new Date(startDate);
+
+    do {
+      const key = format(tempDate, 'yyyy-MM-dd');
+      temp.push(dicSchedule[key] ?? []);
+      tempDate = addDays(tempDate, 1);
+    } while (differenceInDays(endDate, tempDate) >= 0);
+
+    return temp;
+  }
+
+  async findNextSchedule(
+    date: Date,
+    cnt: number,
+  ): Promise<WorkConditionEntry[][]> {
+    const startDate = new Date(addDays(date, 1));
+    const endDate = new Date(addDays(date, cnt));
+
+    const rt = await this.scheduleRep.find({
+      where: {
+        date: Between(startDate, endDate),
+      },
+      order: {
+        date: 'ASC',
+      },
+    });
+
+    const dicSchedule = _.chain(rt)
+      .groupBy((e) => format(e.date, 'yyyy-MM-dd'))
+      .value();
+
+    const temp = [] as WorkConditionEntry[][];
+    let tempDate = new Date(startDate);
+
+    do {
+      const key = format(tempDate, 'yyyy-MM-dd');
+      temp.push(dicSchedule[key] ?? []);
+      tempDate = addDays(tempDate, 1);
+    } while (differenceInDays(endDate, tempDate) >= 0);
+
+    return temp;
+  }
 }
 
 export const scheduleEntryService = ScheduleEntryService.getInstance;

@@ -5,6 +5,7 @@ import {
   WorkConditionOfWeek,
 } from '@/entity/types';
 import { employeeService } from '@/feature/employee/employee.service';
+import { scheduleEntryService } from '@/feature/schedule/schedule-entry.service';
 import { ScheduleGenerator } from '@/feature/schedule/schedule-generator';
 import { appDataSource } from '@/share/libs/typerom/data-source';
 import _ from 'lodash';
@@ -22,6 +23,7 @@ export async function POST(request: Request) {
     const {
       maxSchedule,
       employeeConditions: eConWithId,
+      maxWorkComboDayCount,
       startDate,
       workConditionOfWeek,
     } = data;
@@ -44,7 +46,20 @@ export async function POST(request: Request) {
       workConditionOfWeek: correctWorkOfWeek,
     };
 
-    const generator = new ScheduleGenerator(userInputCondition, maxSchedule);
+    const head = await scheduleEntryService(
+      await appDataSource(),
+    ).findPreviousSchedule(startDate, maxWorkComboDayCount);
+
+    const tail = await scheduleEntryService(
+      await appDataSource(),
+    ).findNextSchedule(startDate, maxWorkComboDayCount);
+
+    const generator = new ScheduleGenerator(
+      userInputCondition,
+      maxSchedule,
+      head,
+      tail,
+    );
     await generator.generate(1000 * 5);
 
     if (generator.isTimeOut) {
