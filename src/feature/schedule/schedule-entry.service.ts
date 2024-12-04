@@ -154,6 +154,13 @@ export class ScheduleEntryService {
 
     return temp;
   }
+
+  async findHeadTail(startDate: Date, cnt: number) {
+    const head = await this.findPreviousSchedule(startDate, cnt);
+    const tail = await this.findNextSchedule(addDays(startDate, 6), cnt);
+
+    return { head, tail };
+  }
 }
 
 export const scheduleEntryService = ScheduleEntryService.getInstance;

@@ -46,13 +46,9 @@ export async function POST(request: Request) {
       workConditionOfWeek: correctWorkOfWeek,
     };
 
-    const head = await scheduleEntryService(
+    const { head, tail } = await scheduleEntryService(
       await appDataSource(),
-    ).findPreviousSchedule(startDate, maxWorkComboDayCount);
-
-    const tail = await scheduleEntryService(
-      await appDataSource(),
-    ).findNextSchedule(startDate, maxWorkComboDayCount);
+    ).findHeadTail(startDate, maxWorkComboDayCount);
 
     const generator = new ScheduleGenerator(
       userInputCondition,
