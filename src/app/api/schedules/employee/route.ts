@@ -12,11 +12,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: 'Invalid request' }, { status: 400 });
   }
 
-  const {
-    employeeConditions: eConWithIds,
-    workConditionEntry,
-    maxSchedule,
-  } = data;
+  const { employeeConditions: eConWithIds, workConditionEntry } = data;
 
   const employeeConditions = await employeeService(
     await appDataSource(),
@@ -24,7 +20,7 @@ export async function POST(request: NextRequest) {
 
   const filtered = await new ScheduleGenerator(
     { ...data, employeeConditions },
-    maxSchedule,
+    1,
   ).filteredEmployee({ ...workConditionEntry, employee: undefined });
 
   return NextResponse.json({ data: filtered });

@@ -103,7 +103,9 @@ export const APIUserInputConditionSchema = z.object({
   workConditionOfWeek: WorkConditionOfWeekSchema,
 });
 
-export const APIPossibleEmployeeSchema = APIUserInputConditionSchema.extend({
+export const APIPossibleEmployeeSchema = APIUserInputConditionSchema.omit({
+  maxSchedule: true,
+}).extend({
   workConditionEntry: WorkConditionEntrySchema,
 });
 
