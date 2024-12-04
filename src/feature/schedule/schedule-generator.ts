@@ -1,30 +1,26 @@
-import { EDAY_OF_WEEKS, EDayOfWeek } from '@/entity/enums/EDayOfWeek';
 import { DateDay } from '@/entity/interface/DateDay';
-import { ScheduleEntry } from '@/entity/schedule-entry.entity';
 import {
   EmployeeCondition,
   IEmployeeSchemaType,
-  ISchedule,
   UserInputCondition,
   WorkConditionEntry,
+  WorkConditionOfWeek,
 } from '@/entity/types';
 import { DynamicEmployeeConditions } from '@/feature/employee/with-schedule/dynamic-employee-condition';
 import { FilteredEmployees } from '@/feature/employee/with-schedule/filter-employee-condition';
 import { SortEmployeeByWorkCondition } from '@/feature/employee/with-schedule/sort-employee-by-condition';
 import { StaticEmployeeCondition } from '@/feature/employee/with-schedule/static-employee-condition';
 import { ScheduleCounter } from '@/feature/schedule/schedule-counter';
+import { ScheduleWeekAdapter } from '@/feature/schedule/schedule-week-adapter';
 import { delay } from '@/share/libs/util/delay';
-import _, { cloneDeep } from 'lodash';
+import _ from 'lodash';
 
 export class ScheduleGenerator {
   public isTimeOut = false;
   public isDone = false;
 
-  private result: ISchedule[] = [];
-  private schedule: ISchedule = _.chain(EDAY_OF_WEEKS)
-    .map((day) => [day, []])
-    .fromPairs()
-    .value() as ISchedule;
+  private workConditionOfWeek: UserInputCondition['workConditionOfWeek'];
+  private result: WorkConditionOfWeek[] = [];
 
   private dateDay: DateDay;
 
@@ -32,15 +28,20 @@ export class ScheduleGenerator {
     [key: string]: EmployeeCondition[];
   } = {};
   private scheduleCounter: ScheduleCounter;
+  private scheduleWeekAdapter: ScheduleWeekAdapter;
 
   constructor(
     private userInput: UserInputCondition,
     private 최대_스케쥴_갯수: number,
+    private headSchedule: WorkConditionEntry[][],
+    private tailSchedule: WorkConditionEntry[][],
   ) {
     this.dateDay = new DateDay(this.userInput.startDate, 0);
 
     // scheduleCounter 초기화
     this.scheduleCounter = new ScheduleCounter(userInput.workConditionOfWeek);
+
+    this.workConditionOfWeek = userInput.workConditionOfWeek;
   }
 
   public async generate(limitMs: number) {
@@ -56,16 +57,11 @@ export class ScheduleGenerator {
   private prefixRecursive(
     workConditionEntry: WorkConditionEntry,
     employee: IEmployeeSchemaType,
-    dayOfWeek: EDayOfWeek,
   ) {
-    this.schedule[dayOfWeek].push({
-      employee,
-      ...cloneDeep(workConditionEntry),
-    } as ScheduleEntry);
-
     // 재귀함수로 배치한 근무자만 카운트
     if (!workConditionEntry.employee) {
       this.scheduleCounter.countEmployee(employee);
+      workConditionEntry.employee = employee;
     }
   }
 
@@ -78,7 +74,7 @@ export class ScheduleGenerator {
     if (depth >= this.scheduleCounter.getTotalWorkCnt()) {
       if (!this.isValidate()) return;
 
-      this.result.push(_.cloneDeep(this.schedule));
+      this.result.push(_.cloneDeep(this.workConditionOfWeek));
 
       // 최대 스케쥴 갯수에 도달하면 종료
       if (this.result.length === this.최대_스케쥴_갯수) {
@@ -87,31 +83,27 @@ export class ScheduleGenerator {
       return;
     }
 
-    const { workConditionOfWeek: workConditions } = this.userInput;
     let currentIndex = depth;
 
     // 현재 요일
     for (const dayOfWeek of this.dateDay.get요일_시작부터_끝까지DayOfWeek()) {
-      if (workConditions[dayOfWeek] === undefined) continue;
-      if (currentIndex >= _.size(workConditions[dayOfWeek])) {
-        currentIndex -= _.size(workConditions[dayOfWeek]);
+      if (this.workConditionOfWeek[dayOfWeek] === undefined) continue;
+      if (currentIndex >= _.size(this.workConditionOfWeek[dayOfWeek])) {
+        currentIndex -= _.size(this.workConditionOfWeek[dayOfWeek]);
         continue;
       }
 
-      const workConditionEntry = workConditions[dayOfWeek][currentIndex];
+      const workConditionEntry =
+        this.workConditionOfWeek[dayOfWeek][currentIndex];
 
       const filtered = await this.filteredEmployee(workConditionEntry);
       filtered['가능한 근무자'] = this.sort_근무자들(filtered['가능한 근무자']);
 
       // 가능한 사람이 있으면 스케줄에 추가하고 다음 재귀 호출
       for (const employeeCondition of filtered['가능한 근무자']) {
-        this.prefixRecursive(
-          workConditionEntry,
-          employeeCondition.employee,
-          dayOfWeek,
-        );
+        this.prefixRecursive(workConditionEntry, employeeCondition.employee);
         await this.recursive(depth + 1);
-        this.postRecursive(dayOfWeek, workConditionEntry);
+        this.postRecursive(workConditionEntry);
       }
 
       // 다음 요일로 넘어가기
@@ -150,11 +142,12 @@ export class ScheduleGenerator {
     /******************** 동적 조건들 ********************/
     filteredEmployees['가능한 근무자'] = await new DynamicEmployeeConditions(
       workConditionEntry,
-      this.schedule,
-      { findPreviousSchedule: async () => [] },
+      this.workConditionOfWeek,
       this.scheduleCounter,
       this.userInput,
       filteredEmployees,
+      this.headSchedule,
+      this.tailSchedule,
     )
       .add_조건1_현재_요일에_투입_안된_근무자()
       .add_조건2_직원의_근무_최대_가능_일수를_안넘는_근무자()
@@ -174,15 +167,11 @@ export class ScheduleGenerator {
       .value();
   }
 
-  private postRecursive(
-    dayOfWeek: EDayOfWeek,
-    workConditionEntry: WorkConditionEntry,
-  ) {
-    const pushed = this.schedule[dayOfWeek].pop();
-
+  private postRecursive(workConditionEntry: WorkConditionEntry) {
     // 재귀함수로 배치한 근무자만 카운트
     if (!workConditionEntry.employee) {
-      this.scheduleCounter.discountEmployee(pushed?.employee);
+      this.scheduleCounter.discountEmployee(workConditionEntry.employee);
+      delete workConditionEntry.employee;
     }
   }
 
