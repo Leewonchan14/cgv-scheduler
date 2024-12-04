@@ -1,67 +1,35 @@
 'use client';
 
 import { scheduleMutateApi } from '@/app/schedule/api/mutate';
-import { SELECTED_WEEK } from '@/app/schedule/const';
 import EmployeeSelector from '@/app/schedule/generator/EmployeeSelector';
+import { GeneratorContext } from '@/app/schedule/generator/GeneratorContext';
 import ScheduleGenDisplay from '@/app/schedule/generator/ScheduleDisplay';
-import ScheduleEditor from '@/app/schedule/generator/ScheduleEditor';
-import { useQueryParam } from '@/app/share/util/useQueryParam';
-import {
-  APIUserInputConditionSchema,
-  EmployeeCondition,
-  WorkConditionOfWeek,
-  WorkConditionOfWeekSchema,
-} from '@/entity/types';
-import { useMutation } from '@tanstack/react-query';
+import ScheduleWeekEditor from '@/app/schedule/generator/ScheduleWeekEditor';
+import { APIUserInputConditionSchema } from '@/entity/types';
+import { useIsMutating, useMutation } from '@tanstack/react-query';
 import { NextPage } from 'next';
-import React, { useState } from 'react';
-import { z } from 'zod';
+import React, { useContext, useState } from 'react';
 
-interface Props {}
-
-const ScheduleGeneratorForm: NextPage<Props> = ({}: Props) => {
-  // 선택된 주
-  const [selectedWeek] = useQueryParam(z.coerce.date(), SELECTED_WEEK);
-
-  const [workConditionOfWeek, setWorkConditionOfWeek] =
-    useState<WorkConditionOfWeek>(WorkConditionOfWeekSchema.parse({}));
-
-  const [selectEmployeeConditions, setSelectEmployeeConditions] = useState<
-    EmployeeCondition[]
-  >([]);
-
+const ScheduleGeneratorForm: NextPage<{}> = ({}) => {
+  const context = useContext(GeneratorContext);
+  if (!context) {
+    throw new Error('GeneratorContext가 존재하지 않습니다.');
+  }
   // 최대 스케쥴 갯수
   const [maxSchedule, setMaxSchedule] = useState(5);
-
   // 최대 연속 근무 일
   const [maxWorkComboDayCount, setMaxWorkComboDayCount] = useState(3);
 
-  const {
-    data: schedules,
-    mutateAsync,
-    isPending,
-    reset,
-  } = useMutation(scheduleMutateApi.generate);
-
-  const handleEmployeeSelectionChange = (employees: EmployeeCondition[]) => {
-    setSelectEmployeeConditions(employees);
-  };
-
-  const handleChangeWorkCondition = (newConditions: WorkConditionOfWeek) => {
-    setWorkConditionOfWeek(newConditions);
-  };
-
-  const handleSetWorkCondition = (newConditions: WorkConditionOfWeek) => {
-    handleChangeWorkCondition(newConditions);
-    reset();
-  };
+  const { data: generatedSchedules, mutateAsync } = useMutation(
+    scheduleMutateApi.generate,
+  );
 
   const onSubmit = async () => {
     const parse = APIUserInputConditionSchema.parse({
-      employeeConditions: selectEmployeeConditions,
-      workConditionOfWeek,
+      employeeConditions: context.selectEmployeeConditions,
+      workConditionOfWeek: context.workConditionOfWeek,
       maxWorkComboDayCount,
-      startDate: selectedWeek,
+      startDate: context.selectedWeek,
       maxSchedule,
     });
     await mutateAsync(parse);
@@ -69,18 +37,11 @@ const ScheduleGeneratorForm: NextPage<Props> = ({}: Props) => {
 
   return (
     <div className="container mx-auto">
-      <ScheduleEditor
-        selectedWeek={selectedWeek}
-        workConditionOfWeek={workConditionOfWeek}
-        handleChangeWorkCondition={handleChangeWorkCondition}
-      />
+      <ScheduleWeekEditor />
 
       <h1 className="my-10 text-3xl font-bold">근무표 자동 생성</h1>
 
-      <EmployeeSelector
-        selectEmployeeConditions={selectEmployeeConditions}
-        onSelectionChange={handleEmployeeSelectionChange}
-      />
+      <EmployeeSelector />
 
       {/* 최대 스케쥴 갯수 정하기 */}
       <ScheduleInputNumber
@@ -99,14 +60,9 @@ const ScheduleGeneratorForm: NextPage<Props> = ({}: Props) => {
       />
 
       {/* 생성 버튼 */}
-      <GenerateButton disable={isPending} onClick={onSubmit} />
+      <GenerateButton onClick={onSubmit} />
 
-      <ScheduleGenDisplay
-        startDate={selectedWeek}
-        schedules={schedules ?? []}
-        isLoading={isPending}
-        handleSetWorkCondition={handleSetWorkCondition}
-      />
+      <ScheduleGenDisplay schedules={generatedSchedules ?? []} />
     </div>
   );
 };
@@ -136,10 +92,8 @@ const ScheduleInputNumber: React.FC<{
   );
 };
 
-const GenerateButton: React.FC<{ disable: boolean; onClick: () => void }> = ({
-  disable,
-  onClick,
-}) => {
+const GenerateButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
+  const disable = useIsMutating(scheduleMutateApi.generate) !== 0;
   return (
     <div className="mb-6 text-center">
       <button

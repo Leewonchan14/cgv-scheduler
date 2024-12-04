@@ -1,73 +1,51 @@
 import { employeeQueryApi } from '@/app/employee/api/queryoption';
+import { GeneratorContext } from '@/app/schedule/generator/GeneratorContext';
 import { EDayOfWeek } from '@/entity/enums/EDayOfWeek';
 import { EWORK_POSITION, EWorkPosition } from '@/entity/enums/EWorkPosition';
 import { EWorkTime } from '@/entity/enums/EWorkTime';
 import { DateDay } from '@/entity/interface/DateDay';
-import { IEmployeeSchemaType, WorkConditionEntry } from '@/entity/types';
+import { WorkConditionEntry } from '@/entity/types';
 import { WorkTimeSlot } from '@/feature/schedule/work-time-slot-handler';
 import { getColor } from '@/share/libs/util/isLightColor';
 import { uuid } from '@/share/libs/util/uuid';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import _ from 'lodash';
+import { useCallback, useContext } from 'react';
 
 interface DayEditorProps {
   dayOfWeek: EDayOfWeek;
-  entries: WorkConditionEntry[];
   hoverId: number;
   setHoverId: (_: number) => void;
-  onChangeWorkCondition: (_: EDayOfWeek, __: WorkConditionEntry[]) => void;
-  selectedWeek: Date;
 }
 
-const DayEditor: React.FC<DayEditorProps> = ({
+const ScheduleDayEditor: React.FC<DayEditorProps> = ({
   dayOfWeek,
   hoverId,
   setHoverId,
-  entries,
-  onChangeWorkCondition,
-  selectedWeek,
 }) => {
-  const { data: employees } = useQuery(employeeQueryApi.findAll);
+  const context = useContext(GeneratorContext);
+  if (!context) throw new Error('GeneratorContext가 존재하지 않습니다.');
+  const { selectedWeek, workConditionOfWeek, onChangeWorkConditionOfWeek } =
+    context;
 
-  const handleAddEntry = (position: EWorkPosition) => {
-    const newEntry: WorkConditionEntry = {
-      id: uuid(),
-      date: DateDay.fromDayOfWeek(selectedWeek, dayOfWeek).date,
-      workPosition: position,
-      workTime: EWorkTime.오픈,
-      timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
-    };
-    onChangeWorkCondition(dayOfWeek, [...entries, newEntry]);
-  };
-
-  const handleRemoveEntry = (id: string) => {
-    const updatedEntries = entries.filter((e) => e.id !== id);
-    onChangeWorkCondition(dayOfWeek, updatedEntries);
-  };
-
-  const handleWorkTimeChange = (id: string, time: EWorkTime) => {
-    onChangeWorkCondition(
-      dayOfWeek,
-      _.map(entries, (e) => ({
-        ...e,
-        workTime: e.id === id ? time : e.workTime,
-      })),
-    );
-  };
-
-  const handleEmployeeChange = (id: string, employeeId: number) => {
-    const findEmp = employees?.find((emp) => emp.id === employeeId);
-    onChangeWorkCondition(
-      dayOfWeek,
-      _.map(entries, (e) => ({
-        ...e,
-        employee: e.id === id ? findEmp : e.employee,
-      })),
-    );
-  };
-
-  if (!employees) return null;
+  const addWorkConditionEntry = useCallback(
+    (position: EWorkPosition) => {
+      onChangeWorkConditionOfWeek({
+        ...workConditionOfWeek,
+        [dayOfWeek]: [
+          ...workConditionOfWeek[dayOfWeek],
+          {
+            id: uuid(),
+            date: DateDay.fromDayOfWeek(selectedWeek, dayOfWeek).date,
+            workPosition: position,
+            workTime: EWorkTime.오픈,
+            timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
+          },
+        ],
+      });
+    },
+    [dayOfWeek, onChangeWorkConditionOfWeek, selectedWeek, workConditionOfWeek],
+  );
 
   return (
     <div className="p-2 border rounded-lg shadow bg-gray-50">
@@ -81,22 +59,19 @@ const DayEditor: React.FC<DayEditorProps> = ({
           <li key={po} className="mb-4">
             <div className="flex flex-col space-y-2">
               <h4 className="text-lg font-semibold">{po}</h4>
-              {entries
+              {workConditionOfWeek[dayOfWeek]
                 .filter((entry) => entry.workPosition === po)
                 .map((entry) => (
                   <WorkEntryForm
                     key={entry.id}
+                    dayOfWeek={dayOfWeek}
                     entry={entry}
                     hoverId={hoverId}
                     setHoverId={setHoverId}
-                    employees={employees}
-                    handleRemoveEntry={handleRemoveEntry}
-                    handleWorkTimeChange={handleWorkTimeChange}
-                    handleEmployeeChange={handleEmployeeChange}
                   />
                 ))}
               <button
-                onClick={() => handleAddEntry(po)}
+                onClick={() => addWorkConditionEntry(po)}
                 className="mt-2 text-white transition-colors bg-blue-500 rounded-lg hover:bg-blue-600"
               >
                 <span className="text-sm font-bold">✚ {po}</span>
@@ -110,24 +85,42 @@ const DayEditor: React.FC<DayEditorProps> = ({
 };
 
 interface WorkEntryFormProps {
+  dayOfWeek: EDayOfWeek;
   entry: WorkConditionEntry;
-  employees: IEmployeeSchemaType[];
   hoverId: number;
   setHoverId: (_: number) => void;
-  handleRemoveEntry: (_: string) => void;
-  handleWorkTimeChange: (_: string, __: EWorkTime) => void;
-  handleEmployeeChange: (_: string, __: number) => void;
 }
 
 const WorkEntryForm: React.FC<WorkEntryFormProps> = ({
+  dayOfWeek,
   entry,
-  employees,
   hoverId,
   setHoverId,
-  handleEmployeeChange,
-  handleRemoveEntry,
-  handleWorkTimeChange,
 }) => {
+  const context = useContext(GeneratorContext);
+  if (!context) throw new Error('GeneratorContext가 존재하지 않습니다.');
+  const { workConditionOfWeek, onChangeWorkConditionOfWeek } = context;
+
+  const { data: employees } = useQuery(employeeQueryApi.findAll);
+
+  const removeConditionEntry = (id: string) => {
+    onChangeWorkConditionOfWeek({
+      ...workConditionOfWeek,
+      [dayOfWeek]: workConditionOfWeek[dayOfWeek].filter((e) => e.id !== id),
+    });
+  };
+
+  const onChangeWorkConditionEntry = (
+    id: string,
+    entry: WorkConditionEntry,
+  ) => {
+    onChangeWorkConditionOfWeek({
+      ...workConditionOfWeek,
+      [dayOfWeek]: workConditionOfWeek[dayOfWeek].map((e) =>
+        e.id === id ? entry : e,
+      ),
+    });
+  };
   const color = getColor(entry.employee?.id);
   const isHover = hoverId === entry.employee?.id;
 
@@ -140,6 +133,9 @@ const WorkEntryForm: React.FC<WorkEntryFormProps> = ({
     if (isHover) return bgColorHover;
     return bgColor;
   };
+
+  if (!employees) return null;
+
   return (
     <div
       style={{
@@ -155,9 +151,13 @@ const WorkEntryForm: React.FC<WorkEntryFormProps> = ({
       </label>
       <select
         value={entry.workTime}
-        onChange={(e) =>
-          handleWorkTimeChange(entry.id, e.target.value as EWorkTime)
-        }
+        onChange={(e) => {
+          onChangeWorkConditionEntry(entry.id, {
+            ...entry,
+            workTime: e.target.value as EWorkTime,
+            timeSlot: WorkTimeSlot.fromWorkTime(e.target.value as EWorkTime),
+          });
+        }}
         className="block w-full p-2 mt-1 border border-gray-300 rounded-md"
       >
         {Object.values(EWorkTime).map((time) => (
@@ -170,9 +170,14 @@ const WorkEntryForm: React.FC<WorkEntryFormProps> = ({
         <label className="block text-sm font-medium text-gray-700">직원</label>
         <select
           value={entry.employee?.id ?? ''}
-          onChange={(e) =>
-            handleEmployeeChange(entry.id, parseInt(e.target.value))
-          }
+          onChange={(e) => {
+            const employeeId = parseInt(e.target.value);
+            const findEmp = employees.find((e) => e.id === employeeId);
+            onChangeWorkConditionEntry(entry.id, {
+              ...entry,
+              employee: findEmp,
+            });
+          }}
           className="block w-full p-2 mt-1 border border-gray-300 rounded-md"
         >
           <option value={''}>직원 선택</option>
@@ -184,7 +189,7 @@ const WorkEntryForm: React.FC<WorkEntryFormProps> = ({
         </select>
       </div>
       <button
-        onClick={() => handleRemoveEntry(entry.id)}
+        onClick={() => removeConditionEntry(entry.id)}
         className="absolute w-5 h-5 align-middle text-white bg-red-500 rounded-lg top-1 right-2 hover:text-red-700"
       >
         ✖
@@ -193,4 +198,4 @@ const WorkEntryForm: React.FC<WorkEntryFormProps> = ({
   );
 };
 
-export default DayEditor;
+export default ScheduleDayEditor;

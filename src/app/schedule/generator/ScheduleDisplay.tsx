@@ -2,23 +2,25 @@
 
 'use client';
 
+import { scheduleMutateApi } from '@/app/schedule/api/mutate';
+import { GeneratorContext } from '@/app/schedule/generator/GeneratorContext';
 import WeeklyScheduleDisplay from '@/app/schedule/ui/WeeklySchedule';
-import { ISchedule, WorkConditionOfWeek } from '@/entity/types';
-import React from 'react';
+import { ISchedule } from '@/entity/types';
+import { useIsMutating } from '@tanstack/react-query';
+import React, { useContext } from 'react';
 
 interface ScheduleDisplayProps {
-  startDate: Date;
   schedules: ISchedule[];
-  isLoading: boolean;
-  handleSetWorkCondition: (_: WorkConditionOfWeek) => void;
 }
 
 const ScheduleGenDisplay: React.FC<ScheduleDisplayProps> = ({
-  startDate,
-  isLoading,
   schedules,
-  handleSetWorkCondition,
 }: ScheduleDisplayProps) => {
+  const context = useContext(GeneratorContext);
+  if (!context) throw new Error('GeneratorContext가 존재하지 않습니다.');
+  const { selectedWeek, onChangeWorkConditionOfWeek } = context;
+  const isLoading = useIsMutating(scheduleMutateApi.generate) !== 0;
+
   if (!schedules) {
     return <div className="text-center">근무표를 먼저 작성 생성해주세요.</div>;
   }
@@ -36,10 +38,10 @@ const ScheduleGenDisplay: React.FC<ScheduleDisplayProps> = ({
       {schedules.map((schedule, index) => (
         <div key={index} className="mb-8">
           <h2 className="mb-4 text-2xl font-semibold">근무표 #{index + 1}</h2>
-          <WeeklyScheduleDisplay startDate={startDate} schedule={schedule} />
+          <WeeklyScheduleDisplay startDate={selectedWeek} schedule={schedule} />
 
           <button
-            onClick={() => handleSetWorkCondition(schedule)}
+            onClick={() => onChangeWorkConditionOfWeek(schedule)}
             className="py-2 my-4 font-bold text-white bg-blue-500 rounded-lg w-28 text-nowrap"
           >
             근무표 선택

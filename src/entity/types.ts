@@ -65,7 +65,6 @@ export const ScheduleSchema = z.object({
 });
 
 export const WorkConditionEntrySchema = ScheduleEntrySchema.extend({
-  id: z.string(),
   employee: IEmployeeSchema.optional(),
 });
 

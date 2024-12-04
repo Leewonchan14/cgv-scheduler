@@ -2,9 +2,9 @@
 
 import { scheduleMutateApi } from '@/app/schedule/api/mutate';
 import { scheduleQueryApi } from '@/app/schedule/api/queryoption';
-import DayEditor from '@/app/schedule/generator/ScheduleDayEditor';
+import { GeneratorContext } from '@/app/schedule/generator/GeneratorContext';
+import ScheduleDayEditor from '@/app/schedule/generator/ScheduleDayEditor';
 import LoadingAnimation from '@/app/ui/loading/loading-animation';
-import { EDayOfWeek } from '@/entity/enums/EDayOfWeek';
 import { EWorkPosition } from '@/entity/enums/EWorkPosition';
 import { EWorkTime } from '@/entity/enums/EWorkTime';
 import { DateDay } from '@/entity/interface/DateDay';
@@ -18,7 +18,7 @@ import { uuid } from '@/share/libs/util/uuid';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
 import { useRouter, useSearchParams } from 'next/navigation';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 
 const getInitialWorkConditionOfWeek = (startDate: Date) => {
   const startDateDay = new DateDay(startDate, 0);
@@ -59,44 +59,27 @@ const getInitialWorkConditionOfWeek = (startDate: Date) => {
   ) as WorkConditionOfWeek;
 };
 
-interface ScheduleEditorProps {
-  selectedWeek: Date;
-  workConditionOfWeek: WorkConditionOfWeek;
-  handleChangeWorkCondition: (_: WorkConditionOfWeek) => void;
-}
+const ScheduleWeekEditor: React.FC<{}> = () => {
+  const context = useContext(GeneratorContext);
 
-const ScheduleEditor: React.FC<ScheduleEditorProps> = ({
-  selectedWeek,
-  workConditionOfWeek,
-  handleChangeWorkCondition,
-}) => {
+  if (!context) {
+    throw new Error('GeneratorContext가 존재하지 않습니다.');
+  }
+
+  const { selectedWeek, onChangeWorkConditionOfWeek } = context;
+  const [hoverId, setHoverId] = useState(-1);
+
   const { data: schedule, isLoading } = useQuery(
     scheduleQueryApi.findWeek(selectedWeek),
   );
-  const init = useMemo(
-    () => getInitialWorkConditionOfWeek(selectedWeek),
-    [selectedWeek],
-  );
-  const [hoverId, setHoverId] = useState(-1);
 
   useEffect(() => {
     if (!schedule) return;
-    const newLocal = _.sum(_.map(schedule, (ar) => _.size(ar)));
-    const isInit = newLocal === 0;
-    const newState = isInit ? init : schedule;
-    handleChangeWorkCondition(newState);
+    const initSchedule = getInitialWorkConditionOfWeek(selectedWeek);
+    const isSumZero = _.sum(_.map(schedule, (ar) => _.size(ar))) === 0;
+    onChangeWorkConditionOfWeek(isSumZero ? initSchedule : schedule);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [schedule]);
-
-  const onChangeWorkCondition = (
-    dayOfWeek: EDayOfWeek,
-    entries: WorkConditionEntry[],
-  ) => {
-    handleChangeWorkCondition({
-      ...workConditionOfWeek,
-      [dayOfWeek]: entries,
-    });
-  };
 
   if (isLoading) {
     return <LoadingAnimation text={'근무표를 가져오는중'} />;
@@ -108,27 +91,26 @@ const ScheduleEditor: React.FC<ScheduleEditorProps> = ({
         {new DateDay(selectedWeek, 0)
           .get요일_시작부터_끝까지DayOfWeek()
           .map((dayOfWeek) => (
-            <DayEditor
+            <ScheduleDayEditor
               key={dayOfWeek}
               hoverId={hoverId}
               setHoverId={(id) => setHoverId(id)}
               dayOfWeek={dayOfWeek}
-              entries={workConditionOfWeek[dayOfWeek]}
-              onChangeWorkCondition={onChangeWorkCondition}
-              selectedWeek={selectedWeek}
             />
           ))}
       </div>
       <div className="text-center">
-        <CreateScheduleButton workConditionOfWeek={workConditionOfWeek} />
+        <CreateScheduleButton />
       </div>
     </div>
   );
 };
 
-const CreateScheduleButton: React.FC<{
-  workConditionOfWeek: WorkConditionOfWeek;
-}> = ({ workConditionOfWeek }) => {
+const CreateScheduleButton: React.FC<{}> = ({}) => {
+  const context = useContext(GeneratorContext);
+  if (!context) throw new Error('GeneratorContext가 존재하지 않습니다.');
+  const { workConditionOfWeek } = context;
+
   const search = useSearchParams();
   const query = new URLSearchParams(
     Object.fromEntries(search.entries()),
@@ -164,4 +146,4 @@ const CreateScheduleButton: React.FC<{
   );
 };
 
-export default ScheduleEditor;
+export default ScheduleWeekEditor;
