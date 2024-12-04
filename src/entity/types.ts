@@ -100,6 +100,7 @@ export const APIUserInputConditionSchema = z.object({
   maxSchedule: z.number().max(100).min(0),
   maxWorkComboDayCount: z.number().default(2),
   workConditionOfWeek: WorkConditionOfWeekSchema,
+  multiLimit: z.number().default(3),
 });
 
 export const APIPossibleEmployeeSchema = APIUserInputConditionSchema.omit({
@@ -132,4 +133,7 @@ export interface UserInputCondition {
 
   // 근무 조건
   workConditionOfWeek: WorkConditionOfWeek;
+
+  // 멀티조건 인원수
+  multiLimit: number;
 }

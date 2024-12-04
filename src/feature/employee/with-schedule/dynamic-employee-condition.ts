@@ -47,7 +47,7 @@ export class DynamicEmployeeConditions extends FilterEmployee {
     private scheduleCounter: ScheduleCounter,
     private userInput: Pick<
       UserInputCondition,
-      'maxWorkComboDayCount' | 'startDate'
+      'maxWorkComboDayCount' | 'startDate' | 'multiLimit'
     >,
     filters: FilteredEmployees,
     private headSchedule: WorkConditionEntry[][],
@@ -252,8 +252,7 @@ export class DynamicEmployeeConditions extends FilterEmployee {
             ) && WorkTimeSlot.fromTimeSlot(wCon.timeSlot).isContainPoint(hm),
         );
         // TODO : 멀티 최소 인원을 입력받아서 처리해야함
-        // return filteredSchedules.length >= this.multiLimit;
-        return filteredSchedules.length >= 3;
+        return filteredSchedules.length >= this.userInput.multiLimit;
       });
 
       this.addFilters(

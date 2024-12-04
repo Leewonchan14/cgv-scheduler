@@ -11,7 +11,6 @@ import { FilteredEmployees } from '@/feature/employee/with-schedule/filter-emplo
 import { SortEmployeeByWorkCondition } from '@/feature/employee/with-schedule/sort-employee-by-condition';
 import { StaticEmployeeCondition } from '@/feature/employee/with-schedule/static-employee-condition';
 import { ScheduleCounter } from '@/feature/schedule/schedule-counter';
-import { ScheduleWeekAdapter } from '@/feature/schedule/schedule-week-adapter';
 import { delay } from '@/share/libs/util/delay';
 import _ from 'lodash';
 
@@ -28,7 +27,6 @@ export class ScheduleGenerator {
     [key: string]: EmployeeCondition[];
   } = {};
   private scheduleCounter: ScheduleCounter;
-  private scheduleWeekAdapter: ScheduleWeekAdapter;
 
   constructor(
     private userInput: UserInputCondition,
