@@ -1,12 +1,10 @@
 import ScheduleExplorer from '@/app/schedule/ui/ScheduleExplorer';
-import React, { Suspense } from 'react';
+import React from 'react';
 
 const SchedulePage: React.FC = () => {
   return (
     <div className="container mx-auto">
-      <Suspense>
-        <ScheduleExplorer />
-      </Suspense>
+      <ScheduleExplorer />
     </div>
   );
 };
