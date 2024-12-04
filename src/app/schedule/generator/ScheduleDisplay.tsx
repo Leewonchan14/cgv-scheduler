@@ -41,7 +41,13 @@ const ScheduleGenDisplay: React.FC<ScheduleDisplayProps> = ({
           <WeeklyScheduleDisplay startDate={selectedWeek} schedule={schedule} />
 
           <button
-            onClick={() => onChangeWorkConditionOfWeek(schedule)}
+            onClick={() => {
+              onChangeWorkConditionOfWeek(schedule);
+              window.scrollTo({
+                top: 0,
+                behavior: 'smooth',
+              });
+            }}
             className="py-2 my-4 font-bold text-white bg-blue-500 rounded-lg w-28 text-nowrap"
           >
             근무표 선택

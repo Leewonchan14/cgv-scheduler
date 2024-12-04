@@ -44,7 +44,8 @@ const ScheduleDayEditor: React.FC<DayEditorProps> = ({
         ],
       });
     },
-    [dayOfWeek, onChangeWorkConditionOfWeek, selectedWeek, workConditionOfWeek],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [dayOfWeek, onChangeWorkConditionOfWeek, workConditionOfWeek],
   );
 
   return (
@@ -99,7 +100,11 @@ const WorkEntryForm: React.FC<WorkEntryFormProps> = ({
 }) => {
   const context = useContext(GeneratorContext);
   if (!context) throw new Error('GeneratorContext가 존재하지 않습니다.');
-  const { workConditionOfWeek, onChangeWorkConditionOfWeek } = context;
+  const {
+    workConditionOfWeek,
+    onChangeWorkConditionOfWeek,
+    onChangeWorkConditionEntryWorkTime,
+  } = context;
 
   const { data: employees } = useQuery(employeeQueryApi.findAll);
 
@@ -152,11 +157,11 @@ const WorkEntryForm: React.FC<WorkEntryFormProps> = ({
       <select
         value={entry.workTime}
         onChange={(e) => {
-          onChangeWorkConditionEntry(entry.id, {
-            ...entry,
-            workTime: e.target.value as EWorkTime,
-            timeSlot: WorkTimeSlot.fromWorkTime(e.target.value as EWorkTime),
-          });
+          onChangeWorkConditionEntryWorkTime(
+            dayOfWeek,
+            entry.id,
+            e.target.value as EWorkTime,
+          );
         }}
         className="block w-full p-2 mt-1 border border-gray-300 rounded-md"
       >
