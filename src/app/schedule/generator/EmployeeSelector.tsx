@@ -80,9 +80,15 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({}) => {
         <button
           onClick={() => {
             onChangeSelectEmployee(
-              employees.map((emp) =>
-                EmployeeConditionSchema.parse({ employee: emp }),
-              ) as EmployeeCondition[],
+              employees.map((emp) => {
+                const find = selectEmployeeConditions.find(
+                  (e) => e.employee.id === emp.id,
+                );
+                if (find) return find;
+                return EmployeeConditionSchema.parse({
+                  employee: emp,
+                });
+              }) as EmployeeCondition[],
             );
           }}
           className="p-2 mt-4 font-bold text-white bg-blue-500 border rounded-lg"

@@ -1,4 +1,5 @@
 import { employeeQueryApi } from '@/app/employee/api/queryoption';
+import { scheduleMutateApi } from '@/app/schedule/api/mutate';
 import { GeneratorContext } from '@/app/schedule/generator/GeneratorContext';
 import { EDayOfWeek } from '@/entity/enums/EDayOfWeek';
 import { EWORK_POSITION, EWorkPosition } from '@/entity/enums/EWorkPosition';
@@ -8,17 +9,17 @@ import { WorkConditionEntry } from '@/entity/types';
 import { WorkTimeSlot } from '@/feature/schedule/work-time-slot-handler';
 import { getColor } from '@/share/libs/util/isLightColor';
 import { uuid } from '@/share/libs/util/uuid';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { useCallback, useContext } from 'react';
 
-interface DayEditorProps {
+interface ScheduleDayEditorProps {
   dayOfWeek: EDayOfWeek;
   hoverId: number;
   setHoverId: (_: number) => void;
 }
 
-const ScheduleDayEditor: React.FC<DayEditorProps> = ({
+const ScheduleDayEditor: React.FC<ScheduleDayEditorProps> = ({
   dayOfWeek,
   hoverId,
   setHoverId,
@@ -104,9 +105,13 @@ const WorkEntryForm: React.FC<WorkEntryFormProps> = ({
     workConditionOfWeek,
     onChangeWorkConditionOfWeek,
     onChangeWorkConditionEntryWorkTime,
+    getPossibleEmployeeBody,
   } = context;
 
   const { data: employees } = useQuery(employeeQueryApi.findAll);
+  const { mutateAsync } = useMutation(
+    scheduleMutateApi.possibleEmployee(getPossibleEmployeeBody(entry)),
+  );
 
   const removeConditionEntry = (id: string) => {
     onChangeWorkConditionOfWeek({
@@ -193,6 +198,15 @@ const WorkEntryForm: React.FC<WorkEntryFormProps> = ({
           ))}
         </select>
       </div>
+      <button
+        onClick={async () => {
+          const data = await mutateAsync();
+          console.log(data);
+        }}
+        className="bg-blue-500 rounded-lg px-4 py-2 text-white hover:bg-blue-400 font-bold"
+      >
+        가능한 근무자 보기
+      </button>
       <button
         onClick={() => removeConditionEntry(entry.id)}
         className="absolute w-5 h-5 align-middle text-white bg-red-500 rounded-lg top-1 right-2 hover:text-red-700"

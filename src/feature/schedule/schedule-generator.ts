@@ -161,7 +161,7 @@ export class ScheduleGenerator {
     return filteredEmployees;
   }
 
-  private sort_근무자들(possibleEmployees: EmployeeCondition[]) {
+  public sort_근무자들(possibleEmployees: EmployeeCondition[]) {
     return new SortEmployeeByWorkCondition(possibleEmployees)
       .add_조건2_근무_가능한_요일이_적은_순()
       .add_조건4_최소_근무_일수가_큰순()
