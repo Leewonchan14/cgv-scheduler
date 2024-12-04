@@ -47,6 +47,7 @@ describe('동적 근무자 조건 필터링', () => {
       workConditionOfWeek,
       new ScheduleCounter(workConditionOfWeek),
       {
+        multiLimit: 3,
         maxWorkComboDayCount: 100,
         startDate: wCon1.date,
       },
@@ -92,6 +93,7 @@ describe('동적 근무자 조건 필터링', () => {
       workConditionOfWeek,
       new ScheduleCounter(workConditionOfWeek),
       {
+        multiLimit: 3,
         startDate: wCon1.date,
         maxWorkComboDayCount: 100,
       },
@@ -132,6 +134,7 @@ describe('동적 근무자 조건 필터링', () => {
       workConditionOfWeek,
       new ScheduleCounter(workConditionOfWeek),
       {
+        multiLimit: 3,
         startDate: dateDay.startDate,
         maxWorkComboDayCount: 100,
       },
@@ -180,6 +183,7 @@ describe('동적 근무자 조건 필터링', () => {
       workConditionOfWeek,
       new ScheduleCounter(workConditionOfWeek),
       {
+        multiLimit: 3,
         startDate: dateDay1.date,
         maxWorkComboDayCount: 최대_연속일,
       },
@@ -226,7 +230,7 @@ describe('동적 근무자 조건 필터링', () => {
 
     //when: 최대 멀티 조건 인원이 3명이라 했을때
     // TODO 입력받게 해야함 userInputCondition에서
-    const _최대_멀티_인원 = 3;
+    const 최대_멀티_인원 = 3;
 
     const filteredEmployees = { '가능한 근무자': [eCon1] };
     const dynamicCondition = new DynamicEmployeeConditions(
@@ -234,6 +238,7 @@ describe('동적 근무자 조건 필터링', () => {
       workConditionOfWeek,
       new ScheduleCounter(workConditionOfWeek),
       {
+        multiLimit: 최대_멀티_인원,
         maxWorkComboDayCount: 3,
         startDate: dateDay.startDate,
       },
@@ -283,8 +288,9 @@ describe('동적 근무자 조건 필터링', () => {
       workConditionOfWeek,
       new ScheduleCounter(workConditionOfWeek),
       {
+        multiLimit: 최대_멀티_인원,
         startDate: dateDay.startDate,
-        maxWorkComboDayCount: 최대_멀티_인원,
+        maxWorkComboDayCount: 10,
       },
       filteredEmployees,
       mockHeadSchedule(100),

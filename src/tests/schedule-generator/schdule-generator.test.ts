@@ -14,6 +14,8 @@ describe('스케쥴 생성기 테스트', () => {
     const generator = new ScheduleGenerator(
       {} as UserInputCondition,
       1000 * 100,
+      [],
+      [],
     );
 
     generator.generate(1000 * 2);
