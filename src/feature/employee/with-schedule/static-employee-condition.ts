@@ -24,7 +24,7 @@ import _ from 'lodash';
 
 declare module './filter-employee-condition' {
   interface FilteredEmployees {
-    '불가능한 표지션'?: EmployeeCondition[];
+    '불가능한 포지션'?: EmployeeCondition[];
     '불가능한 요일 및 시간'?: EmployeeCondition[];
     '추가로 쉬는날'?: EmployeeCondition[];
   }
@@ -79,7 +79,7 @@ export class StaticEmployeeCondition extends FilterEmployee {
         this.workConditionEntry.workPosition,
       );
 
-      this.addFilters(isAble, '불가능한 표지션', employeeCondition);
+      this.addFilters(isAble, '불가능한 포지션', employeeCondition);
 
       return isAble;
     };
