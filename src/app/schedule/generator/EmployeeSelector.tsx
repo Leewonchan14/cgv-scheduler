@@ -50,14 +50,14 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({}) => {
           }) as EmployeeCondition;
 
           const color = getColor(emp.id);
-          const bgColorSelect = color.slice(0, -2);
+          // const bgColorSelect = color.slice(0, -2);
           const isLight = isLightColor(color);
 
           return (
             <div key={emp.id} className="flex flex-col items-center">
               <button
                 style={{
-                  backgroundColor: isSelected ? bgColorSelect : color,
+                  backgroundColor: isSelected ? color : '',
                 }}
                 onClick={() => selectEmployee(employeeCondition)}
                 className={`w-full p-2 border rounded-lg font-bold transition-colors duration-200 ${

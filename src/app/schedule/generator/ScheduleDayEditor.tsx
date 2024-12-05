@@ -237,6 +237,7 @@ const EmployeeSelect: React.FC<{
     <div className="flex flex-col w-full">
       <label className="block text-sm font-medium text-gray-700">직원</label>
       <Select
+        value={String(entry.employee?.id ?? '자동채우기')}
         onOpenChange={(e) => {
           if (!e) return;
           mutate();
@@ -251,38 +252,50 @@ const EmployeeSelect: React.FC<{
         }}
       >
         <SelectTrigger>
-          <SelectValue placeholder="자동 채우기" />
+          <SelectValue />
         </SelectTrigger>
-        {initOrLoading && (
-          <SelectContent>
-            <div className="p-2 !flex gap-4 items-center">
+
+        <SelectContent className="text-nowrap">
+          <SelectItem value={'자동채우기'}>자동채우기</SelectItem>
+          <SelectGroup>
+            <SelectLabel className="!pl-2 !font-bold text-blue-500">
+              선택된 직원
+            </SelectLabel>
+            {entry.employee && (
+              <SelectItem value={String(entry.employee.id)}>
+                {entry.employee.name}
+              </SelectItem>
+            )}
+          </SelectGroup>
+
+          {initOrLoading && (
+            <div className="p-2 !flex gap-4 items-center text-sm">
               가능한 근무자 가져오는중
-              <div className="mx-auto h-6 w-6 border-black border-t-2 border-t-blue-500 !rounded-full animate-spin"></div>
+              <div className="mx-auto h-4 w-4 border-black border-t-2 border-t-blue-500 !rounded-full animate-spin" />
             </div>
-          </SelectContent>
-        )}
-        {!initOrLoading && (
-          <SelectContent className="text-nowrap">
-            {Object.entries(data).map(([label, empCon]) => (
+          )}
+          {!initOrLoading &&
+            Object.entries(data).map(([label, empCon]) => (
               <SelectGroup key={label}>
                 <SelectLabel
                   className={`!pl-2 !font-bold ${(label as Label) === '가능한 근무자' ? 'text-green-500' : 'text-red-500'}`}
                 >
                   {label}
                 </SelectLabel>
-                {(empCon as EmployeeCondition[]).map((emp) => (
-                  <SelectItem
-                    className=""
-                    key={emp.employee.id}
-                    value={String(emp.employee.id)}
-                  >
-                    {emp.employee.name}
-                  </SelectItem>
-                ))}
+                {(empCon as EmployeeCondition[]).map((emp) => {
+                  if (emp.employee.id === entry.employee?.id) return null;
+                  return (
+                    <SelectItem
+                      key={emp.employee.id}
+                      value={String(emp.employee.id)}
+                    >
+                      {emp.employee.name}
+                    </SelectItem>
+                  );
+                })}
               </SelectGroup>
             ))}
-          </SelectContent>
-        )}
+        </SelectContent>
       </Select>
     </div>
   );
