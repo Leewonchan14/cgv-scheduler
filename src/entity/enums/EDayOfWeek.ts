@@ -26,7 +26,6 @@ export const EDAY_OF_WEEKS = [
   EDayOfWeek.수,
 ] as const;
 
-// TODO: 지워야 함
 export const EDAY_OF_WEEKS_CORRECT = [
   EDayOfWeek.일,
   EDayOfWeek.월,

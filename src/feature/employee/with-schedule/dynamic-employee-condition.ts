@@ -108,7 +108,6 @@ export class DynamicEmployeeConditions extends FilterEmployee {
     return this;
   }
 
-  // TODO 목요일일때 데이터 베이스와 연동해서 이전 일을 가져오는 로직을 추가해야 함
   add_조건3_전날_마감_근무후_다음날_오픈_근무가_아닌_근무자() {
     const condition = async (employeeCondition: EmployeeCondition) => {
       const isOpen = this.workConditionEntry.workTime === EWorkTime.오픈;
@@ -252,7 +251,6 @@ export class DynamicEmployeeConditions extends FilterEmployee {
               wCon.workPosition,
             ) && WorkTimeSlot.fromTimeSlot(wCon.timeSlot).isContainPoint(hm),
         );
-        // TODO : 멀티 최소 인원을 입력받아서 처리해야함
         return filteredSchedules.length >= this.userInput.multiLimit;
       });
 

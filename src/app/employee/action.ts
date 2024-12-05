@@ -11,7 +11,6 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
-// TODO 근무자 제거 기능 구현해야함
 export const employeeRemoveAction = async ({ id }: { id: number }) => {
   await employeeService(await appDataSource()).softDelete(id);
 
@@ -83,7 +82,6 @@ export const employeeUpdateAction = async (
   const parse = await CreateFormSchema.omit({ name: true })
     .extend({
       name: z.string().min(1, { message: '이름을 입력해주세요.' }),
-      // TODO 관리자 또는 본인인지 확인하는 로직 추가 (관리자 또는 본인만 수정 가능)
       id: z.coerce.number(),
     })
     .safeParseAsync({

@@ -229,7 +229,6 @@ describe('동적 근무자 조건 필터링', () => {
     });
 
     //when: 최대 멀티 조건 인원이 3명이라 했을때
-    // TODO 입력받게 해야함 userInputCondition에서
     const 최대_멀티_인원 = 3;
 
     const filteredEmployees = { '가능한 근무자': [eCon1] };
