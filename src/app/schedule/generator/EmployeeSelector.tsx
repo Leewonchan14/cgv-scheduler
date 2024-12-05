@@ -1,22 +1,24 @@
 'use client';
 
 import { employeeQueryApi } from '@/app/employee/api/queryoption';
-import { GeneratorContext } from '@/app/schedule/generator/GeneratorContext';
+import {
+  GeneratorContext,
+  useGeneratorContext,
+} from '@/app/schedule/generator/GeneratorContext';
 import LoadingAnimation from '@/app/ui/loading/loading-animation';
 import { EDAY_OF_WEEKS_CORRECT, EDayOfWeek } from '@/entity/enums/EDayOfWeek';
 import { EmployeeCondition, EmployeeConditionSchema } from '@/entity/types';
 import { getColor, isLightColor } from '@/share/libs/util/isLightColor';
 import { useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
-import React, { useCallback, useContext } from 'react';
+import React, { useCallback, useContext, useEffect } from 'react';
 import { z } from 'zod';
 
 interface EmployeeSelectorProps {}
 
 const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({}) => {
-  const context = useContext(GeneratorContext);
-  if (!context) throw new Error('GeneratorContext가 존재하지 않습니다.');
-  const { selectEmployeeConditions, onChangeSelectEmployee } = context;
+  const { selectEmployeeConditions, onChangeSelectEmployee } =
+    useGeneratorContext();
   const { data: employees, isLoading } = useQuery(employeeQueryApi.findAll);
 
   const selectEmployee = useCallback(
@@ -27,6 +29,26 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({}) => {
     },
     [onChangeSelectEmployee, selectEmployeeConditions],
   );
+  const selectAll = useCallback(() => {
+    if (!employees) return;
+    onChangeSelectEmployee(
+      employees.map((emp) => {
+        const find = selectEmployeeConditions.find(
+          (e) => e.employee.id === emp.id,
+        );
+        if (find) return find;
+        return EmployeeConditionSchema.parse({
+          employee: emp,
+        });
+      }) as EmployeeCondition[],
+    );
+  }, [employees, onChangeSelectEmployee, selectEmployeeConditions]);
+
+  useEffect(() => {
+    if (!employees) return;
+    selectAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [employees]);
 
   if (isLoading || !employees) {
     return (
@@ -78,19 +100,7 @@ const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({}) => {
       {/* 전체 선택, 해제 버튼 */}
       <div className="flex gap-4">
         <button
-          onClick={() => {
-            onChangeSelectEmployee(
-              employees.map((emp) => {
-                const find = selectEmployeeConditions.find(
-                  (e) => e.employee.id === emp.id,
-                );
-                if (find) return find;
-                return EmployeeConditionSchema.parse({
-                  employee: emp,
-                });
-              }) as EmployeeCondition[],
-            );
-          }}
+          onClick={selectAll}
           className="p-2 mt-4 font-bold text-white bg-blue-500 border rounded-lg"
         >
           전체 선택

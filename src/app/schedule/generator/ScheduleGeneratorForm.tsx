@@ -37,11 +37,9 @@ const ScheduleGeneratorForm: NextPage<{}> = ({}) => {
 
   return (
     <div className="container mx-auto">
-      <EmployeeSelector />
-
       <ScheduleWeekEditor />
 
-      <h1 className="my-10 text-3xl font-bold">근무표 자동 생성</h1>
+      <EmployeeSelector />
 
       {/* 최대 스케쥴 갯수 정하기 */}
       <ScheduleInputNumber
