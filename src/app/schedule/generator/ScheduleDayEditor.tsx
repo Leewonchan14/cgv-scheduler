@@ -1,17 +1,31 @@
 import { employeeQueryApi } from '@/app/employee/api/queryoption';
 import { scheduleMutateApi } from '@/app/schedule/api/mutate';
-import { GeneratorContext } from '@/app/schedule/generator/GeneratorContext';
+import {
+  GeneratorContext,
+  useGeneratorContext,
+} from '@/app/schedule/generator/GeneratorContext';
 import { EDayOfWeek } from '@/entity/enums/EDayOfWeek';
 import { EWORK_POSITION, EWorkPosition } from '@/entity/enums/EWorkPosition';
 import { EWorkTime } from '@/entity/enums/EWorkTime';
 import { DateDay } from '@/entity/interface/DateDay';
-import { WorkConditionEntry } from '@/entity/types';
+import { EmployeeCondition, WorkConditionEntry } from '@/entity/types';
 import { WorkTimeSlot } from '@/feature/schedule/work-time-slot-handler';
 import { getColor } from '@/share/libs/util/isLightColor';
 import { uuid } from '@/share/libs/util/uuid';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import { useCallback, useContext } from 'react';
+import React, { useCallback, useContext } from 'react';
+
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { FilteredEmployees } from '@/feature/employee/with-schedule/filter-employee-condition';
 
 interface ScheduleDayEditorProps {
   dayOfWeek: EDayOfWeek;
@@ -99,19 +113,9 @@ const WorkEntryForm: React.FC<WorkEntryFormProps> = ({
   hoverId,
   setHoverId,
 }) => {
-  const context = useContext(GeneratorContext);
-  if (!context) throw new Error('GeneratorContext가 존재하지 않습니다.');
-  const {
-    workConditionOfWeek,
-    onChangeWorkConditionOfWeek,
-    onChangeWorkConditionEntryWorkTime,
-    getPossibleEmployeeBody,
-  } = context;
-
   const { data: employees } = useQuery(employeeQueryApi.findAll);
-  const { mutateAsync } = useMutation(
-    scheduleMutateApi.possibleEmployee(getPossibleEmployeeBody(entry)),
-  );
+  const { workConditionOfWeek, onChangeWorkConditionOfWeek } =
+    useGeneratorContext();
 
   const removeConditionEntry = (id: string) => {
     onChangeWorkConditionOfWeek({
@@ -120,17 +124,6 @@ const WorkEntryForm: React.FC<WorkEntryFormProps> = ({
     });
   };
 
-  const onChangeWorkConditionEntry = (
-    id: string,
-    entry: WorkConditionEntry,
-  ) => {
-    onChangeWorkConditionOfWeek({
-      ...workConditionOfWeek,
-      [dayOfWeek]: workConditionOfWeek[dayOfWeek].map((e) =>
-        e.id === id ? entry : e,
-      ),
-    });
-  };
   const color = getColor(entry.employee?.id);
   const isHover = hoverId === entry.employee?.id;
 
@@ -147,72 +140,150 @@ const WorkEntryForm: React.FC<WorkEntryFormProps> = ({
   if (!employees) return null;
 
   return (
-    <div
-      style={{
-        backgroundColor: getBg(),
-      }}
-      className={`flex flex-col relative items-start px-2 py-1 rounded-lg transition-transform duration-200
+    <React.Fragment>
+      <div
+        style={{
+          backgroundColor: getBg(),
+        }}
+        className={`flex flex-col relative items-start px-2 py-1 pt-4 rounded-lg transition-transform duration-200
           ${isHover && 'transform scale-105'}`}
-      onMouseEnter={() => setHoverId(entry.employee?.id ?? -1)}
-      onMouseLeave={() => setHoverId(-1)}
-    >
+        onMouseEnter={() => setHoverId(entry.employee?.id ?? -1)}
+        onMouseLeave={() => setHoverId(-1)}
+      >
+        <WorkTimeSelect dayOfWeek={dayOfWeek} entry={entry} />
+        <EmployeeSelect dayOfWeek={dayOfWeek} entry={entry} />
+
+        <button
+          onClick={() => removeConditionEntry(entry.id)}
+          className="absolute w-6 h-6 text-white align-middle bg-red-500 rounded-lg top-1 right-2 hover:text-red-700"
+        >
+          ✖
+        </button>
+      </div>
+      <div className="border-b-2 border-black" />
+    </React.Fragment>
+  );
+};
+
+const WorkTimeSelect: React.FC<{
+  dayOfWeek: EDayOfWeek;
+  entry: WorkConditionEntry;
+}> = ({ dayOfWeek, entry }) => {
+  const { onChangeWorkConditionEntryWorkTime } = useGeneratorContext();
+  return (
+    <React.Fragment>
       <label className="block text-sm font-medium text-gray-700">
         근무 시간
       </label>
-      <select
+      <Select
         value={entry.workTime}
-        onChange={(e) => {
+        onValueChange={(value) => {
           onChangeWorkConditionEntryWorkTime(
             dayOfWeek,
             entry.id,
-            e.target.value as EWorkTime,
+            value as EWorkTime,
           );
         }}
-        className="block w-full p-2 mt-1 border border-gray-300 rounded-md"
       >
-        {Object.values(EWorkTime).map((time) => (
-          <option key={time} value={time}>
-            {time}
-          </option>
-        ))}
-      </select>
-      <div>
-        <label className="block text-sm font-medium text-gray-700">직원</label>
-        <select
-          value={entry.employee?.id ?? ''}
-          onChange={(e) => {
-            const employeeId = parseInt(e.target.value);
-            const findEmp = employees.find((e) => e.id === employeeId);
-            onChangeWorkConditionEntry(entry.id, {
-              ...entry,
-              employee: findEmp,
-            });
-          }}
-          className="block w-full p-2 mt-1 border border-gray-300 rounded-md"
-        >
-          <option value={''}>직원 선택</option>
-          {employees.map((emp) => (
-            <option key={emp.id} value={emp.id}>
-              {emp.name}
-            </option>
+        <SelectTrigger>
+          <SelectValue placeholder="오픈" />
+        </SelectTrigger>
+        <SelectContent>
+          {Object.values(EWorkTime).map((time) => (
+            <SelectItem key={time} value={time}>
+              {time}
+            </SelectItem>
           ))}
-        </select>
-      </div>
-      <button
-        onClick={async () => {
-          const data = await mutateAsync();
-          console.log(data);
+        </SelectContent>
+      </Select>
+    </React.Fragment>
+  );
+};
+
+type Label = keyof FilteredEmployees;
+
+const EmployeeSelect: React.FC<{
+  dayOfWeek: EDayOfWeek;
+  entry: WorkConditionEntry;
+}> = ({ entry, dayOfWeek }) => {
+  const {
+    workConditionOfWeek,
+    onChangeWorkConditionOfWeek,
+    getPossibleEmployeeBody,
+  } = useGeneratorContext();
+
+  const { data, isPending, mutate } = useMutation(
+    scheduleMutateApi.possibleEmployee(getPossibleEmployeeBody(entry)),
+  );
+  const { data: employees } = useQuery(employeeQueryApi.findAll);
+
+  const onChangeWorkConditionEntry = (
+    id: string,
+    entry: WorkConditionEntry,
+  ) => {
+    onChangeWorkConditionOfWeek({
+      ...workConditionOfWeek,
+      [dayOfWeek]: workConditionOfWeek[dayOfWeek].map((e) =>
+        e.id === id ? entry : e,
+      ),
+    });
+  };
+
+  const initOrLoading = isPending || !data;
+
+  if (!employees) return null;
+
+  return (
+    <div className="flex flex-col w-full">
+      <label className="block text-sm font-medium text-gray-700">직원</label>
+      <Select
+        onOpenChange={(e) => {
+          if (!e) return;
+          mutate();
         }}
-        className="bg-blue-500 rounded-lg px-4 py-2 text-white hover:bg-blue-400 font-bold"
+        onValueChange={(value) => {
+          const employeeId = parseInt(value);
+          const findEmp = employees.find((e) => e.id === employeeId);
+          onChangeWorkConditionEntry(entry.id, {
+            ...entry,
+            employee: findEmp,
+          });
+        }}
       >
-        가능한 근무자 보기
-      </button>
-      <button
-        onClick={() => removeConditionEntry(entry.id)}
-        className="absolute w-5 h-5 align-middle text-white bg-red-500 rounded-lg top-1 right-2 hover:text-red-700"
-      >
-        ✖
-      </button>
+        <SelectTrigger>
+          <SelectValue placeholder="자동 채우기" />
+        </SelectTrigger>
+        {initOrLoading && (
+          <SelectContent>
+            <div className="p-2 !flex gap-4 items-center">
+              가능한 근무자 가져오는중
+              <div className="mx-auto h-6 w-6 border-black border-t-2 border-t-blue-500 !rounded-full animate-spin"></div>
+            </div>
+          </SelectContent>
+        )}
+        {!initOrLoading && (
+          <SelectContent className="text-nowrap">
+            {Object.entries(data).map(([label, empCon]) => (
+              <SelectGroup key={label}>
+                <SelectLabel
+                  className={`!pl-2 !font-bold ${(label as Label) === '가능한 근무자' ? 'text-green-500' : 'text-red-500'}`}
+                >
+                  {label}
+                </SelectLabel>
+                {(empCon as EmployeeCondition[]).map((emp) => (
+                  <SelectItem
+                    className=""
+                    key={emp.employee.id}
+                    value={String(emp.employee.id)}
+                  >
+                    {emp.employee.name}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            ))}
+          </SelectContent>
+        )}
+      </Select>
     </div>
   );
 };

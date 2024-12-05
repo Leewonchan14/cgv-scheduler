@@ -12,7 +12,7 @@ import {
   WorkConditionOfWeekSchema,
 } from '@/entity/types';
 import { WorkTimeSlot } from '@/feature/schedule/work-time-slot-handler';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useContext, useState } from 'react';
 import { z } from 'zod';
 
 export interface GeneratorContextType {
@@ -132,4 +132,12 @@ export const GeneratorProvider: React.FC<React.PropsWithChildren> = ({
       {children}
     </GeneratorContext.Provider>
   );
+};
+
+export const useGeneratorContext = () => {
+  const context = useContext(GeneratorContext);
+  if (!context) {
+    throw new Error('GeneratorContext가 존재하지 않습니다.');
+  }
+  return context;
 };
