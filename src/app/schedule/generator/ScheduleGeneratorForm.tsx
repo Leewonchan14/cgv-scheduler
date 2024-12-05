@@ -2,37 +2,23 @@
 
 import { scheduleMutateApi } from '@/app/schedule/api/mutate';
 import EmployeeSelector from '@/app/schedule/generator/EmployeeSelector';
-import { GeneratorContext } from '@/app/schedule/generator/GeneratorContext';
+import { useGeneratorContext } from '@/app/schedule/generator/GeneratorContext';
 import ScheduleGenDisplay from '@/app/schedule/generator/ScheduleDisplay';
 import ScheduleWeekEditor from '@/app/schedule/generator/ScheduleWeekEditor';
-import { APIUserInputConditionSchema } from '@/entity/types';
 import { useIsMutating, useMutation } from '@tanstack/react-query';
 import { NextPage } from 'next';
-import React, { useContext, useState } from 'react';
+import React from 'react';
 
 const ScheduleGeneratorForm: NextPage<{}> = ({}) => {
-  const context = useContext(GeneratorContext);
-  if (!context) {
-    throw new Error('GeneratorContext가 존재하지 않습니다.');
-  }
-  // 최대 스케쥴 갯수
-  const [maxSchedule, setMaxSchedule] = useState(5);
-  // 최대 연속 근무 일
-  const [maxWorkComboDayCount, setMaxWorkComboDayCount] = useState(3);
+  const { getUserInput, limitCondition, onChangeLimitCondition } =
+    useGeneratorContext();
 
   const { data: generatedSchedules, mutateAsync } = useMutation(
     scheduleMutateApi.generate,
   );
 
   const onSubmit = async () => {
-    const parse = APIUserInputConditionSchema.parse({
-      employeeConditions: context.selectEmployeeConditions,
-      workConditionOfWeek: context.workConditionOfWeek,
-      maxWorkComboDayCount,
-      startDate: context.selectedWeek,
-      maxSchedule,
-    });
-    await mutateAsync(parse);
+    await mutateAsync(getUserInput());
   };
 
   return (
@@ -43,18 +29,26 @@ const ScheduleGeneratorForm: NextPage<{}> = ({}) => {
 
       {/* 최대 스케쥴 갯수 정하기 */}
       <ScheduleInputNumber
-        value={maxSchedule}
-        setValue={(v) => setMaxSchedule(v)}
+        value={limitCondition.maxSchedule}
+        setValue={(v) => onChangeLimitCondition({ maxSchedule: v })}
         name="maxSchedule"
         text="최대 스케쥴 갯수 (해당 숫자 만큼의 스케쥴이 생성됩니다.)"
       />
 
       {/* 최대 연속 근무 일 정하기 */}
       <ScheduleInputNumber
-        value={maxWorkComboDayCount}
-        setValue={setMaxWorkComboDayCount}
+        value={limitCondition.maxWorkComboDayCount}
+        setValue={(v) => onChangeLimitCondition({ maxWorkComboDayCount: v })}
         name="maxWorkComboDayCount"
         text="최대 연속 근무 일 (해당 숫자 만큼만 근무자가 연속으로 근무 가능합니다.)"
+      />
+
+      {/* 최초 멀티 조건 정하기 */}
+      <ScheduleInputNumber
+        value={limitCondition.multiLimit}
+        setValue={(v) => onChangeLimitCondition({ multiLimit: v })}
+        name="multiLimit"
+        text="최소 멀티 인원 조건(멀티 근무자 시간에 해당 숫자 이상의 근무자가 근무해야 합니다.)"
       />
 
       {/* 생성 버튼 */}
@@ -65,7 +59,6 @@ const ScheduleGeneratorForm: NextPage<{}> = ({}) => {
   );
 };
 
-// 최대 스케쥴 갯수 정하기
 const ScheduleInputNumber: React.FC<{
   name: string;
   text: string;
@@ -76,7 +69,6 @@ const ScheduleInputNumber: React.FC<{
     <div className="my-6">
       <label className="font-bold" htmlFor={name}>
         {text}
-        {/* 최대 스케쥴 갯수 (해당 숫자 만큼의 스케쥴이 생성됩니다.) */}
       </label>
       <input
         type="number"

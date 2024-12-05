@@ -120,6 +120,7 @@ export type ISchedule = z.infer<typeof ScheduleSchema>;
 export type EmployeeConditionWithId = z.infer<
   typeof EmployeeConditionWithIdSchema
 >;
+export type APIUserInputCondition = z.infer<typeof APIUserInputConditionSchema>;
 export type APIPossibleEmployeeType = z.infer<typeof APIPossibleEmployeeSchema>;
 
 export interface UserInputCondition {

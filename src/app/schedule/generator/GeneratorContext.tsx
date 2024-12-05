@@ -6,6 +6,8 @@ import { EDayOfWeek } from '@/entity/enums/EDayOfWeek';
 import { EWorkTime } from '@/entity/enums/EWorkTime';
 import {
   APIPossibleEmployeeType,
+  APIUserInputCondition,
+  APIUserInputConditionSchema,
   EmployeeCondition,
   WorkConditionEntry,
   WorkConditionOfWeek,
@@ -15,16 +17,18 @@ import { WorkTimeSlot } from '@/feature/schedule/work-time-slot-handler';
 import React, { useCallback, useContext, useState } from 'react';
 import { z } from 'zod';
 
+export interface ILimitCondition {
+  maxSchedule: number;
+  maxWorkComboDayCount: number;
+  multiLimit: number;
+}
+
 export interface GeneratorContextType {
   selectedWeek: Date;
   workConditionOfWeek: WorkConditionOfWeek;
   selectEmployeeConditions: EmployeeCondition[];
-  limitCondition: {
-    maxSchedule: number;
-    maxWorkComboDayCount: number;
-    multiLimit: number;
-  };
-  onChangeLimitCondition: (name: string, value: number) => void;
+  limitCondition: ILimitCondition;
+  onChangeLimitCondition: (next: Partial<ILimitCondition>) => void;
   onChangeSelectEmployee: (employees: EmployeeCondition[]) => void;
   onChangeWorkConditionOfWeek: (
     newConditionOfWeek: WorkConditionOfWeek,
@@ -37,6 +41,7 @@ export interface GeneratorContextType {
   getPossibleEmployeeBody: (
     workConditionEntry: WorkConditionEntry,
   ) => APIPossibleEmployeeType;
+  getUserInput: () => APIUserInputCondition;
 }
 
 export const GeneratorContext = React.createContext<
@@ -59,12 +64,15 @@ export const GeneratorProvider: React.FC<React.PropsWithChildren> = ({
     multiLimit: 3,
   });
 
-  const onChangeLimitCondition = useCallback((name: string, value: number) => {
-    setLimitCondition((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  }, []);
+  const onChangeLimitCondition = useCallback(
+    (next: Partial<ILimitCondition>) => {
+      setLimitCondition((prev) => ({
+        ...prev,
+        ...next,
+      }));
+    },
+    [],
+  );
 
   const onChangeSelectEmployee = useCallback(
     (employees: EmployeeCondition[]) => {
@@ -115,6 +123,24 @@ export const GeneratorProvider: React.FC<React.PropsWithChildren> = ({
     ],
   );
 
+  const getUserInput = useCallback(() => {
+    return APIUserInputConditionSchema.parse({
+      employeeConditions: selectEmployeeConditions,
+      workConditionOfWeek,
+      startDate: selectedWeek,
+      maxWorkComboDayCount: limitCondition.maxWorkComboDayCount,
+      maxSchedule: limitCondition.maxSchedule,
+      multiLimit: limitCondition.multiLimit,
+    });
+  }, [
+    limitCondition.maxSchedule,
+    limitCondition.maxWorkComboDayCount,
+    limitCondition.multiLimit,
+    selectEmployeeConditions,
+    selectedWeek,
+    workConditionOfWeek,
+  ]);
+
   return (
     <GeneratorContext.Provider
       value={{
@@ -127,6 +153,7 @@ export const GeneratorProvider: React.FC<React.PropsWithChildren> = ({
         onChangeWorkConditionOfWeek,
         onChangeWorkConditionEntryWorkTime,
         getPossibleEmployeeBody,
+        getUserInput,
       }}
     >
       {children}
