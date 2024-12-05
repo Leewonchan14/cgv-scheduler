@@ -3,6 +3,7 @@ import {
   APIUserInputConditionSchema,
   UserInputCondition,
   WorkConditionOfWeek,
+  WorkConditionOfWeekSchema,
 } from '@/entity/types';
 import { employeeService } from '@/feature/employee/employee.service';
 import { scheduleEntryService } from '@/feature/schedule/schedule-entry.service';
@@ -25,10 +26,9 @@ export async function POST(request: Request) {
       employeeConditions: eConWithId,
       maxWorkComboDayCount,
       startDate,
-      workConditionOfWeek,
     } = data;
 
-    const correctWorkOfWeek = _.chain(workConditionOfWeek)
+    const groupBy = _.chain(data.workConditionOfWeek)
       .values()
       .flatten()
       .groupBy((entry) =>
@@ -36,14 +36,16 @@ export async function POST(request: Request) {
       )
       .value() as WorkConditionOfWeek;
 
+    const workConditionOfWeek = WorkConditionOfWeekSchema.parse(groupBy);
+
     const employeeConditions = await employeeService(
       await appDataSource(),
     ).findByConditionWithId(eConWithId);
 
     const userInputCondition: UserInputCondition = {
       ...data,
+      workConditionOfWeek,
       employeeConditions,
-      workConditionOfWeek: correctWorkOfWeek,
     };
 
     const { head, tail } = await scheduleEntryService(
@@ -71,6 +73,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(response);
   } catch (error) {
+    console.log('error: ', error);
     return NextResponse.json({ message: error }, { status: 500 });
   }
 }
