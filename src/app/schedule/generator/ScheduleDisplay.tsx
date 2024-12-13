@@ -3,11 +3,11 @@
 'use client';
 
 import { scheduleMutateApi } from '@/app/schedule/api/mutate';
-import { GeneratorContext } from '@/app/schedule/generator/GeneratorContext';
+import { useGeneratorContext } from '@/app/schedule/generator/GeneratorContext';
 import WeeklyScheduleDisplay from '@/app/schedule/ui/WeeklySchedule';
 import { ISchedule } from '@/entity/types';
 import { useIsMutating } from '@tanstack/react-query';
-import React, { useContext } from 'react';
+import React from 'react';
 
 interface ScheduleDisplayProps {
   schedules: ISchedule[];
@@ -16,9 +16,7 @@ interface ScheduleDisplayProps {
 const ScheduleGenDisplay: React.FC<ScheduleDisplayProps> = ({
   schedules,
 }: ScheduleDisplayProps) => {
-  const context = useContext(GeneratorContext);
-  if (!context) throw new Error('GeneratorContext가 존재하지 않습니다.');
-  const { selectedWeek, onChangeWorkConditionOfWeek } = context;
+  const { selectedWeek, onChangeWorkConditionOfWeek } = useGeneratorContext();
   const isLoading = useIsMutating(scheduleMutateApi.generate) !== 0;
 
   if (!schedules) {
@@ -27,8 +25,9 @@ const ScheduleGenDisplay: React.FC<ScheduleDisplayProps> = ({
 
   if (isLoading) {
     return (
-      <div className="flex justify-center">
+      <div className="flex flex-col items-center justify-center gap-4">
         <div className="inline-block w-8 h-8 ml-2 border-2 border-white rounded-full animate-spin border-t-blue-500" />
+        <p className="font-bold text-blue-500">최대 30초 소요됩니다.</p>
       </div>
     );
   }
