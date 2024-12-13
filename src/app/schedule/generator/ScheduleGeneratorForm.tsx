@@ -6,10 +6,13 @@ import { useGeneratorContext } from '@/app/schedule/generator/GeneratorContext';
 import ScheduleGenDisplay from '@/app/schedule/generator/ScheduleDisplay';
 import ScheduleWeekEditor from '@/app/schedule/generator/ScheduleWeekEditor';
 import { useIsMutating, useMutation } from '@tanstack/react-query';
+import { AxiosError } from 'axios';
 import { NextPage } from 'next';
-import React from 'react';
+import React, { useState } from 'react';
 
 const ScheduleGeneratorForm: NextPage<{}> = ({}) => {
+  const [message, setMessage] = useState('');
+
   const { getUserInput, limitCondition, onChangeLimitCondition } =
     useGeneratorContext();
 
@@ -18,7 +21,19 @@ const ScheduleGeneratorForm: NextPage<{}> = ({}) => {
   );
 
   const onSubmit = async () => {
-    await mutateAsync(getUserInput());
+    setMessage('');
+    await mutateAsync(getUserInput(), {
+      onError: (error) => {
+        if (
+          error instanceof AxiosError &&
+          error?.response?.data?.message === 'Timeout'
+        ) {
+          setMessage(
+            '시간 제한... (경우의 수가 너무 많을수 있습니다.) 먼저 근무자를 어느정도 배치후 시도해 보세요',
+          );
+        }
+      },
+    });
   };
 
   return (
@@ -52,7 +67,7 @@ const ScheduleGeneratorForm: NextPage<{}> = ({}) => {
       />
 
       {/* 생성 버튼 */}
-      <GenerateButton onClick={onSubmit} />
+      <GenerateButton onClick={onSubmit} message={message} />
 
       <ScheduleGenDisplay schedules={generatedSchedules ?? []} />
     </div>
@@ -82,10 +97,15 @@ const ScheduleInputNumber: React.FC<{
   );
 };
 
-const GenerateButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
+interface ButtonProps {
+  onClick: () => void;
+  message: string;
+}
+
+const GenerateButton: React.FC<ButtonProps> = ({ onClick, message }) => {
   const disable = useIsMutating(scheduleMutateApi.generate) !== 0;
   return (
-    <div className="mb-6 text-center">
+    <div className="flex flex-col items-center gap-4 mb-6 text-center">
       <button
         disabled={disable}
         onClick={onClick}
@@ -93,6 +113,7 @@ const GenerateButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
       >
         자동 근무표 생성
       </button>
+      <p className="font-bold text-red-500">{message}</p>
     </div>
   );
 };
