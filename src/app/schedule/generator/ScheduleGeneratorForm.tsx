@@ -24,14 +24,17 @@ const ScheduleGeneratorForm: NextPage<{}> = ({}) => {
     setMessage('');
     await mutateAsync(getUserInput(), {
       onError: (error) => {
-        if (
-          error instanceof AxiosError &&
-          error?.response?.data?.message === 'Timeout'
-        ) {
-          setMessage(
-            '시간 제한... (경우의 수가 너무 많을수 있습니다.) 먼저 근무자를 어느정도 배치후 시도해 보세요',
-          );
+        console.log(error);
+        let newMessage = error.message;
+        if (error instanceof AxiosError) {
+          if (error?.response?.data?.message === 'Timeout') {
+            newMessage =
+              '시간 제한... 먼저 근무자를 어느정도 배치후 시도해 보세요';
+          } else {
+            newMessage = `${error.request.status}서버 오류입니다. 잠시후 다시시도해 보세요`;
+          }
         }
+        setMessage(newMessage);
       },
     });
   };
