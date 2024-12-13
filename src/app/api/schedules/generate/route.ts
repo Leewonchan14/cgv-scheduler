@@ -58,7 +58,7 @@ export async function POST(request: Request) {
       head,
       tail,
     );
-    await generator.generate(1000 * 5);
+    await generator.generate(1000 * 30);
 
     if (generator.isTimeOut) {
       return NextResponse.json(
