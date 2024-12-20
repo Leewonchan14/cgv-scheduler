@@ -150,7 +150,7 @@ export const GeneratorProvider: React.FC<React.PropsWithChildren> = ({
 
   const getPossibleEmployeeBody = useCallback(
     (workConditionEntry: WorkConditionEntry) => {
-      const { maxSchedule, ...rest } = getUserInput();
+      const { maxSchedule: _maxSchedule, ...rest } = getUserInput();
       return {
         ...rest,
         workConditionEntry,
