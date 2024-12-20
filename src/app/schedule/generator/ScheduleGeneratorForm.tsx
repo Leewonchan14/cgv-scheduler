@@ -66,7 +66,7 @@ const ScheduleGeneratorForm: NextPage<{}> = ({}) => {
         value={limitCondition.multiLimit}
         setValue={(v) => onChangeLimitCondition({ multiLimit: v })}
         name="multiLimit"
-        text="최소 멀티 인원 조건(멀티 근무자 시간에 해당 숫자 이상의 근무자가 근무해야 합니다.)"
+        text="최소 멀티 인원 조건(멀티 근무자 시간에 해당 숫자 이상의 (멀티 + 플로어)근무자가 근무해야 합니다.)"
       />
 
       {/* 생성 버튼 */}
@@ -93,7 +93,9 @@ const ScheduleInputNumber: React.FC<{
         id={name}
         value={value}
         max={100}
-        onChange={(e) => setValue(parseInt(e.target.value))}
+        onChange={(e) => {
+          setValue(parseInt(e.target.value) || 0);
+        }}
         className="block w-32 bg-white p-2 border-[1px] rounded-lg"
       />
     </div>
