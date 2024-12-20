@@ -207,7 +207,6 @@ describe('동적 근무자 조건 필터링', () => {
     });
 
     expect(eCon1.employee.ableWorkPosition).not.toContain(EWorkPosition.멀티);
-    expect(eCon1.employee.ableWorkPosition).not.toContain(EWorkPosition.플로어);
 
     const wCon1 = createMockWorkConditionEntry({
       employee: eCon1.employee,
@@ -256,7 +255,7 @@ describe('동적 근무자 조건 필터링', () => {
     //멀티가 안되는 근무자
     const eCon1 = createMockEmployeeCondition({
       employee: {
-        ableWorkPosition: [EWorkPosition.매점, EWorkPosition.플로어],
+        ableWorkPosition: [EWorkPosition.매점],
       },
     });
 
@@ -264,7 +263,7 @@ describe('동적 근무자 조건 필터링', () => {
 
     const wCon1 = createMockWorkConditionEntry({
       employee: eCon1.employee,
-      workPosition: EWorkPosition.플로어,
+      workPosition: EWorkPosition.매점,
     });
 
     const wCon3 = createMockWorkConditionEntry({
@@ -301,6 +300,77 @@ describe('동적 근무자 조건 필터링', () => {
     console.log('filteredEmployees: ', filteredEmployees);
 
     expect(filteredEmployees['가능한 근무자'].length).toEqual(0);
+  });
+
+  test('멀티 근무에 만족하면 필터링 되지않는다.', async () => {
+    //멀티가 되는 근무자
+    const eCon1 = createMockEmployeeCondition({
+      employee: {
+        ableWorkPosition: [EWorkPosition.매점, EWorkPosition.멀티],
+      },
+    });
+
+    // 멀티가 안되는 근무자
+    const eCon2 = createMockEmployeeCondition({
+      employee: {
+        ableWorkPosition: [EWorkPosition.매점, EWorkPosition.플로어],
+      },
+    });
+
+    // 멀티 가능한 엔트리
+    const wCon1 = createMockWorkConditionEntry({
+      employee: eCon1.employee,
+      workTime: EWorkTime.오픈,
+      workPosition: EWorkPosition.매점,
+    });
+
+    // 멀티 가능한 엔트리
+    const wCon3 = createMockWorkConditionEntry({
+      employee: eCon1.employee,
+      workPosition: EWorkPosition.멀티,
+      workTime: EWorkTime.선택,
+      timeSlot: { start: '08:30', end: '11:30' },
+    });
+
+    // 멀티가 가능한 사람이 들어와야만 하는 엔트리
+    const wCon2 = createMockWorkConditionEntry({
+      workTime: EWorkTime.오픈,
+      workPosition: EWorkPosition.플로어,
+    });
+
+    delete wCon2.employee;
+
+    const dateDay = new DateDay(wCon1.date, 0);
+
+    const workConditionOfWeek = WorkConditionOfWeekSchema.parse({
+      [dateDay.getDayOfWeek()]: [wCon1, wCon3, wCon2],
+    });
+    //when: 최대 멀티 조건 인원이 3명이라 했을때
+    const 최대_멀티_인원 = 3;
+
+    const filteredEmployees = { '가능한 근무자': [eCon1, eCon2] };
+    const dynamicCondition = new DynamicEmployeeConditions(
+      wCon2,
+      workConditionOfWeek,
+      new ScheduleCounter(workConditionOfWeek),
+      {
+        multiLimit: 최대_멀티_인원,
+        startDate: dateDay.startDate,
+        maxWorkComboDayCount: 10,
+      },
+      filteredEmployees,
+      mockHeadSchedule(100),
+      mockHeadSchedule(100),
+    );
+
+    //then: 멀티가 있으므로 필터링 되어야함
+    await dynamicCondition.add_조건5_멀티_최소인원을_만족하는_근무자().value();
+    console.log('filteredEmployees: ', filteredEmployees);
+
+    expect(filteredEmployees['가능한 근무자'].length).toEqual(1);
+    expect(filteredEmployees['가능한 근무자'][0].employee.id).toEqual(
+      eCon1.employee.id,
+    );
   });
 
   // test('add_조건5_멀티_최소인원을_만족하는_근무자', async () => {

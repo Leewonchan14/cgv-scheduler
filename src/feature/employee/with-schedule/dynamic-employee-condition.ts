@@ -243,13 +243,13 @@ export class DynamicEmployeeConditions extends FilterEmployee {
       let listGap30 = workTimeSlots.flatMap((s) => s.getHourMinuteListGap30());
       listGap30 = _.uniqBy(listGap30, (v) => v.hour * 60 + v.minute);
 
-      // 30분 간격으로 모든 간격안에 플로어 + 멀티 가능한 근무자가 3명이상이면 true
+      // 30분 간격으로 모든 간격안에 멀티 가능한 근무자가 multiLimit명이상이면 true
       const isAble = listGap30.every((hm) => {
         const filteredSchedules = mockEntries.filter(
           (wCon) =>
-            [EWorkPosition.플로어, EWorkPosition.멀티].includes(
-              wCon.workPosition,
-            ) && WorkTimeSlot.fromTimeSlot(wCon.timeSlot).isContainPoint(hm),
+            // 멀티 근무가 가능 하고 hm 를 포함하는 스케쥴들
+            wCon.employee?.ableWorkPosition.includes(EWorkPosition.멀티) &&
+            WorkTimeSlot.fromTimeSlot(wCon.timeSlot).isContainPoint(hm),
         );
         return filteredSchedules.length >= this.userInput.multiLimit;
       });
