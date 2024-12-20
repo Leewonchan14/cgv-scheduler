@@ -3,6 +3,7 @@
 import { SELECTED_WEEK } from '@/app/schedule/const';
 import { useQueryParam } from '@/app/share/util/useQueryParam';
 import { EDayOfWeek } from '@/entity/enums/EDayOfWeek';
+import { EWorkPosition } from '@/entity/enums/EWorkPosition';
 import { EWorkTime } from '@/entity/enums/EWorkTime';
 import {
   APIPossibleEmployeeType,
@@ -36,7 +37,13 @@ export interface GeneratorContextType {
   onChangeWorkConditionEntryWorkTime: (
     dayOfWeek: EDayOfWeek,
     entryId: string,
+    workPosition: EWorkPosition,
     workTime: EWorkTime,
+  ) => void;
+  onChangeWorkConditionEntryTimeSlot: (
+    dayOfWeek: EDayOfWeek,
+    entryId: string,
+    timeSlot: WorkTimeSlot,
   ) => void;
   getPossibleEmployeeBody: (
     workConditionEntry: WorkConditionEntry,
@@ -89,12 +96,21 @@ export const GeneratorProvider: React.FC<React.PropsWithChildren> = ({
   );
 
   const onChangeWorkConditionEntryWorkTime = useCallback(
-    (dayOfWeek: EDayOfWeek, entryId: string, workTime: EWorkTime) => {
+    (
+      dayOfWeek: EDayOfWeek,
+      entryId: string,
+      workPosition: EWorkPosition,
+      workTime: EWorkTime,
+    ) => {
       onChangeWorkConditionOfWeek({
         ...workConditionOfWeek,
         [dayOfWeek]: workConditionOfWeek[dayOfWeek].map((e) =>
           e.id === entryId
-            ? { ...e, workTime, timeSlot: WorkTimeSlot.fromWorkTime(workTime) }
+            ? {
+                ...e,
+                workTime,
+                timeSlot: WorkTimeSlot.fromWorkTime(workPosition, workTime),
+              }
             : e,
         ),
       });
@@ -102,25 +118,16 @@ export const GeneratorProvider: React.FC<React.PropsWithChildren> = ({
     [onChangeWorkConditionOfWeek, workConditionOfWeek],
   );
 
-  const getPossibleEmployeeBody = useCallback(
-    (workConditionEntry: WorkConditionEntry) => {
-      return {
-        workConditionOfWeek,
-        startDate: selectedWeek,
-        employeeConditions: selectEmployeeConditions,
-        workConditionEntry,
-        maxSchedule: limitCondition.maxSchedule,
-        maxWorkComboDayCount: limitCondition.maxWorkComboDayCount,
-        multiLimit: 3,
-      } as APIPossibleEmployeeType;
+  const onChangeWorkConditionEntryTimeSlot = useCallback(
+    (dayOfWeek: EDayOfWeek, entryId: string, timeSlot: WorkTimeSlot) => {
+      onChangeWorkConditionOfWeek({
+        ...workConditionOfWeek,
+        [dayOfWeek]: workConditionOfWeek[dayOfWeek].map((e) =>
+          e.id === entryId ? { ...e, timeSlot } : e,
+        ),
+      });
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [
-      limitCondition.maxSchedule,
-      limitCondition.maxWorkComboDayCount,
-      selectEmployeeConditions,
-      workConditionOfWeek,
-    ],
+    [onChangeWorkConditionOfWeek, workConditionOfWeek],
   );
 
   const getUserInput = useCallback(() => {
@@ -141,6 +148,17 @@ export const GeneratorProvider: React.FC<React.PropsWithChildren> = ({
     workConditionOfWeek,
   ]);
 
+  const getPossibleEmployeeBody = useCallback(
+    (workConditionEntry: WorkConditionEntry) => {
+      const { maxSchedule, ...rest } = getUserInput();
+      return {
+        ...rest,
+        workConditionEntry,
+      };
+    },
+    [getUserInput],
+  );
+
   return (
     <GeneratorContext.Provider
       value={{
@@ -152,6 +170,7 @@ export const GeneratorProvider: React.FC<React.PropsWithChildren> = ({
         onChangeSelectEmployee,
         onChangeWorkConditionOfWeek,
         onChangeWorkConditionEntryWorkTime,
+        onChangeWorkConditionEntryTimeSlot,
         getPossibleEmployeeBody,
         getUserInput,
       }}

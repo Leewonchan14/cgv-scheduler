@@ -12,6 +12,7 @@ import { EmployeeCondition, WorkConditionEntry } from '@/entity/types';
 import { WorkTimeSlot } from '@/feature/schedule/work-time-slot-handler';
 import { getColor } from '@/share/libs/util/isLightColor';
 import { uuid } from '@/share/libs/util/uuid';
+import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import React, { useCallback, useContext } from 'react';
@@ -54,7 +55,7 @@ const ScheduleDayEditor: React.FC<ScheduleDayEditorProps> = ({
             date: DateDay.fromDayOfWeek(selectedWeek, dayOfWeek).date,
             workPosition: position,
             workTime: EWorkTime.오픈,
-            timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
+            timeSlot: WorkTimeSlot.fromWorkTime(position, EWorkTime.오픈),
           },
         ],
       });
@@ -181,6 +182,7 @@ const WorkTimeSelect: React.FC<{
           onChangeWorkConditionEntryWorkTime(
             dayOfWeek,
             entry.id,
+            entry.workPosition,
             value as EWorkTime,
           );
         }}
@@ -189,14 +191,87 @@ const WorkTimeSelect: React.FC<{
           <SelectValue placeholder="오픈" />
         </SelectTrigger>
         <SelectContent>
-          {Object.values(EWorkTime).map((time) => (
-            <SelectItem key={time} value={time}>
-              {time}
-            </SelectItem>
-          ))}
+          {Object.values(EWorkTime).map((time) => {
+            // 멀티가 아닐때는 선택을 나오게 하지 않음
+            if (
+              entry.workPosition !== EWorkPosition.멀티 &&
+              time === EWorkTime.선택
+            )
+              return <></>;
+            return (
+              <SelectItem key={time} value={time}>
+                {time}
+              </SelectItem>
+            );
+          })}
         </SelectContent>
       </Select>
+      <TimeDisplayOrSelector dayOfWeek={dayOfWeek} entry={entry} />
     </React.Fragment>
+  );
+};
+
+interface TimeSelectorProps {
+  dayOfWeek: EDayOfWeek;
+  entry: WorkConditionEntry;
+}
+
+const TimeDisplayOrSelector: React.FC<TimeSelectorProps> = ({
+  dayOfWeek,
+  entry,
+}) => {
+  const { onChangeWorkConditionEntryTimeSlot } = useGeneratorContext();
+  const workTimeSlot = WorkTimeSlot.fromTimeSlot(entry.timeSlot);
+
+  // 멀티 && 선택일때만 timeSelector 뜨게 설정
+  if (
+    !(
+      entry.workPosition === EWorkPosition.멀티 &&
+      entry.workTime === EWorkTime.선택
+    )
+  ) {
+    return (
+      <div className="flex w-full justify-evenly">
+        <div>{workTimeSlot.start}</div>~<div>{workTimeSlot.end}</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col w-full gap-4 mt-4">
+      <TimePicker
+        label="출근"
+        value={workTimeSlot.toDate().start}
+        onChange={(value) => {
+          if (!value) return;
+          onChangeWorkConditionEntryTimeSlot(
+            dayOfWeek,
+            entry.id,
+            workTimeSlot.setStart(value),
+          );
+        }}
+        ampm={false}
+        minutesStep={30}
+        defaultValue={workTimeSlot.toDate().start}
+        maxTime={workTimeSlot.toDate().end}
+      />
+      <TimePicker
+        label="퇴근"
+        value={workTimeSlot.toDate().end}
+        onChange={(value) => {
+          if (!value) return;
+          onChangeWorkConditionEntryTimeSlot(
+            dayOfWeek,
+            entry.id,
+            workTimeSlot.setEnd(value),
+          );
+        }}
+        ampm={false}
+        minutesStep={30}
+        defaultValue={workTimeSlot.toDate().end}
+        minTime={workTimeSlot.toDate().start}
+      />
+    </div>
   );
 };
 

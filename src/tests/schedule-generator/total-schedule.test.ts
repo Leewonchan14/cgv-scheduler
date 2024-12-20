@@ -33,7 +33,7 @@ describe('스케쥴 생성기 테스트', () => {
         employee: employees[i],
         workPosition: EWorkPosition.매점,
         workTime: EWorkTime.오픈,
-        timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
+        timeSlot: WorkTimeSlot.fromWorkTime(EWorkPosition.매점, EWorkTime.오픈),
       }),
     );
 
@@ -43,7 +43,7 @@ describe('스케쥴 생성기 테스트', () => {
         employee: employees[i],
         workPosition: EWorkPosition.매점,
         workTime: EWorkTime.마감,
-        timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.마감),
+        timeSlot: WorkTimeSlot.fromWorkTime(EWorkPosition.매점, EWorkTime.마감),
       }),
     );
 
@@ -52,7 +52,10 @@ describe('스케쥴 생성기 테스트', () => {
         date,
         employee: employees[i],
         workPosition: EWorkPosition.플로어,
-        timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.오픈),
+        timeSlot: WorkTimeSlot.fromWorkTime(
+          EWorkPosition.플로어,
+          EWorkTime.오픈,
+        ),
       }),
     );
 
@@ -62,7 +65,10 @@ describe('스케쥴 생성기 테스트', () => {
         employee: employees[i],
         workPosition: EWorkPosition.플로어,
         workTime: EWorkTime.마감,
-        timeSlot: WorkTimeSlot.fromWorkTime(EWorkTime.마감),
+        timeSlot: WorkTimeSlot.fromWorkTime(
+          EWorkPosition.플로어,
+          EWorkTime.마감,
+        ),
       }),
     );
 
