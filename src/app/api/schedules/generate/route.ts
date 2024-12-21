@@ -73,6 +73,7 @@ export async function POST(request: Request) {
 
     const response = {
       data: generator.getResult() as WorkConditionOfWeek[],
+      counter: generator.getErrorCounter(),
     };
 
     return NextResponse.json(response);
