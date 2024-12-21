@@ -194,6 +194,8 @@ export class ScheduleGenerator {
   private isValidate() {
     const { employeeConditions } = this.userInput;
 
+    let isValid = true;
+
     for (const employeeCondition of employeeConditions) {
       const count = this.scheduleCounter.getEmployeeCnt(
         employeeCondition.employee,
@@ -203,17 +205,17 @@ export class ScheduleGenerator {
         this.scheduleErrorCounter.countNotValidAbleMin(
           employeeCondition.employee.id,
         );
-        return false;
+        isValid = false;
       }
       if (count > employeeCondition.ableMaxWorkCount) {
         this.scheduleErrorCounter.countNotValidAbleMax(
           employeeCondition.employee.id,
         );
-        return false;
+        isValid = false;
       }
     }
 
-    return true;
+    return isValid;
   }
 
   public getResult() {

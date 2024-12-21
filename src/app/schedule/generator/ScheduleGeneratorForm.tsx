@@ -6,6 +6,7 @@ import { useGeneratorContext } from '@/app/schedule/generator/GeneratorContext';
 import ScheduleGenDisplay from '@/app/schedule/generator/ScheduleDisplay';
 import ScheduleWeekEditor from '@/app/schedule/generator/ScheduleWeekEditor';
 import { DateDay } from '@/entity/interface/DateDay';
+import { ISchedule } from '@/entity/types';
 import { ScheduleErrorCounter } from '@/feature/schedule/schedule-error-counter';
 import { useIsMutating, useMutation } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
@@ -23,10 +24,18 @@ const ScheduleGeneratorForm: NextPage<{}> = ({}) => {
   const onSubmit = async (
     onMutate: () => void,
     onError: (error: Error) => void,
+    onSuccess: ({
+      data,
+      counter,
+    }: {
+      data: ISchedule[];
+      counter: ScheduleErrorCounter['counter'];
+    }) => void,
   ) => {
     onMutate();
     await mutateAsync(getUserInput(), {
       onError,
+      onSuccess,
     });
   };
 
@@ -105,6 +114,13 @@ interface ButtonProps {
   onClick: (
     onMutate: () => void,
     onError: (error: Error) => void,
+    onSuccess: ({
+      data,
+      counter,
+    }: {
+      data: ISchedule[];
+      counter: ScheduleErrorCounter['counter'];
+    }) => void,
   ) => Promise<void>;
 }
 
@@ -131,6 +147,11 @@ const GenerateButton: React.FC<ButtonProps> = ({ onClick }) => {
           }
         }
         setMessage(newMessage);
+      },
+      ({ data, counter }) => {
+        if (data.length === 0) {
+          setCounter(counter);
+        }
       },
     );
   };
