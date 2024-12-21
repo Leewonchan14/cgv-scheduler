@@ -23,7 +23,7 @@ https://cgv-scheduler.vercel.app/
 3. **자동 근무표 작성**
     조건을 만족하는 근무자를 근무표에 자동 배치.
     백트래킹 알고리즘을 통해 근무자를 배치하며 가능한 근무자를 필터링.
-    ![dlfwjdrhksfl](https://file.notion.so/f/f/0a3516d8-1359-4f15-96f8-67198b036621/b72c470d-1096-4a7f-8ade-e4b1e5ac1941/%E1%84%92%E1%85%AA%E1%84%86%E1%85%A7%E1%86%AB_%E1%84%80%E1%85%B5%E1%84%85%E1%85%A9%E1%86%A8_2024-12-21_%E1%84%8B%E1%85%A9%E1%84%92%E1%85%AE_10.28.15.gif?table=block&id=163dd44f-a4c3-8052-8af1-c07dc8d98a09&spaceId=0a3516d8-1359-4f15-96f8-67198b036621&expirationTimestamp=1734883200000&signature=vrKFX2PsOV8KfgUFiDq3w7IZDQ--iCzpYwYdyZAmkig)
+    ![](https://velog.velcdn.com/images/twoone14/post/7cf73946-7151-4607-9ab1-017692b51b1d/image.gif)
 
 4. **근무자 투입 가능 여부 표시**
     특정 근무에 투입 가능한 인원과 불가능한 인원을 시각적으로 구분.
