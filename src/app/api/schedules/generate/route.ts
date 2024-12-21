@@ -62,7 +62,11 @@ export async function POST(request: Request) {
 
     if (generator.isTimeOut) {
       return NextResponse.json(
-        { data: null, message: 'Timeout' },
+        {
+          data: null,
+          message: 'Timeout',
+          counter: generator.getErrorCounter(),
+        },
         { status: 400 },
       );
     }

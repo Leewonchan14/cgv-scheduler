@@ -6,6 +6,7 @@ import {
   ISchedule,
 } from '@/entity/types';
 import { FilteredEmployees } from '@/feature/employee/with-schedule/filter-employee-condition';
+import { ScheduleErrorCounter } from '@/feature/schedule/schedule-error-counter';
 import { getQueryClient } from '@/share/libs/tasntack-query/get-query-client';
 import axios from 'axios';
 import { z } from 'zod';
@@ -18,7 +19,10 @@ export const scheduleMutateApi = {
     ) => {
       const { data } = await axios.post('/api/schedules/generate', userInput);
 
-      return data.data as ISchedule[];
+      return {
+        data: data.data as ISchedule[],
+        counter: data.counter as ScheduleErrorCounter['counter'],
+      };
     },
   },
 

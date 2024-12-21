@@ -11,6 +11,7 @@ import { FilteredEmployees } from '@/feature/employee/with-schedule/filter-emplo
 import { SortEmployeeByWorkCondition } from '@/feature/employee/with-schedule/sort-employee-by-condition';
 import { StaticEmployeeCondition } from '@/feature/employee/with-schedule/static-employee-condition';
 import { ScheduleCounter } from '@/feature/schedule/schedule-counter';
+import { ScheduleErrorCounter } from '@/feature/schedule/schedule-error-counter';
 import { delay } from '@/share/libs/util/delay';
 import _ from 'lodash';
 
@@ -27,6 +28,7 @@ export class ScheduleGenerator {
     [key: string]: EmployeeCondition[];
   } = {};
   private scheduleCounter: ScheduleCounter;
+  private scheduleErrorCounter = new ScheduleErrorCounter();
 
   constructor(
     private userInput: UserInputCondition,
@@ -96,6 +98,10 @@ export class ScheduleGenerator {
 
       const filtered = await this.filteredEmployee(workConditionEntry);
       filtered['가능한 근무자'] = this.sort_근무자들(filtered['가능한 근무자']);
+
+      if (filtered['가능한 근무자'].length === 0) {
+        this.scheduleErrorCounter.countEmptyEmployee(workConditionEntry.id);
+      }
 
       // 가능한 사람이 있으면 스케줄에 추가하고 다음 재귀 호출
       for (const employeeCondition of filtered['가능한 근무자']) {
@@ -193,8 +199,18 @@ export class ScheduleGenerator {
         employeeCondition.employee,
       );
 
-      if (count < employeeCondition.ableMinWorkCount) return false;
-      if (count > employeeCondition.ableMaxWorkCount) return false;
+      if (count < employeeCondition.ableMinWorkCount) {
+        this.scheduleErrorCounter.countNotValidAbleMin(
+          employeeCondition.employee.id,
+        );
+        return false;
+      }
+      if (count > employeeCondition.ableMaxWorkCount) {
+        this.scheduleErrorCounter.countNotValidAbleMax(
+          employeeCondition.employee.id,
+        );
+        return false;
+      }
     }
 
     return true;
@@ -202,5 +218,8 @@ export class ScheduleGenerator {
 
   public getResult() {
     return this.result;
+  }
+  public getErrorCounter() {
+    return this.scheduleErrorCounter.counter;
   }
 }

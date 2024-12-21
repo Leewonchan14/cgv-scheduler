@@ -5,14 +5,14 @@ import EmployeeSelector from '@/app/schedule/generator/EmployeeSelector';
 import { useGeneratorContext } from '@/app/schedule/generator/GeneratorContext';
 import ScheduleGenDisplay from '@/app/schedule/generator/ScheduleDisplay';
 import ScheduleWeekEditor from '@/app/schedule/generator/ScheduleWeekEditor';
+import { DateDay } from '@/entity/interface/DateDay';
+import { ScheduleErrorCounter } from '@/feature/schedule/schedule-error-counter';
 import { useIsMutating, useMutation } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 import { NextPage } from 'next';
 import React, { useState } from 'react';
 
 const ScheduleGeneratorForm: NextPage<{}> = ({}) => {
-  const [message, setMessage] = useState('');
-
   const { getUserInput, limitCondition, onChangeLimitCondition } =
     useGeneratorContext();
 
@@ -20,22 +20,13 @@ const ScheduleGeneratorForm: NextPage<{}> = ({}) => {
     scheduleMutateApi.generate,
   );
 
-  const onSubmit = async () => {
-    setMessage('');
+  const onSubmit = async (
+    onMutate: () => void,
+    onError: (error: Error) => void,
+  ) => {
+    onMutate();
     await mutateAsync(getUserInput(), {
-      onError: (error) => {
-        console.log(error);
-        let newMessage = error.message;
-        if (error instanceof AxiosError) {
-          if (error?.response?.data?.message === 'Timeout') {
-            newMessage =
-              '시간 제한... 먼저 근무자를 어느정도 배치후 시도해 보세요';
-          } else {
-            newMessage = `${error.request.status}서버 오류입니다. 잠시후 다시시도해 보세요`;
-          }
-        }
-        setMessage(newMessage);
-      },
+      onError,
     });
   };
 
@@ -78,9 +69,9 @@ const ScheduleGeneratorForm: NextPage<{}> = ({}) => {
       />
 
       {/* 생성 버튼 */}
-      <GenerateButton onClick={onSubmit} message={message} />
+      <GenerateButton onClick={onSubmit} />
 
-      <ScheduleGenDisplay schedules={generatedSchedules ?? []} />
+      <ScheduleGenDisplay schedules={generatedSchedules?.data ?? []} />
     </div>
   );
 };
@@ -111,22 +102,118 @@ const ScheduleInputNumber: React.FC<{
 };
 
 interface ButtonProps {
-  onClick: () => void;
-  message: string;
+  onClick: (
+    onMutate: () => void,
+    onError: (error: Error) => void,
+  ) => Promise<void>;
 }
 
-const GenerateButton: React.FC<ButtonProps> = ({ onClick, message }) => {
+const GenerateButton: React.FC<ButtonProps> = ({ onClick }) => {
+  const [counter, setCounter] = useState<ScheduleErrorCounter['counter']>();
+  const [message, setMessage] = useState('');
+  const onSubmit = async () => {
+    await onClick(
+      () => {
+        setCounter(undefined);
+        setMessage('');
+      },
+      (error) => {
+        console.log(error);
+        let newMessage = error.message;
+        if (error instanceof AxiosError) {
+          if (error.request.status === 400) {
+            newMessage = '';
+            setCounter(
+              error?.response?.data?.counter as ScheduleErrorCounter['counter'],
+            );
+          } else {
+            newMessage = `${error.request.status}서버 오류입니다. 잠시후 다시시도해 보세요`;
+          }
+        }
+        setMessage(newMessage);
+      },
+    );
+  };
+
   const disable = useIsMutating(scheduleMutateApi.generate) !== 0;
   return (
     <div className="flex flex-col items-center gap-4 mb-6 text-center">
       <button
         disabled={disable}
-        onClick={onClick}
+        onClick={onSubmit}
         className="px-4 py-2 font-bold text-white transition-colors bg-blue-500 rounded-lg hover:bg-blue-600 disabled:opacity-50"
       >
         자동 근무표 생성
       </button>
       <p className="font-bold text-red-500">{message}</p>
+      <DisplayErrorCounter counter={counter} />
+    </div>
+  );
+};
+
+const DisplayErrorCounter = ({
+  counter,
+}: {
+  counter?: ScheduleErrorCounter['counter'];
+}) => {
+  const { workConditionOfWeek, selectEmployeeConditions } =
+    useGeneratorContext();
+
+  if (!counter) return null;
+
+  const entries = Object.values(workConditionOfWeek).flat();
+
+  const renderEntry = (entryId: string) => {
+    const entry = entries.find((entry) => entry.id === entryId);
+    if (!entry) return;
+
+    return (
+      <div key={entryId} className="flex w-full gap-4 font-bold text-red-500">
+        <div>{new DateDay(entry.date, 0).getDayOfWeek()}요일</div>
+        <div>{entry.workPosition}</div>
+        <div>{entry.workTime}</div>
+        <div>{`${entry.timeSlot.start} ~ ${entry.timeSlot.end}`}</div>
+      </div>
+    );
+  };
+
+  const renderEmployeeNotValid = (id: number) => {
+    const employeeCon = selectEmployeeConditions.find(
+      (emp) => emp.employee.id === id,
+    );
+    if (!employeeCon) return;
+    return (
+      <div key={id} className="font-bold text-red-500">
+        {employeeCon.employee.name}
+      </div>
+    );
+  };
+
+  return (
+    <div className="flex flex-col gap-10">
+      <div className="flex flex-col items-start gap-2">
+        <div>가능한 근무자가 없었던 근무표</div>
+        {Object.keys(counter['가능한 근무자가 없었던 근무표']).map(
+          (id, index) => (
+            <div className="flex" key={id}>
+              <span className="mr-2">{index + 1}.</span>
+              {renderEntry(id)}
+            </div>
+          ),
+        )}
+      </div>
+      <div className="flex flex-wrap gap-4">
+        <div>최대 근무일이 적어서 배치가 힘든 근무자</div>
+        {Object.keys(counter['최대 근무일이 적어서 배치가 힘든 근무자']).map(
+          (id) => renderEmployeeNotValid(parseInt(id)),
+        )}
+      </div>
+      <div className="flex flex-wrap gap-4">
+        <div>최소 근무일이 많아서 배치가 힘든 근무자</div>
+        {Object.keys(counter['최소 근무일이 많아서 배치가 힘든 근무자']).map(
+          (id) => renderEmployeeNotValid(parseInt(id)),
+        )}
+      </div>
     </div>
   );
 };
