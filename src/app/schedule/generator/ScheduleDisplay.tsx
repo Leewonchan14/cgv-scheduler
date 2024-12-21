@@ -27,7 +27,7 @@ const ScheduleGenDisplay: React.FC<ScheduleDisplayProps> = ({
     return (
       <div className="flex flex-col items-center justify-center gap-4">
         <div className="inline-block w-8 h-8 ml-2 border-2 border-white rounded-full animate-spin border-t-blue-500" />
-        <p className="font-bold text-blue-500">최대 30초 소요됩니다.</p>
+        <p className="font-bold text-blue-500">최대 8초 소요됩니다.</p>
       </div>
     );
   }
