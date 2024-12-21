@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CGV 근무표 자동화 프로젝트
 
-## Getting Started
+📖 프로젝트 소개
 
-First, run the development server:
+이 프로젝트는 CGV 주안점에서 매니저로 근무하는 친구와의 대화를 계기로 시작되었습니다.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+CGV 매니저의 주요 업무 중 하나인 근무표 작성 작업을 자동화하여 효율성을 높이고자 기획되었습니다.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+수많은 조건과 제약사항을 고려하여 매니저의 업무 부담을 줄이고, 근무자들에게 공정한 근무 배정을 제공하는 데 목적을 두고 있습니다.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**🚀 주요 기능**
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. **근무자 관리**
+    근무자 추가, 삭제, 수정 가능.
+    근무자의 근로계약서를 기반으로 가능한 요일 및 시간 저장.
 
-## Learn More
+2. **근무 일정 관리**
+    근무표를 주 단위로 편집 및 수정 가능.
+    근무자의 출근 횟수 및 근무시간 확인 가능.
 
-To learn more about Next.js, take a look at the following resources:
+3. **자동 근무표 작성**
+    조건을 만족하는 근무자를 근무표에 자동 배치.
+    백트래킹 알고리즘을 통해 근무자를 배치하며 가능한 근무자를 필터링.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+4. **근무자 투입 가능 여부 표시**
+    특정 근무에 투입 가능한 인원과 불가능한 인원을 시각적으로 구분.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## **💡 고려된 조건 (도메인)**
 
-## Deploy on Vercel
+1. 하루에 한 번만 근무 가능.
+2. 각 근무자는 요일별로 가능한 포지션이 다름.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+    **포지션**: 매점, 플로어, 멀티.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+3. 근로계약서에 명시된 요일 및 시간만 근무 가능.
+4. 각 근무자의 주당 최소/최대 출근 횟수를 준수.
+5. 개인 사정으로 특정 요일 근무 불가 시 반영.
+6. 전날 마감 근무 시 다음날 오픈 근무 불가.
+7. 최대 연속 근무일 준수 (예: 최대 4일 연속 근무 금지).
+8. 멀티 포지션 인원의 최소 투입 요건 충족.
+
+**🛠️ 사용 기술**
+
+**Frontend**: <img src="https://img.shields.io/badge/next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white"> <img src="https://img.shields.io/badge/typescript-3178C6?style=for-the-badge&logo=typescript&logoColor=white"> <img src="https://img.shields.io/badge/tailwindcss-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white">
+
+**Backend**: <img src="https://img.shields.io/badge/next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white">  <img src="https://img.shields.io/badge/typeorm-FE0803?style=for-the-badge&logo=typeorm&logoColor=white"> <img src="https://img.shields.io/badge/postgresql-4169E1?style=for-the-badge&logo=postgresql&logoColor=white">
+
+**Utilities**:
+
+- **State Management**: <img src="https://img.shields.io/badge/reactquery-FF4154?style=for-the-badge&logo=reactquery&logoColor=white">
+
+- **Validation**: <img src="https://img.shields.io/badge/zod-3E67B1?style=for-the-badge&logo=zod&logoColor=white">
+
+- **Testing**: <img src="https://img.shields.io/badge/Jest-C21325?style=for-the-badge&logo=Jest&logoColor=white">
+
+- **Deployment**: <img src="https://img.shields.io/badge/vercel-000000?style=for-the-badge&logo=vercel&logoColor=white">
