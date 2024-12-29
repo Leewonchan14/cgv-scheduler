@@ -32,20 +32,40 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const selectedWeekParam = request.nextUrl.searchParams.get(SELECTED_WEEK);
   const body = await request.json();
+  const selectedWeekParse = z.coerce.date().safeParse(selectedWeekParam ?? '');
+  const scheduleOfWeekParse = APIScheduleSchema.safeParse(body);
 
-  const { success, data } = APIScheduleSchema.safeParse(body);
+  if (!selectedWeekParse.success || !scheduleOfWeekParse.success) {
+    return NextResponse.json({ message: 'Invalid request' }, { status: 400 });
+  }
+  const empService = employeeService(await appDataSource());
+  const updateEntries = _.chain(scheduleOfWeekParse.data)
+    .values()
+    .sort()
+    .flatten()
+    .value();
 
-  if (!success || !data) {
+  await scheduleEntryService(await appDataSource()).saveWeek(
+    selectedWeekParse.data,
+    updateEntries,
+    empService,
+  );
+
+  return NextResponse.json({ data: null, message: 'Success' });
+}
+
+export async function DELETE(request: NextRequest) {
+  const selectedWeekParam = request.nextUrl.searchParams.get(SELECTED_WEEK);
+  const selectedWeekParse = z.coerce.date().safeParse(selectedWeekParam ?? '');
+
+  if (!selectedWeekParse.success) {
     return NextResponse.json({ message: 'Invalid request' }, { status: 400 });
   }
 
-  const entries = _.chain(data).values().sort().flatten().value();
-  const empService = employeeService(await appDataSource());
-
-  await scheduleEntryService(await appDataSource()).saveWeek(
-    entries,
-    empService,
+  await scheduleEntryService(await appDataSource()).removeByWeek(
+    selectedWeekParse.data,
   );
 
   return NextResponse.json({ data: null, message: 'Success' });

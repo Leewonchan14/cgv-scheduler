@@ -2,7 +2,10 @@
 
 import { scheduleMutateApi } from '@/app/schedule/api/mutate';
 import { scheduleQueryApi } from '@/app/schedule/api/queryoption';
-import { GeneratorContext } from '@/app/schedule/generator/GeneratorContext';
+import {
+  GeneratorContext,
+  useGeneratorContext,
+} from '@/app/schedule/generator/GeneratorContext';
 import ScheduleDayEditor from '@/app/schedule/generator/ScheduleDayEditor';
 import LoadingAnimation from '@/app/ui/loading/loading-animation';
 import { EWorkPosition } from '@/entity/enums/EWorkPosition';
@@ -119,9 +122,7 @@ const ScheduleWeekEditor: React.FC<{}> = () => {
 };
 
 const CreateScheduleButton: React.FC<{}> = ({}) => {
-  const context = useContext(GeneratorContext);
-  if (!context) throw new Error('GeneratorContext가 존재하지 않습니다.');
-  const { workConditionOfWeek } = context;
+  const { workConditionOfWeek, selectedWeek } = useGeneratorContext();
 
   const search = useSearchParams();
   const query = new URLSearchParams(
@@ -140,7 +141,7 @@ const CreateScheduleButton: React.FC<{}> = ({}) => {
       return;
     }
 
-    await mutateAsync(data);
+    await mutateAsync({ workConditionOfWeek: data, selectedWeek });
     router.replace(`/schedule?${query}`);
   };
 

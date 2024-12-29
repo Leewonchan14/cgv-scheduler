@@ -33,11 +33,18 @@ export class ScheduleEntryService {
   }
 
   async saveWeek(
+    selectedWeek: Date,
     scheduleEntries: DeepPartial<ScheduleEntry>[],
     employeeService: EmployeeService,
   ): Promise<void> {
-    const ids = _.compact(scheduleEntries.map((e) => e.employee?.id));
-    const employees = await employeeService.findByIds(ids);
+    const employeeIds = _.compact(scheduleEntries.map((e) => e.employee?.id));
+    const employees = await employeeService.findByIds(employeeIds);
+
+    const updateIds = scheduleEntries.map((s) => s.id);
+    const previousIds = _.values(await this.findWeekSchedule(selectedWeek))
+      .flat()
+      .map((s) => s.id);
+    const removeIds = previousIds.filter((pId) => !updateIds.includes(pId));
 
     const mapper = scheduleEntries.map((e) => {
       const entry = this.scheduleRep.create(e);
@@ -47,6 +54,15 @@ export class ScheduleEntryService {
     });
 
     await this.scheduleRep.upsert(mapper, ['id']);
+    await this.scheduleRep.delete(removeIds);
+  }
+
+  async removeByWeek(selectedWeek: Date): Promise<void> {
+    const removeIds = _.values(await this.findWeekSchedule(selectedWeek))
+      .flat()
+      .map((s) => s.id);
+
+    await this.scheduleRep.delete(removeIds);
   }
 
   async remove(id: number): Promise<void> {
@@ -84,6 +100,7 @@ export class ScheduleEntryService {
       where: {
         date: Between(new Date(start), new Date(end)),
       },
+      withDeleted: true,
     });
 
     return ScheduleSchema.parse(

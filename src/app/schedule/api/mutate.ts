@@ -9,6 +9,7 @@ import { FilteredEmployees } from '@/feature/employee/with-schedule/filter-emplo
 import { ScheduleErrorCounter } from '@/feature/schedule/schedule-error-counter';
 import { getQueryClient } from '@/share/libs/tasntack-query/get-query-client';
 import axios from 'axios';
+import { format } from 'date-fns';
 import { z } from 'zod';
 
 export const scheduleMutateApi = {
@@ -28,13 +29,20 @@ export const scheduleMutateApi = {
 
   save: {
     mutationKey: ['schedules'],
-    mutationFn: async (
-      workConditionOfWeek: z.infer<typeof APIScheduleSchema>,
-    ) => {
+    mutationFn: async ({
+      selectedWeek,
+      workConditionOfWeek,
+    }: {
+      workConditionOfWeek: z.infer<typeof APIScheduleSchema>;
+      selectedWeek: Date;
+    }) => {
       await axios.request({
         url: '/api/schedules',
         method: 'POST',
         data: workConditionOfWeek,
+        params: {
+          selectedWeek: format(selectedWeek, 'yyyy-MM-dd'),
+        },
       });
       return;
     },
