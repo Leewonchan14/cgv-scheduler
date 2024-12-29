@@ -45,6 +45,7 @@ export interface GeneratorContextType {
     entryId: string,
     timeSlot: WorkTimeSlot,
   ) => void;
+  clearWorkConditionOfWeek: () => void;
   getPossibleEmployeeBody: (
     workConditionEntry: WorkConditionEntry,
   ) => APIPossibleEmployeeType;
@@ -130,6 +131,10 @@ export const GeneratorProvider: React.FC<React.PropsWithChildren> = ({
     [onChangeWorkConditionOfWeek, workConditionOfWeek],
   );
 
+  const clearWorkConditionOfWeek = useCallback(() => {
+    setWorkConditionOfWeek(WorkConditionOfWeekSchema.parse({}));
+  }, []);
+
   const getUserInput = useCallback(() => {
     return APIUserInputConditionSchema.parse({
       employeeConditions: selectEmployeeConditions,
@@ -171,6 +176,7 @@ export const GeneratorProvider: React.FC<React.PropsWithChildren> = ({
         onChangeWorkConditionOfWeek,
         onChangeWorkConditionEntryWorkTime,
         onChangeWorkConditionEntryTimeSlot,
+        clearWorkConditionOfWeek,
         getPossibleEmployeeBody,
         getUserInput,
       }}

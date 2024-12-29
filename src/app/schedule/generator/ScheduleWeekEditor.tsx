@@ -114,15 +114,14 @@ const ScheduleWeekEditor: React.FC<{}> = () => {
             />
           ))}
       </div>
-      <div className="text-center">
-        <CreateScheduleButton />
-      </div>
+      <PostScheduleButton />
     </div>
   );
 };
 
-const CreateScheduleButton: React.FC<{}> = ({}) => {
-  const { workConditionOfWeek, selectedWeek } = useGeneratorContext();
+const PostScheduleButton: React.FC<{}> = ({}) => {
+  const { workConditionOfWeek, selectedWeek, clearWorkConditionOfWeek } =
+    useGeneratorContext();
 
   const search = useSearchParams();
   const query = new URLSearchParams(
@@ -146,16 +145,24 @@ const CreateScheduleButton: React.FC<{}> = ({}) => {
   };
 
   return (
-    <button
-      onClick={onSubmit}
-      disabled={isPending}
-      className="px-4 py-2 font-bold text-white bg-blue-500 rounded hover:bg-blue-700 disabled:opacity-50"
-    >
-      현재 근무표 저장하기
-      {isPending && (
-        <div className="inline-block w-4 h-4 ml-2 border-2 border-white rounded-full animate-spin border-t-blue-500" />
-      )}
-    </button>
+    <div className="flex justify-center w-full gap-2 font-bold text-white">
+      <button
+        onClick={onSubmit}
+        disabled={isPending}
+        className="px-4 py-2 bg-blue-500 rounded hover:bg-blue-700 disabled:opacity-50"
+      >
+        현재 근무표 저장하기
+        {isPending && (
+          <div className="inline-block w-4 h-4 ml-2 border-2 border-white rounded-full animate-spin border-t-blue-500" />
+        )}
+      </button>
+      <button
+        onClick={clearWorkConditionOfWeek}
+        className="px-4 py-2 bg-red-500 rounded hover:bg-red-700 disabled:opacity-50"
+      >
+        현재 근무표 비우기
+      </button>
+    </div>
   );
 };
 
