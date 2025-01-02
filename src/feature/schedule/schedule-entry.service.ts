@@ -54,7 +54,7 @@ export class ScheduleEntryService {
     });
 
     await this.scheduleRep.upsert(mapper, ['id']);
-    await this.scheduleRep.delete(removeIds);
+    if (removeIds.length) await this.scheduleRep.delete(removeIds);
   }
 
   async removeByWeek(selectedWeek: Date): Promise<void> {
@@ -93,12 +93,11 @@ export class ScheduleEntryService {
   }
 
   async findWeekSchedule(startDate: Date): Promise<ISchedule> {
-    const start = format(startDate, 'yyyy-MM-dd');
-    const end = format(new DateDay(startDate, 6).date, 'yyyy-MM-dd');
+    const dateDay = new DateDay(startDate, 6);
 
     const scheduleEntries = await this.scheduleRep.find({
       where: {
-        date: Between(new Date(start), new Date(end)),
+        date: Between(dateDay.startDate, dateDay.date),
       },
       withDeleted: true,
     });

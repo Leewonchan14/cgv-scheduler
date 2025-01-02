@@ -1,4 +1,5 @@
 import { scheduleQueryApi } from '@/app/schedule/api/queryoption';
+import { DateDay } from '@/entity/interface/DateDay';
 import {
   APIPossibleEmployeeType,
   APIScheduleSchema,
@@ -9,7 +10,6 @@ import { FilteredEmployees } from '@/feature/employee/with-schedule/filter-emplo
 import { ScheduleErrorCounter } from '@/feature/schedule/schedule-error-counter';
 import { getQueryClient } from '@/share/libs/tasntack-query/get-query-client';
 import axios from 'axios';
-import { format } from 'date-fns';
 import { z } from 'zod';
 
 export const scheduleMutateApi = {
@@ -41,7 +41,7 @@ export const scheduleMutateApi = {
         method: 'POST',
         data: workConditionOfWeek,
         params: {
-          selectedWeek: format(selectedWeek, 'yyyy-MM-dd'),
+          selectedWeek: new DateDay(selectedWeek, 0).format('YYYY-MM-DD'),
         },
       });
       return;

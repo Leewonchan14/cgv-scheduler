@@ -1,4 +1,5 @@
 import { SELECTED_WEEK } from '@/app/schedule/const';
+import { DateDay } from '@/entity/interface/DateDay';
 import { APIScheduleSchema, ScheduleSchema } from '@/entity/types';
 import { employeeService } from '@/feature/employee/employee.service';
 import { scheduleEntryService } from '@/feature/schedule/schedule-entry.service';
@@ -9,9 +10,7 @@ import { z } from 'zod';
 
 export async function GET(request: NextRequest) {
   const selectedWeek = request.nextUrl.searchParams.get(SELECTED_WEEK);
-  const { success, data } = z.coerce.date().safeParse(selectedWeek ?? '');
-
-  if (!success || !data) {
+  if (!z.coerce.date().safeParse(selectedWeek).success || !selectedWeek) {
     return NextResponse.json({ message: 'Invalid request' }, { status: 400 });
   }
 
@@ -19,7 +18,7 @@ export async function GET(request: NextRequest) {
 
   try {
     result = await scheduleEntryService(await appDataSource()).findWeekSchedule(
-      data,
+      DateDay.fromString(selectedWeek).date,
     );
   } catch (e) {
     return NextResponse.json(
