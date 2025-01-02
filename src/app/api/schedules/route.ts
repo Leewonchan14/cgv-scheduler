@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 
   try {
     result = await scheduleEntryService(await appDataSource()).findWeekSchedule(
-      DateDay.fromString(selectedWeek).date,
+      DateDay.fromString(selectedWeek).lib.toDate(),
     );
   } catch (e) {
     return NextResponse.json(

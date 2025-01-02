@@ -20,15 +20,13 @@ const WeekPicker: React.FC<WeekPickerProps> = ({
   onWeekSelect,
 }) => {
   const [weekStartDayOfWeek, setWeekStartDayOfWeek] = useState<EDayOfWeek>(
-    new DateDay(selectedWeek, 0).dayOfWeek,
+    new DateDay(selectedWeek).day(),
   );
 
   const handleWeekStartChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value as EDayOfWeek;
     setWeekStartDayOfWeek(value);
-    onWeekSelect(
-      new DateDay(selectedWeek, 0).getPrevDateDayByDayOfWeek(value).date,
-    );
+    onWeekSelect(new DateDay(selectedWeek).prevDateByDay(value).lib.toDate());
   };
 
   return (
@@ -69,22 +67,19 @@ const Header: React.FC<{
   onWeekSelect: (_: Date) => void;
 }> = ({ weekStartDayOfWeek, selectedWeek, onWeekSelect }) => {
   const nextMonth = () => {
-    const nextMonth = dayjs(selectedWeek).add(1, 'month');
-    dayjs().endOf('month');
-    const last = new DateDay(
-      nextMonth.endOf('month').toDate(),
-      0,
-    ).getPrevDateDayByDayOfWeek(weekStartDayOfWeek).date;
+    const nextMonth = new DateDay(selectedWeek).lib.add(1, 'month');
+    const last = new DateDay(nextMonth.endOf('month').toDate())
+      .prevDateByDay(weekStartDayOfWeek)
+      .lib.toDate();
 
     onWeekSelect(last);
   };
 
   const prevMonth = () => {
     const prevMonth = dayjs(selectedWeek).subtract(1, 'month');
-    const first = new DateDay(
-      prevMonth.startOf('month').toDate(),
-      0,
-    ).getNextDateDayByDayOfWeek(weekStartDayOfWeek).date;
+    const first = new DateDay(prevMonth.startOf('month').toDate())
+      .nextDateByDay(weekStartDayOfWeek)
+      .lib.toDate();
     onWeekSelect(first);
   };
 
@@ -97,7 +92,7 @@ const Header: React.FC<{
         {'<'}
       </button>
       <div className="text-xl font-semibold">
-        {new DateDay(selectedWeek, 0).format('YYYY년 MM월')}
+        {new DateDay(selectedWeek).format('YYYY년 MM월')}
       </div>
       <button
         onClick={nextMonth}
@@ -110,13 +105,13 @@ const Header: React.FC<{
 };
 
 const Days: React.FC<{ selectedWeek: Date }> = ({ selectedWeek }) => {
-  const startDateDay = new DateDay(selectedWeek, 0);
+  const startDateDay = new DateDay(selectedWeek);
 
   return (
     <div className="grid grid-cols-7 mb-2">
-      {startDateDay.get요일_시작부터_끝까지DateDay().map((dateDay) => (
-        <div key={dateDay.getDayOfWeek()} className="font-medium text-center">
-          {dateDay.getDayOfWeek()}
+      {startDateDay.days7().map((dateDay) => (
+        <div key={dateDay.day()} className="font-medium text-center">
+          {dateDay.day()}
         </div>
       ))}
     </div>
@@ -131,15 +126,14 @@ const Cells: React.FC<{
   const dj = dayjs(selectedWeek);
   const monthStart = dj.startOf('month');
   const monthEnd = dj.endOf('month');
-  const startDate = new DateDay(
-    monthStart.toDate(),
-    0,
-  ).getPrevDateDayByDayOfWeek(weekStartDayOfWeek);
+  const startDate = new DateDay(monthStart.toDate()).prevDateByDay(
+    weekStartDayOfWeek,
+  );
 
   const rows = [];
 
   let days = [];
-  let day = dayjs(startDate.date);
+  let day = startDate.lib;
 
   while (day.isSameOrBefore(monthEnd)) {
     for (let i = 0; i < 7; i++) {
@@ -172,9 +166,15 @@ const Cell: React.FC<{
 }> = ({ day, selectedWeek, weekStartDayOfWeek, onWeekSelect }) => {
   const { data, isLoading } = useQuery(scheduleQueryApi.findByDate(day));
 
-  const formattedDate = new DateDay(day, 0).format('D');
-  const isSameMon = dayjs(day).isSame(dayjs(selectedWeek), 'month');
-  const isSameWeek = new DateDay(selectedWeek, 0).isSameWeek(day);
+  const dayDateDay = new DateDay(day);
+  const formattedDate = dayDateDay.format('D');
+  const isSameMon = dayDateDay.lib.isSame(
+    new DateDay(selectedWeek).lib,
+    'month',
+  );
+  const isSameWeek = new DateDay(selectedWeek)
+    .days7()
+    .some((dateDay) => dateDay.lib.isSame(dayDateDay.lib));
 
   const cellDynamicClassName = `${!isSameMon && 'text-gray-400'} ${isSameWeek && 'bg-blue-200'}`;
 
@@ -184,10 +184,7 @@ const Cell: React.FC<{
   return (
     <div
       onClick={() =>
-        onWeekSelect(
-          new DateDay(day, 0).getPrevDateDayByDayOfWeek(weekStartDayOfWeek)
-            .date,
-        )
+        onWeekSelect(dayDateDay.prevDateByDay(weekStartDayOfWeek).lib.toDate())
       }
       className={`flex flex-col justify-between p-2 text-center border rounded cursor-pointer hover:bg-blue-200 ${cellDynamicClassName}`}
     >

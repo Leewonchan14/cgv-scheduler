@@ -190,7 +190,7 @@ const DisplayErrorCounter = ({
 
     return (
       <div key={entryId} className="flex w-full gap-4 font-bold text-red-500">
-        <div>{new DateDay(entry.date, 0).getDayOfWeek()}요일</div>
+        <div>{new DateDay(entry.date).day()}요일</div>
         <div>{entry.workPosition}</div>
         <div>{entry.workTime}</div>
         <div>{`${entry.timeSlot.start} ~ ${entry.timeSlot.end}`}</div>

@@ -93,17 +93,18 @@ export class ScheduleEntryService {
   }
 
   async findWeekSchedule(startDate: Date): Promise<ISchedule> {
-    const dateDay = new DateDay(startDate, 6);
+    const start = new DateDay(startDate);
+    const end = new DateDay(start.lib.add(6, 'day').toDate());
 
     const scheduleEntries = await this.scheduleRep.find({
       where: {
-        date: Between(dateDay.startDate, dateDay.date),
+        date: Between(start.lib.toDate(), end.lib.toDate()),
       },
       withDeleted: true,
     });
 
     return ScheduleSchema.parse(
-      _.groupBy(scheduleEntries, (e) => new DateDay(e.date, 0).getDayOfWeek()),
+      _.groupBy(scheduleEntries, (e) => new DateDay(e.date).day()),
     );
   }
 

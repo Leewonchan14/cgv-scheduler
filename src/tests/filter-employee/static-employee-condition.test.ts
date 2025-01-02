@@ -51,7 +51,7 @@ describe('정적 근무자 조건 필터링', () => {
     const eCon1 = createMockEmployeeCondition();
     const eCon2 = createMockEmployeeCondition();
 
-    eCon1.additionalUnableDayOff = [new DateDay(wCon1.date, 0).getDayOfWeek()];
+    eCon1.additionalUnableDayOff = [new DateDay(wCon1.date).day()];
 
     const staticCondition = new StaticEmployeeCondition(
       wCon1,

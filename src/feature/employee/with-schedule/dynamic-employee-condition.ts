@@ -37,6 +37,7 @@ declare module './filter-employee-condition' {
 export class DynamicEmployeeConditions extends FilterEmployee {
   private employeeConditions: EmployeeCondition[];
   private workConditionEntries: WorkConditionEntry[] = [];
+  private startDate: DateDay;
   private dateDay: DateDay;
   private conditions: ((_: EmployeeCondition) => Promise<boolean> | boolean)[] =
     [];
@@ -55,17 +56,16 @@ export class DynamicEmployeeConditions extends FilterEmployee {
   ) {
     super(filters);
     this.employeeConditions = filters['가능한 근무자'];
-    const { startDate } = this.userInput;
-    this.dateDay = DateDay.fromDate(startDate, this.workConditionEntry.date);
+    this.startDate = new DateDay(this.userInput.startDate);
+    this.dateDay = new DateDay(workConditionEntry.date);
 
-    this.workConditionEntries =
-      this.workConditionOfWeek[this.dateDay.dayOfWeek];
+    this.workConditionEntries = this.workConditionOfWeek[this.dateDay.day()];
   }
 
   add_조건1_현재_요일에_투입_안된_근무자() {
     const condition = (employeeCondition: EmployeeCondition) => {
       const 현재요일에_투입된_근무자_IDS = this.workConditionOfWeek[
-        this.dateDay.dayOfWeek
+        this.dateDay.day()
       ].map(({ employee }) => employee?.id);
 
       const isAble = !현재요일에_투입된_근무자_IDS.includes(
@@ -116,11 +116,13 @@ export class DynamicEmployeeConditions extends FilterEmployee {
       let prevSchedules: WorkConditionEntry[] = [];
 
       // 첫날이면 head에서 가져온다.
-      if (this.dateDay.isFirstDayOfWeek()) {
+      if (this.startDate.lib.isSame(this.dateDay.lib, 'day')) {
         prevSchedules = this.headSchedule.at(-1)!;
       } else {
         prevSchedules =
-          this.workConditionOfWeek[this.dateDay.getPrevDateDay(1).dayOfWeek];
+          this.workConditionOfWeek[
+            new DateDay(this.dateDay.lib.subtract(1, 'day').toDate()).day()
+          ];
       }
 
       const isPreviousDayClose = !!prevSchedules.find(
@@ -150,19 +152,24 @@ export class DynamicEmployeeConditions extends FilterEmployee {
       // 현재 요일 좌,우로 최대 근무일수만큼의 스케쥴을 확인해 최대근무일수보다 많이 근무했는지 확인한다.
 
       // 이전 스케쥴을 가져온다.
-      const prev = this.dateDay
-        .get요일_시작부터_지금_전날까지()
-        .slice(-this.userInput.maxWorkComboDayCount)
-        .map((day) => this.workConditionOfWeek[day]);
+      const size = this.dateDay.lib.diff(this.startDate.lib, 'day');
+      const prev = _.range(0, size).map(
+        (i) =>
+          this.workConditionOfWeek[
+            new DateDay(this.startDate.lib.add(i, 'day').toDate()).day()
+          ],
+      );
+
+      // const prev =
+      //   .get요일_시작부터_지금_전날까지()
+      //   .slice(-this.userInput.maxWorkComboDayCount)
+      //   .map((day) => this.workConditionOfWeek[day]);
 
       const cloneHead = _.clone(this.headSchedule);
 
-      while (
-        cloneHead.length > 0 &&
-        prev.length < this.userInput.maxWorkComboDayCount
-      ) {
-        prev.unshift(cloneHead.pop()!);
-      }
+      // 만약 부족하다면 채워넣는다.
+      let moreSize = this.userInput.maxWorkComboDayCount - prev.length;
+      prev.unshift(...cloneHead.slice(-moreSize));
 
       // 이전 스케쥴이 maxWorkComboDayCount 만큼 일했다면 false
       const prevCnt = _.sumBy(prev.flat(), (s) =>
@@ -179,19 +186,23 @@ export class DynamicEmployeeConditions extends FilterEmployee {
       }
 
       // 다음 스케쥴을 가져온다.
-      const next = this.dateDay
-        .get요일_내일부터_끝까지DateDay()
+      const next = this.startDate
+        .days7()
+        // 내일부터 끝까지
+        .slice(size + 1)
+        // 앞에 maxWorkComboDayCount 만큼만
         .slice(0, this.userInput.maxWorkComboDayCount)
-        .map((day) => this.workConditionOfWeek[day.dayOfWeek]);
+        .map((d) => this.workConditionOfWeek[d.day()]);
+
+      // const next = this.dateDay
+      //   .get요일_내일부터_끝까지DateDay()
+      //   .slice(0, this.userInput.maxWorkComboDayCount)
+      //   .map((day) => this.workConditionOfWeek[day.dayOfWeek]);
 
       // 만약 부족하다면 다음 스케쥴을 가져온다.
       const cloneTail = _.clone(this.tailSchedule);
-      while (
-        cloneTail.length > 0 &&
-        next.length < this.userInput.maxWorkComboDayCount
-      ) {
-        next.push(cloneTail.shift()!);
-      }
+      moreSize = this.userInput.maxWorkComboDayCount - next.length;
+      next.push(...cloneTail.slice(0, moreSize));
 
       // 다음 스케쥴이 maxWorkComboDayCount 만큼 일했다면 false
       const nextCnt = _.sumBy(next.flat(), (s) =>

@@ -27,9 +27,9 @@ describe('동적 근무자 조건 필터링', () => {
     const wCon2 = createMockWorkConditionEntry();
     const wCon3 = createMockWorkConditionEntry();
 
-    const dateDay = new DateDay(wCon1.date, 0);
+    const dateDay = new DateDay(wCon1.date);
 
-    const dayOfWeek = dateDay.getDayOfWeek();
+    const dayOfWeek = dateDay.day();
 
     // when: 요일에 a 가 schedule에 투입되어있고 b는 이미 workCondition에 투입되어있는 상태
     wCon1.employee = aCon.employee;
@@ -74,9 +74,9 @@ describe('동적 근무자 조건 필터링', () => {
     const wCon2 = createMockWorkConditionEntry();
     const wCon3 = createMockWorkConditionEntry();
 
-    const dateDay = new DateDay(wCon1.date, 0);
+    const dateDay = new DateDay(wCon1.date);
 
-    const dayOfWeek = dateDay.getDayOfWeek();
+    const dayOfWeek = dateDay.day();
 
     wCon1.employee = eCon1.employee;
     wCon2.employee = eCon1.employee;
@@ -113,13 +113,13 @@ describe('동적 근무자 조건 필터링', () => {
     const wCon1 = createMockWorkConditionEntry();
     const wCon2 = createMockWorkConditionEntry();
 
-    const dateDay = new DateDay(wCon1.date, 0);
-    const dayOfWeek = dateDay.getDayOfWeek();
+    const dateDay = new DateDay(wCon1.date);
+    const dayOfWeek = dateDay.day();
 
     // 전날 마감, 다음날 오픈
     wCon1.workTime = EWorkTime.마감;
     wCon2.workTime = EWorkTime.오픈;
-    wCon2.date = dateDay.getNextDateDay(1).date;
+    wCon2.date = dateDay.lib.add(1, 'day').toDate();
 
     const aCon1 = createMockEmployeeCondition();
     wCon1.employee = aCon1.employee;
@@ -135,7 +135,7 @@ describe('동적 근무자 조건 필터링', () => {
       new ScheduleCounter(workConditionOfWeek),
       {
         multiLimit: 3,
-        startDate: dateDay.startDate,
+        startDate: dateDay.lib.toDate(),
         maxWorkComboDayCount: 100,
       },
       filteredEmployees,
@@ -156,14 +156,14 @@ describe('동적 근무자 조건 필터링', () => {
 
     const wCon1 = createMockWorkConditionEntry();
 
-    const dateDay = new DateDay(wCon1.date, 0);
+    const dateDay = new DateDay(wCon1.date);
 
     const dateDay1 = dateDay;
-    const dateDay2 = dateDay.getNextDateDay(1);
-    const dateDay3 = dateDay.getNextDateDay(2);
+    const dateDay2 = new DateDay(dateDay.lib.add(1, 'day').toDate());
+    const dateDay3 = new DateDay(dateDay.lib.add(2, 'day').toDate());
 
-    const wCon2 = createMockWorkConditionEntry({ date: dateDay2.date });
-    const wCon3 = createMockWorkConditionEntry({ date: dateDay3.date });
+    const wCon2 = createMockWorkConditionEntry({ date: dateDay2.lib.toDate() });
+    const wCon3 = createMockWorkConditionEntry({ date: dateDay3.lib.toDate() });
 
     const eCon1 = createMockEmployeeCondition();
 
@@ -172,9 +172,9 @@ describe('동적 근무자 조건 필터링', () => {
     wCon2.employee = eCon1.employee;
 
     const workConditionOfWeek = WorkConditionOfWeekSchema.parse({
-      [dateDay1.dayOfWeek]: [wCon1],
-      [dateDay2.dayOfWeek]: [wCon2],
-      [dateDay3.dayOfWeek]: [wCon3],
+      [dateDay1.day()]: [wCon1],
+      [dateDay2.day()]: [wCon2],
+      [dateDay3.day()]: [wCon3],
     });
 
     const filteredEmployees = { '가능한 근무자': [eCon1] };
@@ -184,7 +184,7 @@ describe('동적 근무자 조건 필터링', () => {
       new ScheduleCounter(workConditionOfWeek),
       {
         multiLimit: 3,
-        startDate: dateDay1.date,
+        startDate: dateDay1.lib.toDate(),
         maxWorkComboDayCount: 최대_연속일,
       },
       filteredEmployees,
@@ -221,10 +221,10 @@ describe('동적 근무자 조건 필터링', () => {
       workPosition: EWorkPosition.플로어,
     });
 
-    const dateDay = new DateDay(wCon1.date, 0);
+    const dateDay = new DateDay(wCon1.date);
 
     const workConditionOfWeek = WorkConditionOfWeekSchema.parse({
-      [dateDay.getDayOfWeek()]: [wCon1, wCon2, wCon3],
+      [dateDay.day()]: [wCon1, wCon2, wCon3],
     });
 
     //when: 최대 멀티 조건 인원이 3명이라 했을때
@@ -238,7 +238,7 @@ describe('동적 근무자 조건 필터링', () => {
       {
         multiLimit: 최대_멀티_인원,
         maxWorkComboDayCount: 3,
-        startDate: dateDay.startDate,
+        startDate: dateDay.lib.toDate(),
       },
       filteredEmployees,
       mockHeadSchedule(100),
@@ -272,10 +272,10 @@ describe('동적 근무자 조건 필터링', () => {
 
     delete wCon3.employee;
 
-    const dateDay = new DateDay(wCon1.date, 0);
+    const dateDay = new DateDay(wCon1.date);
 
     const workConditionOfWeek = WorkConditionOfWeekSchema.parse({
-      [dateDay.getDayOfWeek()]: [wCon1, wCon3],
+      [dateDay.day()]: [wCon1, wCon3],
     });
     //when: 최대 멀티 조건 인원이 3명이라 했을때
     const 최대_멀티_인원 = 3;
@@ -287,7 +287,7 @@ describe('동적 근무자 조건 필터링', () => {
       new ScheduleCounter(workConditionOfWeek),
       {
         multiLimit: 최대_멀티_인원,
-        startDate: dateDay.startDate,
+        startDate: dateDay.lib.toDate(),
         maxWorkComboDayCount: 10,
       },
       filteredEmployees,
@@ -340,10 +340,10 @@ describe('동적 근무자 조건 필터링', () => {
 
     delete wCon2.employee;
 
-    const dateDay = new DateDay(wCon1.date, 0);
+    const dateDay = new DateDay(wCon1.date);
 
     const workConditionOfWeek = WorkConditionOfWeekSchema.parse({
-      [dateDay.getDayOfWeek()]: [wCon1, wCon3, wCon2],
+      [dateDay.day()]: [wCon1, wCon3, wCon2],
     });
     //when: 최대 멀티 조건 인원이 3명이라 했을때
     const 최대_멀티_인원 = 3;
@@ -355,7 +355,7 @@ describe('동적 근무자 조건 필터링', () => {
       new ScheduleCounter(workConditionOfWeek),
       {
         multiLimit: 최대_멀티_인원,
-        startDate: dateDay.startDate,
+        startDate: dateDay.lib.toDate(),
         maxWorkComboDayCount: 10,
       },
       filteredEmployees,

@@ -31,9 +31,7 @@ export async function POST(request: Request) {
     const groupBy = _.chain(data.workConditionOfWeek)
       .values()
       .flatten()
-      .groupBy((entry) =>
-        DateDay.fromDate(startDate, entry.date).getDayOfWeek(),
-      )
+      .groupBy((entry) => new DateDay(entry.date).day())
       .value() as WorkConditionOfWeek;
 
     const workConditionOfWeek = WorkConditionOfWeekSchema.parse(groupBy);

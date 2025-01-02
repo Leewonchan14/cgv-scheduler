@@ -41,7 +41,7 @@ export const scheduleMutateApi = {
         method: 'POST',
         data: workConditionOfWeek,
         params: {
-          selectedWeek: new DateDay(selectedWeek, 0).format('YYYY-MM-DD'),
+          selectedWeek: new DateDay(selectedWeek).format('YYYY-MM-DD'),
         },
       });
       return;

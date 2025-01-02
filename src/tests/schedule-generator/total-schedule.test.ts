@@ -23,9 +23,9 @@ describe('스케쥴 생성기 테스트', () => {
 
     const wCon1 = createMockWorkConditionEntry();
 
-    const dateDay = new DateDay(wCon1.date, 0);
+    const dateDay = new DateDay(wCon1.date);
 
-    const date = dateDay.startDate;
+    const date = dateDay.lib.toDate();
 
     const openMarket_2 = _.range(0, 2).map((i) =>
       createMockWorkConditionEntry({
@@ -103,7 +103,7 @@ describe('스케쥴 생성기 테스트', () => {
           createMockEmployeeCondition({ employee }),
         ),
         workConditionOfWeek: WorkConditionOfWeekSchema.parse({
-          [dateDay.dayOfWeek]: workConditions,
+          [dateDay.day()]: workConditions,
         }),
         multiLimit: 3,
       },

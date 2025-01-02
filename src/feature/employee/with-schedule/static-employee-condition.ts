@@ -43,10 +43,7 @@ export class StaticEmployeeCondition extends FilterEmployee {
     filteredEmployees: FilteredEmployees,
   ) {
     super(filteredEmployees);
-    this.dayOfWeek = new DateDay(
-      this.workConditionEntry.date,
-      0,
-    ).getDayOfWeek();
+    this.dayOfWeek = new DateDay(this.workConditionEntry.date).day();
 
     // key로 캐시 확인
     this.key = StaticEmployeeCondition.getCacheKey(workConditionEntry);

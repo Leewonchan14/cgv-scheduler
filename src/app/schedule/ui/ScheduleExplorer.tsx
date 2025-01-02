@@ -19,9 +19,9 @@ const initDayOfWeek = EDayOfWeek.목;
 interface Props {}
 
 const ScheduleExplorer: NextPage<Props> = ({}) => {
-  const defaultDate = new DateDay(new Date(), 0).getPrevDateDayByDayOfWeek(
-    initDayOfWeek,
-  ).date;
+  const defaultDate = new DateDay(new Date())
+    .prevDateByDay(initDayOfWeek)
+    .lib.toDate();
 
   const [selectedWeek, setSelectedWeek] = useQueryParam(
     z.coerce.date().optional().default(defaultDate),

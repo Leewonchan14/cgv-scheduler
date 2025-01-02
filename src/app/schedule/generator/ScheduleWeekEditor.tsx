@@ -24,14 +24,14 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useContext, useEffect, useState } from 'react';
 
 const getInitialWorkConditionOfWeek = (startDate: Date) => {
-  const startDateDay = new DateDay(startDate, 0);
+  const startDateDay = new DateDay(startDate);
   return Object.fromEntries(
-    startDateDay.get요일_시작부터_끝까지DayOfWeek().map((dayOfWeek) => [
-      dayOfWeek,
+    startDateDay.days7().map((dateDay) => [
+      dateDay.day(),
       [
         {
           id: uuid(),
-          date: DateDay.fromDayOfWeek(startDate, dayOfWeek).date,
+          date: dateDay.lib.toDate(),
           workPosition: EWorkPosition.매점,
           workTime: EWorkTime.오픈,
           timeSlot: WorkTimeSlot.fromWorkTime(
@@ -41,7 +41,7 @@ const getInitialWorkConditionOfWeek = (startDate: Date) => {
         },
         {
           id: uuid(),
-          date: DateDay.fromDayOfWeek(startDate, dayOfWeek).date,
+          date: dateDay.lib.toDate(),
           workPosition: EWorkPosition.매점,
           workTime: EWorkTime.마감,
           timeSlot: WorkTimeSlot.fromWorkTime(
@@ -51,7 +51,7 @@ const getInitialWorkConditionOfWeek = (startDate: Date) => {
         },
         {
           id: uuid(),
-          date: DateDay.fromDayOfWeek(startDate, dayOfWeek).date,
+          date: dateDay.lib.toDate(),
           workPosition: EWorkPosition.플로어,
           workTime: EWorkTime.오픈,
           timeSlot: WorkTimeSlot.fromWorkTime(
@@ -61,7 +61,7 @@ const getInitialWorkConditionOfWeek = (startDate: Date) => {
         },
         {
           id: uuid(),
-          date: DateDay.fromDayOfWeek(startDate, dayOfWeek).date,
+          date: dateDay.lib.toDate(),
           workPosition: EWorkPosition.플로어,
           workTime: EWorkTime.마감,
           timeSlot: WorkTimeSlot.fromWorkTime(
@@ -103,16 +103,14 @@ const ScheduleWeekEditor: React.FC<{}> = () => {
   return (
     <div className="flex flex-col gap-10">
       <div className="grid grid-cols-1 gap-1 md:grid-cols-7">
-        {new DateDay(selectedWeek, 0)
-          .get요일_시작부터_끝까지DayOfWeek()
-          .map((dayOfWeek) => (
-            <ScheduleDayEditor
-              key={dayOfWeek}
-              hoverId={hoverId}
-              setHoverId={(id) => setHoverId(id)}
-              dayOfWeek={dayOfWeek}
-            />
-          ))}
+        {new DateDay(selectedWeek).days7().map((dateDay) => (
+          <ScheduleDayEditor
+            key={dateDay.day()}
+            hoverId={hoverId}
+            setHoverId={(id) => setHoverId(id)}
+            dayOfWeek={dateDay.day()}
+          />
+        ))}
       </div>
       <PostScheduleButton />
     </div>

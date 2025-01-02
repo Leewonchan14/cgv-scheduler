@@ -14,7 +14,6 @@ import { getColor } from '@/share/libs/util/isLightColor';
 import { uuid } from '@/share/libs/util/uuid';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { format } from 'date-fns';
 import React, { useCallback, useContext } from 'react';
 
 import {
@@ -52,11 +51,13 @@ const ScheduleDayEditor: React.FC<ScheduleDayEditorProps> = ({
           ...workConditionOfWeek[dayOfWeek],
           {
             id: uuid(),
-            date: DateDay.fromDayOfWeek(selectedWeek, dayOfWeek).date,
+            date: new DateDay(selectedWeek)
+              .nextDateByDay(dayOfWeek)
+              .lib.toDate(),
             workPosition: position,
             workTime: EWorkTime.오픈,
             timeSlot: WorkTimeSlot.fromWorkTime(position, EWorkTime.오픈),
-          },
+          } as WorkConditionEntry,
         ],
       });
     },
@@ -67,7 +68,7 @@ const ScheduleDayEditor: React.FC<ScheduleDayEditorProps> = ({
   return (
     <div className="p-2 border rounded-lg shadow bg-gray-50">
       <h3 className="mb-2 text-xl font-semibold text-center">
-        {format(DateDay.fromDayOfWeek(selectedWeek, dayOfWeek).date, 'MM-dd')}{' '}
+        {new DateDay(selectedWeek).format('MM-DD') + ' '}
         {dayOfWeek}
       </h3>
       <ul>

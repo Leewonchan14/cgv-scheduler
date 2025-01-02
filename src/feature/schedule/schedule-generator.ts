@@ -36,7 +36,7 @@ export class ScheduleGenerator {
     private headSchedule: WorkConditionEntry[][],
     private tailSchedule: WorkConditionEntry[][],
   ) {
-    this.dateDay = new DateDay(this.userInput.startDate, 0);
+    this.dateDay = new DateDay(this.userInput.startDate);
 
     // scheduleCounter 초기화
     this.scheduleCounter = new ScheduleCounter(userInput.workConditionOfWeek);
@@ -87,7 +87,7 @@ export class ScheduleGenerator {
     let currentIndex = depth;
 
     // 현재 요일
-    for (const dayOfWeek of this.dateDay.get요일_시작부터_끝까지DayOfWeek()) {
+    for (const dayOfWeek of this.dateDay.days7().map((d) => d.day())) {
       if (currentIndex >= _.size(this.workConditionOfWeek[dayOfWeek])) {
         currentIndex -= _.size(this.workConditionOfWeek[dayOfWeek]);
         continue;

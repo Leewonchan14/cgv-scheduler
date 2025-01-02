@@ -28,17 +28,15 @@ const WeeklyScheduleDisplay: React.FC<WeeklyScheduleProps> = ({
   return (
     <React.Fragment>
       <div className="grid grid-cols-2 gap-1 md:grid-cols-7 text-nowrap">
-        {new DateDay(startDate, 0)
-          .get요일_시작부터_끝까지DayOfWeek()
-          .map((day) => (
-            <DayOfWeekDisplay
-              key={day}
-              day={day}
-              schedule={schedule}
-              hoverId={hoverId}
-              setHoverId={setHoverId}
-            />
-          ))}
+        {new DateDay(startDate).days7().map((dateDay) => (
+          <DayOfWeekDisplay
+            key={dateDay.day()}
+            day={dateDay.day()}
+            schedule={schedule}
+            hoverId={hoverId}
+            setHoverId={setHoverId}
+          />
+        ))}
       </div>
       <div className="my-4 border-t-8 border-black border-opacity-80" />
       {/* 이름, 근무자들의 일주일간 근무일수, 총 근무시간을 계산 */}
