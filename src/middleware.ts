@@ -19,18 +19,18 @@ export async function middleware(request: NextRequest) {
   }
 
   // /login 경로는 로그인 상태라면 /employee로 리다이렉트
-  if (request.nextUrl.pathname.startsWith('/login')) {
-    if (isAuthenticated)
-      return NextResponse.redirect(new URL('/schedule', request.url));
+  // if (request.nextUrl.pathname.startsWith('/login')) {
+  //   if (isAuthenticated)
+  //     return NextResponse.redirect(new URL('/schedule', request.url));
 
-    return response;
-  }
+  //   return response;
+  // }
 
   // 모든 경로는 로그인 상태여야 함
-  if (!payload) {
-    cookieTokenHandler.clear();
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
+  // if (!payload) {
+  //   cookieTokenHandler.clear();
+  //   return NextResponse.redirect(new URL('/login', request.url));
+  // }
 
   return response;
 }

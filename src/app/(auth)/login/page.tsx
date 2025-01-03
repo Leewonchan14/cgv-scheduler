@@ -3,6 +3,7 @@
 import { loginAction } from '@/app/(auth)/login/action';
 import ErrorMessage from '@/app/employee/ui/ErrorMessage';
 import { NextPage } from 'next';
+import Link from 'next/link';
 import React, { FC } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 
@@ -10,6 +11,13 @@ interface Props {}
 
 const LoginPage: NextPage<Props> = ({}) => {
   const [state, action] = useFormState(loginAction, {});
+  const params = new URLSearchParams({
+    client_id: process.env.NEXT_PUBLIC_CLIENT_ID!,
+    redirect_uri: process.env.NEXT_PUBLIC_REDIRECT_URL!,
+    response_type: 'code',
+  }).toString();
+
+  console.log(params);
 
   return (
     <div className="flex flex-col justify-center h-screen mx-auto max-w-80">
@@ -31,6 +39,10 @@ const LoginPage: NextPage<Props> = ({}) => {
         <ErrorMessage errors={state?.message} />
         <LoginButton />
       </form>
+      <Link href={`https://kauth.kakao.com/oauth/authorize?${params}`}>
+        카카오 로그인
+      </Link>
+      {/* <KakaoLoginButton /> */}
     </div>
   );
 };
