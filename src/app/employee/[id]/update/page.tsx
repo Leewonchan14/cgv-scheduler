@@ -1,9 +1,13 @@
 import { employeeUpdateAction } from '@/app/employee/action';
 import EmployeeEditForm from '@/app/employee/ui/EmployeeEditForm';
+import { ERole } from '@/entity/enums/ERole';
+import { authHandler } from '@/feature/auth/auth-handler';
+import { nextCookieStore } from '@/feature/auth/next-cookie.store';
 import { employeeService } from '@/feature/employee/employee.service';
 import { appDataSource } from '@/share/libs/typerom/data-source';
 import { NextPage } from 'next';
-import { notFound } from 'next/navigation';
+import { cookies } from 'next/headers';
+import { notFound, redirect } from 'next/navigation';
 import { z } from 'zod';
 
 interface Props {
@@ -13,6 +17,12 @@ interface Props {
 }
 
 const EmployeeUpdatePage: NextPage<Props> = async ({ params }) => {
+  const session = await authHandler.getSession(nextCookieStore(cookies()));
+
+  if (session?.role !== ERole.ADMIN) {
+    redirect('/employee');
+  }
+
   const SearchParamSchema = z.object({
     id: z.coerce.number(),
   });

@@ -10,7 +10,7 @@ const originDataSource = new DataSource({
   password: process.env.POSTGRES_PASSWORD,
   database: process.env.POSTGRES_DATABASE,
   entities: [Employee, ScheduleEntry],
-  synchronize: false,
+  synchronize: true,
   logging: ['error'],
   migrations: [],
   ssl: true,

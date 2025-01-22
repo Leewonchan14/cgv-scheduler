@@ -1,13 +1,12 @@
 'use client';
 
+import { employeeQueryApi } from '@/app/employee/api/queryoption';
 import { scheduleMutateApi } from '@/app/schedule/api/mutate';
 import { scheduleQueryApi } from '@/app/schedule/api/queryoption';
-import {
-  GeneratorContext,
-  useGeneratorContext,
-} from '@/app/schedule/generator/GeneratorContext';
+import { useGeneratorContext } from '@/app/schedule/generator/GeneratorContext';
 import ScheduleDayEditor from '@/app/schedule/generator/ScheduleDayEditor';
 import LoadingAnimation from '@/app/ui/loading/loading-animation';
+import { ERole } from '@/entity/enums/ERole';
 import { EWorkPosition } from '@/entity/enums/EWorkPosition';
 import { EWorkTime } from '@/entity/enums/EWorkTime';
 import { DateDay } from '@/entity/interface/DateDay';
@@ -21,7 +20,7 @@ import { uuid } from '@/share/libs/util/uuid';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
 import { useRouter, useSearchParams } from 'next/navigation';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const getInitialWorkConditionOfWeek = (startDate: Date) => {
   const startDateDay = new DateDay(startDate, 0);
@@ -75,13 +74,7 @@ const getInitialWorkConditionOfWeek = (startDate: Date) => {
 };
 
 const ScheduleWeekEditor: React.FC<{}> = () => {
-  const context = useContext(GeneratorContext);
-
-  if (!context) {
-    throw new Error('GeneratorContext가 존재하지 않습니다.');
-  }
-
-  const { selectedWeek, onChangeWorkConditionOfWeek } = context;
+  const { selectedWeek, onChangeWorkConditionOfWeek } = useGeneratorContext();
   const [hoverId, setHoverId] = useState(-1);
 
   const { data: schedule, isLoading } = useQuery(
@@ -120,6 +113,8 @@ const ScheduleWeekEditor: React.FC<{}> = () => {
 };
 
 const PostScheduleButton: React.FC<{}> = ({}) => {
+  const { data: own } = useQuery(employeeQueryApi.getOwn);
+  const isAdmin = own?.role === ERole.ADMIN;
   const { workConditionOfWeek, selectedWeek, clearWorkConditionOfWeek } =
     useGeneratorContext();
 
@@ -146,16 +141,18 @@ const PostScheduleButton: React.FC<{}> = ({}) => {
 
   return (
     <div className="flex justify-center w-full gap-2 font-bold text-white">
-      <button
-        onClick={onSubmit}
-        disabled={isPending}
-        className="px-4 py-2 bg-blue-500 rounded hover:bg-blue-700 disabled:opacity-50"
-      >
-        현재 근무표 저장하기
-        {isPending && (
-          <div className="inline-block w-4 h-4 ml-2 border-2 border-white rounded-full animate-spin border-t-blue-500" />
-        )}
-      </button>
+      {isAdmin && (
+        <button
+          onClick={onSubmit}
+          disabled={isPending}
+          className="px-4 py-2 bg-blue-500 rounded hover:bg-blue-700 disabled:opacity-50"
+        >
+          현재 근무표 저장하기
+          {isPending && (
+            <div className="inline-block w-4 h-4 ml-2 border-2 border-white rounded-full animate-spin border-t-blue-500" />
+          )}
+        </button>
+      )}
       <button
         onClick={clearWorkConditionOfWeek}
         className="px-4 py-2 bg-red-500 rounded hover:bg-red-700 disabled:opacity-50"

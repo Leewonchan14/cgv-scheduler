@@ -3,11 +3,15 @@
 import { EDAY_OF_WEEKS_CORRECT } from '@/entity/enums/EDayOfWeek';
 import { EWORK_POSITION } from '@/entity/enums/EWorkPosition';
 import { EWORK_TIMES } from '@/entity/enums/EWorkTime';
+import { authHandler } from '@/feature/auth/auth-handler';
+import { CookieTokenHandler } from '@/feature/auth/cookie-handler';
+import { nextCookieStore } from '@/feature/auth/next-cookie.store';
 import { employeeValidator } from '@/feature/employee/employee-validator';
 import { employeeService } from '@/feature/employee/employee.service';
 import { appDataSource } from '@/share/libs/typerom/data-source';
 import _ from 'lodash';
 import { revalidatePath } from 'next/cache';
+import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
@@ -41,6 +45,12 @@ export type FormState = {
     ableWorkPosition?: string[];
     ableWorkTime?: string[];
   };
+};
+
+export const getOwn = async () => {
+  const session = await authHandler.getSession(nextCookieStore(cookies()));
+
+  return session;
 };
 
 export const employeeCreateAction = async (

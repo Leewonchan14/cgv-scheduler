@@ -1,4 +1,5 @@
 import { Employee } from '@/entity/employee.entity';
+import { ERole } from '@/entity/enums/ERole';
 import {
   EmployeeConditionWithId,
   IEmployeeSchema,
@@ -67,10 +68,12 @@ export class EmployeeService {
   findByName = (name: string) => {
     return this.employeeRepository.findOne({ where: { name } });
   };
+
   findAll = (page: number, pageSize: number, search: string) => {
     return this.employeeRepository.findAndCount({
       where: {
         name: Like(`%${search ?? ''}%`),
+        role: ERole.EMPLOYEE,
       },
       skip: page * pageSize,
       // TODO 나중에 페이지네이션 추가

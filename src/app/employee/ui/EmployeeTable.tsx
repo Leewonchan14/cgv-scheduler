@@ -31,16 +31,14 @@ const EmployeeTable: NextPage<Props> = async ({ page, pageSize, search }) => {
 
   return (
     <div className="grid w-full grid-cols-2 gap-4 py-4 md:grid-cols-4">
-      {employees
-        .filter((e) => e.role !== ERole.ADMIN)
-        .map((employee) => (
-          <EmployeeCard
-            key={employee.id}
-            me={me}
-            employee={employee}
-            isAdmin={isAdmin}
-          />
-        ))}
+      {employees.map((employee) => (
+        <EmployeeCard
+          key={employee.id}
+          me={me}
+          employee={employee}
+          isAdmin={isAdmin}
+        />
+      ))}
     </div>
   );
 };

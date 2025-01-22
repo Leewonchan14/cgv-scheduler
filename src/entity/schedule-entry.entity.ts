@@ -18,7 +18,7 @@ export class ScheduleEntry implements IScheduleEntry {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ type: 'date' })
   @Index()
   date: Date;
 
