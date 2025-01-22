@@ -20,16 +20,16 @@ export const metadata: Metadata = {
   description: '주안CGV 스케쥴 관리 하기',
   icons: [
     {
-      url: "/favicon.png",
+      url: '/favicon.png',
     },
-  ]
+  ],
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
       <body
