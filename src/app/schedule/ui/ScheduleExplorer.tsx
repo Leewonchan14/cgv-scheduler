@@ -5,36 +5,50 @@ import { SELECTED_WEEK } from '@/app/schedule/const';
 import WeeklyScheduleDisplay from '@/app/schedule/ui/WeeklySchedule';
 import WeekPicker from '@/app/schedule/ui/WeekPicker';
 import { useQueryParam } from '@/app/share/util/useQueryParam';
-import { EDayOfWeek } from '@/entity/enums/EDayOfWeek';
-import { DateDay } from '@/entity/interface/DateDay';
+import { day_js } from '@/lib/dayjs';
 import { useQuery } from '@tanstack/react-query';
-import { format, formatDate } from 'date-fns';
+import { format } from 'date-fns';
 import { NextPage } from 'next';
 import { useRouter, useSearchParams } from 'next/navigation';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { z } from 'zod';
 
-const initDayOfWeek = EDayOfWeek.월;
+const FORMAT_STRING = 'YYYY-MM-DD';
 
-interface Props {}
-
-const ScheduleExplorer: NextPage<Props> = ({}) => {
-  const defaultDate = new DateDay(new Date(), 0).getPrevDateDayByDayOfWeek(
-    initDayOfWeek,
-  ).date;
-
+const ScheduleExplorer: NextPage<{}> = ({}) => {
   const [selectedWeek, setSelectedWeek] = useQueryParam(
-    z.coerce.date().optional().default(defaultDate),
+    z.coerce.date().optional(),
     SELECTED_WEEK,
   );
+
+  useEffect(() => {
+    const selectedDate = day_js(
+      window.localStorage.getItem(SELECTED_WEEK) ?? undefined,
+    );
+    setSelectedWeek(selectedDate.format(FORMAT_STRING));
+  }, [setSelectedWeek]);
+
+  useEffect(() => {
+    if (!selectedWeek) return;
+
+    window.localStorage.setItem(
+      SELECTED_WEEK,
+      day_js(selectedWeek).format(FORMAT_STRING),
+    );
+  }, [selectedWeek]);
 
   const { data: schedule, isLoading } = useQuery(
     scheduleQueryApi.findWeek(selectedWeek),
   );
 
   const handleSelectWeek = (startDate: Date): void => {
-    setSelectedWeek(formatDate(startDate, 'yyyy-MM-dd'));
+    const str = day_js(startDate).format(FORMAT_STRING);
+    setSelectedWeek(str);
+    window.localStorage.setItem(SELECTED_WEEK, str);
   };
+
+  if (!selectedWeek) return null;
+
   return (
     <React.Fragment>
       <WeekPicker selectedWeek={selectedWeek} onWeekSelect={handleSelectWeek} />

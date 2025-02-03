@@ -26,5 +26,5 @@ export const useQueryParam = <T>(schema: ZodType<T>, key: string) => {
     router.replace(`${pathname}?${query}`);
   };
 
-  return [data!, set] as const;
+  return [data, set] as const;
 };

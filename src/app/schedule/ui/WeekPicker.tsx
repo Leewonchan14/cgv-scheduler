@@ -1,25 +1,14 @@
 'use client';
 
 import { scheduleQueryApi } from '@/app/schedule/api/queryoption';
-import { EDAY_OF_WEEKS_CORRECT, EDayOfWeek } from '@/entity/enums/EDayOfWeek';
+import { EDAY_OF_WEEKS_CORRECT } from '@/entity/enums/EDayOfWeek';
 import { DateDay } from '@/entity/interface/DateDay';
+import { day_js } from '@/lib/dayjs';
 import { getColor } from '@/share/libs/util/isLightColor';
 import { useQuery } from '@tanstack/react-query';
-import {
-  addDays,
-  addMonths,
-  Day,
-  endOfMonth,
-  endOfWeek,
-  format,
-  isSameMonth,
-  lastDayOfMonth,
-  startOfMonth,
-  startOfWeek,
-  subMonths,
-} from 'date-fns';
-import { ko } from 'date-fns/locale/ko';
-import React, { useState } from 'react';
+import { Dayjs } from 'dayjs';
+import _ from 'lodash';
+import React from 'react';
 
 interface WeekPickerProps {
   selectedWeek: Date;
@@ -30,77 +19,68 @@ const WeekPicker: React.FC<WeekPickerProps> = ({
   selectedWeek,
   onWeekSelect,
 }) => {
-  const [weekStartDayOfWeek, setWeekStartDayOfWeek] = useState<EDayOfWeek>(
-    new DateDay(selectedWeek, 0).dayOfWeek,
-  );
-
-  const weekStartsOn = EDAY_OF_WEEKS_CORRECT.indexOf(weekStartDayOfWeek) as Day; // 0: 일요일, 1: 월요일, ..., 6: 토요일;
+  const indexOfDayOfWeek = day_js(selectedWeek).get('day');
 
   const handleWeekStartChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value as EDayOfWeek;
-    setWeekStartDayOfWeek(value);
-    onWeekSelect(
-      new DateDay(selectedWeek, 0).getPrevDateDayByDayOfWeek(value).date,
-    );
+    // 다음주 value에 해당하는 날
+    let newWeek = day_js(selectedWeek);
+    while (newWeek.day() !== parseInt(e.target.value)) {
+      newWeek = newWeek.add(1, 'day');
+    }
+    onWeekSelect(newWeek.toDate());
   };
 
   return (
     <div className="p-4 bg-white border rounded-lg shadow">
-      <Header
-        weekStartDayOfWeek={weekStartDayOfWeek}
-        selectedWeek={selectedWeek}
-        onWeekSelect={onWeekSelect}
-      />
+      <Header selectedWeek={selectedWeek} onWeekSelect={onWeekSelect} />
       <div className="flex justify-end mb-2">
         <label className="mr-2">주 시작 요일:</label>
         <select
-          value={weekStartDayOfWeek}
+          value={indexOfDayOfWeek}
           onChange={handleWeekStartChange}
           className="p-2 border rounded"
         >
-          {EDAY_OF_WEEKS_CORRECT.map((day) => (
-            <option key={day} value={day}>
+          {EDAY_OF_WEEKS_CORRECT.map((day, index) => (
+            <option key={day} value={index}>
               {day}
             </option>
           ))}
         </select>
       </div>
-      <Days selectedWeek={selectedWeek} weekStartsOn={weekStartsOn} />
+      <Days selectedWeek={selectedWeek} />
 
-      <Cells
-        selectedWeek={selectedWeek}
-        weekStartsOn={weekStartsOn}
-        onWeekSelect={onWeekSelect}
-      />
+      <Cells selectedWeek={selectedWeek} onWeekSelect={onWeekSelect} />
     </div>
   );
 };
 
 const Header: React.FC<{
-  weekStartDayOfWeek: EDayOfWeek;
   selectedWeek: Date;
   onWeekSelect: (_: Date) => void;
-}> = ({ weekStartDayOfWeek, selectedWeek, onWeekSelect }) => {
-  const nextMonth = () => {
-    const nextMonth = addMonths(selectedWeek, 1);
-    const last = new DateDay(
-      lastDayOfMonth(nextMonth),
-      0,
-    ).getPrevDateDayByDayOfWeek(weekStartDayOfWeek).date;
+}> = ({ selectedWeek, onWeekSelect }) => {
+  const indexOfDayOfWeek = day_js(selectedWeek).day();
 
-    onWeekSelect(last);
+  const nextMonth = () => {
+    let endOfMonth = day_js(selectedWeek).add(1, 'month').endOf('month');
+    while (endOfMonth.day() !== indexOfDayOfWeek) {
+      endOfMonth = endOfMonth.subtract(1, 'day');
+    }
+
+    onWeekSelect(endOfMonth.toDate());
   };
 
   const prevMonth = () => {
-    const prevMonth = subMonths(selectedWeek, 1);
-    const first = new DateDay(
-      startOfMonth(prevMonth),
-      0,
-    ).getNextDateDayByDayOfWeek(weekStartDayOfWeek).date;
-    onWeekSelect(first);
+    let startOfMonth = day_js(selectedWeek)
+      .subtract(1, 'month')
+      .startOf('month');
+
+    while (startOfMonth.day() !== indexOfDayOfWeek) {
+      startOfMonth = startOfMonth.add(1, 'day');
+    }
+    onWeekSelect(startOfMonth.toDate());
   };
 
-  const dateFormat = 'yyyy년 MMMM';
+  const dateFormat = 'YYYY년 MMMM';
 
   return (
     <div className="flex items-center justify-between mb-4">
@@ -111,7 +91,7 @@ const Header: React.FC<{
         {'<'}
       </button>
       <div className="text-xl font-semibold">
-        {format(selectedWeek, dateFormat, { locale: ko })}
+        {day_js(selectedWeek).format(dateFormat)}
       </div>
       <button
         onClick={nextMonth}
@@ -123,28 +103,12 @@ const Header: React.FC<{
   );
 };
 
-const Days: React.FC<{ selectedWeek: Date; weekStartsOn: Day }> = ({
-  selectedWeek,
-  weekStartsOn,
-}) => {
-  const days = [];
-  const dateFormat = 'eee'; // 요일 약어 (예: 월, 화, 수...)
-  const startDateDay = new DateDay(selectedWeek, 0);
-
-  const startDate = startOfWeek(selectedWeek, { weekStartsOn });
-  for (let i = 0; i < 7; i++) {
-    days.push(
-      <div key={i} className="font-medium text-center">
-        {format(addDays(startDate, i), dateFormat, { locale: ko })}
-      </div>,
-    );
-  }
-
+const Days: React.FC<{ selectedWeek: Date }> = ({ selectedWeek }) => {
   return (
     <div className="grid grid-cols-7 mb-2">
-      {startDateDay.get요일_시작부터_끝까지DateDay().map((dateDay) => (
-        <div key={dateDay.getDayOfWeek()} className="font-medium text-center">
-          {dateDay.getDayOfWeek()}
+      {_.range(7).map((i) => (
+        <div key={i} className="font-medium text-center">
+          {day_js(selectedWeek).add(i, 'day').format('ddd')}
         </div>
       ))}
     </div>
@@ -153,53 +117,53 @@ const Days: React.FC<{ selectedWeek: Date; weekStartsOn: Day }> = ({
 
 const Cells: React.FC<{
   selectedWeek: Date;
-  weekStartsOn: Day;
   onWeekSelect: (_: Date) => void;
-}> = ({ selectedWeek, weekStartsOn, onWeekSelect }) => {
-  const monthStart = startOfMonth(selectedWeek);
-  const monthEnd = endOfMonth(monthStart);
-  const startDate = startOfWeek(monthStart, { weekStartsOn });
-  const endDate = endOfWeek(monthEnd, { weekStartsOn });
+}> = ({ selectedWeek, onWeekSelect }) => {
+  const weekStartsOn = day_js(selectedWeek).day();
+  let startDate = day_js(selectedWeek).startOf('month');
+  while (startDate.day() !== weekStartsOn) {
+    startDate = startDate.subtract(1, 'day');
+  }
+  let endDate = day_js(selectedWeek).endOf('month');
+  while (endDate.day() !== weekStartsOn) {
+    endDate = endDate.subtract(1, 'day');
+  }
 
-  const rows = [];
-
-  let days = [];
-  let day = startDate;
-
-  while (day <= endDate) {
-    for (let i = 0; i < 7; i++) {
-      days.push(
+  const Row = (startOfWeek: Dayjs) =>
+    _.range(7).map((i) => {
+      const day = startOfWeek.add(i, 'day').toDate();
+      return (
         <Cell
           key={day.toString()}
           selectedWeek={selectedWeek}
+          startOfWeek={startOfWeek.toDate()}
           day={day}
-          weekStartsOn={weekStartsOn}
           onWeekSelect={onWeekSelect}
-        />,
+        />
       );
-      day = addDays(day, 1);
-    }
-    rows.push(
-      <div className="grid grid-cols-7" key={day.toString()}>
-        {days}
-      </div>,
-    );
-    days = [];
-  }
-  return <div>{rows}</div>;
+    });
+
+  return (
+    <div className="grid grid-cols-7">
+      {_.range(endDate.diff(startDate, 'day') / 7 + 1).map((week) => {
+        const startOfWeek = startDate.add(week, 'week');
+        return Row(startOfWeek);
+      })}
+    </div>
+  );
 };
 
 const Cell: React.FC<{
   day: Date;
+  startOfWeek: Date;
   selectedWeek: Date;
-  weekStartsOn: Day;
   onWeekSelect: (_: Date) => void;
-}> = ({ day, selectedWeek, weekStartsOn, onWeekSelect }) => {
+}> = ({ day, selectedWeek, startOfWeek, onWeekSelect }) => {
   const { data, isLoading } = useQuery(scheduleQueryApi.findByDate(day));
 
-  const dateFormat = 'd';
-  const formattedDate = format(day, dateFormat);
-  const isSameMon = isSameMonth(selectedWeek, startOfMonth(day));
+  const dateFormat = 'D';
+  const formattedDate = day_js(day).format(dateFormat);
+  const isSameMon = day_js(selectedWeek).isSame(day_js(day), 'month');
   const isSameWeek = new DateDay(selectedWeek, 0).isSameWeek(day);
 
   const cellDynamicClassName = `${!isSameMon && 'text-gray-400'} ${isSameWeek && 'bg-blue-200'}`;
@@ -209,7 +173,7 @@ const Cell: React.FC<{
 
   return (
     <div
-      onClick={() => onWeekSelect(startOfWeek(day, { weekStartsOn }))}
+      onClick={() => onWeekSelect(startOfWeek)}
       className={`flex flex-col justify-between p-2 text-center border rounded cursor-pointer hover:bg-blue-200 ${cellDynamicClassName}`}
     >
       <div>{formattedDate}</div>
