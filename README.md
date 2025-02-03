@@ -15,7 +15,7 @@ pw : test1234
 
 많은 조건과 제약사항을 고려하여 매니저의 업무 부담을 줄이고, 근무자들에게 공정한 근무 배정을 제공하는 데 목적을 두고 있습니다.
 
-**🚀 주요 기능**
+## **🚀 주요 기능**
 
 1. **근무자 관리**
     근무자 추가, 삭제, 수정 가능.
@@ -35,7 +35,7 @@ pw : test1234
 4. **근무자 투입 가능 여부 표시**
     특정 근무에 투입 가능한 인원과 불가능한 인원을 시각적으로 구분.
 
-## **💡 고려된 조건 (도메인)**
+### **💡 고려된 조건 (도메인)**
 
 1. 하루에 한 번만 근무 가능.
 2. 각 근무자는 요일별로 가능한 포지션이 다름.
@@ -49,7 +49,9 @@ pw : test1234
 7. 최대 연속 근무일 준수 (예: 최대 4일 연속 근무 금지).
 8. 멀티 포지션 인원의 최소 투입 요건 충족.
 
-**🛠️ 사용 기술**
+## **🛠️ 사용 기술**
+
+<img src="https://private-user-images.githubusercontent.com/105588857/409029797-5c53a221-f1e9-450e-88b6-014c358b7905.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3Mzg1NzI3MTAsIm5iZiI6MTczODU3MjQxMCwicGF0aCI6Ii8xMDU1ODg4NTcvNDA5MDI5Nzk3LTVjNTNhMjIxLWYxZTktNDUwZS04OGI2LTAxNGMzNThiNzkwNS5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjUwMjAzJTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI1MDIwM1QwODQ2NTBaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT0zOGMxNTIzOWU4MzJiNWNhOTExY2ZiZjI3MzQ2NTQ0MzQ0MjI4NDA0ZDVkZjEyNzNmNDFlODExYmE2YzQ3NmI4JlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.IW1RS9e11gxmBwvSaoa958ZeJ9BEsRn5pXAemRp6-d4">
 
 **Frontend**: <img src="https://img.shields.io/badge/next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white"> <img src="https://img.shields.io/badge/typescript-3178C6?style=for-the-badge&logo=typescript&logoColor=white"> <img src="https://img.shields.io/badge/tailwindcss-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white">
 
