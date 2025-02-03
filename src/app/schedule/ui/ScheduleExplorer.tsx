@@ -14,7 +14,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import React from 'react';
 import { z } from 'zod';
 
-const initDayOfWeek = EDayOfWeek.목;
+const initDayOfWeek = EDayOfWeek.월;
 
 interface Props {}
 
