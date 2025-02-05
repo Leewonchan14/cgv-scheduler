@@ -51,7 +51,7 @@ pw : test1234
 
 ## **🛠️ 사용 기술**
 
-<img src="https://private-user-images.githubusercontent.com/105588857/409029797-5c53a221-f1e9-450e-88b6-014c358b7905.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3Mzg1NzI3MTAsIm5iZiI6MTczODU3MjQxMCwicGF0aCI6Ii8xMDU1ODg4NTcvNDA5MDI5Nzk3LTVjNTNhMjIxLWYxZTktNDUwZS04OGI2LTAxNGMzNThiNzkwNS5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjUwMjAzJTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI1MDIwM1QwODQ2NTBaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT0zOGMxNTIzOWU4MzJiNWNhOTExY2ZiZjI3MzQ2NTQ0MzQ0MjI4NDA0ZDVkZjEyNzNmNDFlODExYmE2YzQ3NmI4JlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.IW1RS9e11gxmBwvSaoa958ZeJ9BEsRn5pXAemRp6-d4">
+<img width="950" alt="image" src="https://github.com/user-attachments/assets/a0c6fb19-51e6-4e87-b330-d490537578b4" />
 
 **Frontend**: <img src="https://img.shields.io/badge/next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white"> <img src="https://img.shields.io/badge/typescript-3178C6?style=for-the-badge&logo=typescript&logoColor=white"> <img src="https://img.shields.io/badge/tailwindcss-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white">
 
