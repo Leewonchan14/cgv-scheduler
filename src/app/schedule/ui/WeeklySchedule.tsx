@@ -64,6 +64,13 @@ const DayOfWeekDisplay: React.FC<DayOfWeekDisplayProps> = ({
   hoverId,
   setHoverId,
 }) => {
+  const howManyWorkPeopleInDay = _.chain(
+    schedule[day]?.map((e) => e.employee?.id),
+  )
+    .compact()
+    .size()
+    .value();
+
   return (
     <div className="p-4 px-2 border rounded-lg shadow bg-gray-50">
       <h3 className="mb-2 text-xl font-semibold text-center">{day}</h3>
@@ -82,7 +89,7 @@ const DayOfWeekDisplay: React.FC<DayOfWeekDisplayProps> = ({
         )}
       </ul>
       <div className="w-full text-center bg-gray-300 rounded-lg">
-        근무인원 : {_.uniq(schedule[day]?.map((e) => e.employee?.id)).length}
+        근무인원 : {howManyWorkPeopleInDay}
       </div>
     </div>
   );
@@ -99,12 +106,14 @@ const EntryScheduleDisplay: React.FC<EntryScheduleDisplayProps> = ({
   hoverId,
   setHoverId,
 }) => {
+  const isSelectEmployee = !!entry.employee;
   const color = getColor(entry.employee?.id);
   const isLight = isLightColor(color);
   const isHover = hoverId === entry.employee?.id;
 
   const bgColorHover = color.slice(0, -2);
   const bgColor = color;
+
   return (
     <li
       onMouseEnter={() => setHoverId(entry.employee?.id ?? -1)}
@@ -113,17 +122,17 @@ const EntryScheduleDisplay: React.FC<EntryScheduleDisplayProps> = ({
       className="mb-2"
     >
       <div
-        style={{
-          backgroundColor: isHover ? bgColorHover : bgColor,
-        }}
+        style={{ backgroundColor: isHover ? bgColorHover : bgColor }}
         className={`flex md:flex-col items-center justify-evenly md:items-start px-2 py-1 rounded-lg transition-transform duration-200
                       ${isHover && 'drop-shadow-2xl transform scale-105 font-bold'}
                       ${isHover && (isLight ? 'text-black' : 'text-white')}`}
       >
         <span className="text-lg">{entry.workPosition}</span>
         <span className="text-sm text-opacity-80">{entry.workTime}</span>
-        <span className={`text-sm text-opacity-80`}>
-          {entry.employee?.name}
+        <span
+          className={`text-sm text-opacity-80 ${!isSelectEmployee && 'text-red-500 font-bold'}`}
+        >
+          {entry.employee?.name ?? '선택 되지 않음'}
         </span>
       </div>
     </li>

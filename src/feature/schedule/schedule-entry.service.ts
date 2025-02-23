@@ -44,17 +44,20 @@ export class ScheduleEntryService {
     const previousIds = _.values(await this.findWeekSchedule(selectedWeek))
       .flat()
       .map((s) => s.id);
+
     const removeIds = previousIds.filter((pId) => !updateIds.includes(pId));
 
     const mapper = scheduleEntries.map((e) => {
       const entry = this.scheduleRep.create(e);
-      entry.employee = employees.find((emp) => emp.id === e.employee!.id)!;
+      entry.employee = employees.find((emp) => emp.id === e.employee?.id)!;
 
       return entry;
     });
 
-    await this.scheduleRep.upsert(mapper, ['id']);
-    await this.scheduleRep.delete(removeIds);
+    await this.scheduleRep.upsert(mapper, { conflictPaths: { id: true } });
+    if (removeIds.length) {
+      await this.scheduleRep.delete(removeIds);
+    }
   }
 
   async removeByWeek(selectedWeek: Date): Promise<void> {

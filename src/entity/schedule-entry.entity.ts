@@ -22,9 +22,18 @@ export class ScheduleEntry implements IScheduleEntry {
   @Index()
   date: Date;
 
-  @ManyToOne(() => Employee, { eager: true, nullable: false })
+  @ManyToOne(() => Employee, { eager: true, nullable: true })
   @JoinColumn()
-  employee: IEmployeeSchemaType;
+  private _employee?: IEmployeeSchemaType;
+
+  get employee(): IEmployeeSchemaType | undefined {
+    if (this._employee === null) return undefined;
+    return this._employee;
+  }
+
+  set employee(v: IEmployeeSchemaType | undefined | null) {
+    this._employee = v ?? undefined;
+  }
 
   @Column({ type: 'enum', enum: EWorkPosition })
   workPosition: EWorkPosition;

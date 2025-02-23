@@ -48,7 +48,7 @@ export const EmployeeConditionSchema = z.object({
 export const ScheduleEntrySchema = z.object({
   id: z.string(),
   date: z.coerce.date(),
-  employee: IEmployeeSchema,
+  employee: IEmployeeSchema.optional(),
   workPosition: z.nativeEnum(EWorkPosition),
   workTime: z.nativeEnum(EWorkTime),
   timeSlot: WorkTimeSlotSchema,
